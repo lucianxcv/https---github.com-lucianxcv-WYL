@@ -25,6 +25,7 @@ import { OwnerBio } from '../components/home/OwnerBio';
 import { CommentsSection } from '../components/home/CommentsSection';
 import { sampleData } from '../data/sampleData';
 import { PastShow } from '../data/types';
+import { MultiLocationWeather } from '../components/home/MultiLocationWeather';
 
 export const HomePage: React.FC = () => {
   const theme = useTheme();
@@ -92,6 +93,8 @@ export const HomePage: React.FC = () => {
 
       {/* Hero section with countdown */}
       <Hero />
+      
+     <MultiLocationWeather />
 
       {/* Main page content */}
       <main style={mainContentStyle}>

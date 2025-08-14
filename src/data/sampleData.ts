@@ -23,7 +23,7 @@ export const sampleData = {
       title: "Deep Sea Explorer & Marine Biologist",
       bio: "Renowned ocean explorer with over 20 years of experience in deep-sea research. Led expeditions to the most remote corners of our oceans and discovered several new species of marine life.",
       photoUrl: "https://via.placeholder.com/150/4682b4/ffffff?text=SJ",
-      nextPresentationDate: "2025-08-14T12:00:00",
+      nextPresentationDate: "2025-08-20T12:00:00",
       topic: "Mysteries of the Mariana Trench"
     }
   ] as Speaker[],

@@ -2,15 +2,8 @@
 /**
  * COUNTDOWN TIMER COMPONENT
  * 
- * Shows time remaining until the next luncheon event with animated number boxes.
- * Updates every second to show live countdown.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change the styling of the number boxes (colors, borders, shadows)
- * - Add or remove time units (add weeks, remove seconds)
- * - Modify the update interval (currently updates every second)
- * - Change what happens when the countdown reaches zero
- * - Add sound effects or animations when numbers change
+ * Updated: Supports auto-reset based on repeatInterval prop (daily, weekly, monthly)
+ * This makes the countdown restart automatically when it reaches zero.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -19,35 +12,58 @@ import { calculateTimeLeft } from '../../utils/dateUtils';
 
 interface CountdownTimerProps {
   targetDate: string; // ISO date string of the target event
+  repeatInterval?: 'daily' | 'weekly' | 'monthly'; // Optional auto-reset interval
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, repeatInterval }) => {
   const theme = useTheme();
-  // State to hold the current time remaining
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // Effect that runs when component mounts and updates every second
+  // State to track the current target date (changes on reset)
+  const [currentTargetDate, setCurrentTargetDate] = useState(targetDate);
+  // State to track time left
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
+
   useEffect(() => {
     const timer = setInterval(() => {
-      // Calculate new time remaining
-      const newTimeLeft = calculateTimeLeft(targetDate);
-      setTimeLeft(newTimeLeft);
-    }, 1000); // Update every 1000ms (1 second)
+      const newTimeLeft = calculateTimeLeft(currentTargetDate);
 
-    // Cleanup: clear the timer when component unmounts
+      // Check if countdown finished
+      const isFinished =
+        newTimeLeft.days <= 0 &&
+        newTimeLeft.hours <= 0 &&
+        newTimeLeft.minutes <= 0 &&
+        newTimeLeft.seconds <= 0;
+
+      if (isFinished && repeatInterval) {
+        // Calculate next occurrence based on repeatInterval
+        const nextDate = new Date(currentTargetDate);
+
+        if (repeatInterval === 'daily') {
+          nextDate.setDate(nextDate.getDate() + 1);
+        } else if (repeatInterval === 'weekly') {
+          nextDate.setDate(nextDate.getDate() + 7);
+        } else if (repeatInterval === 'monthly') {
+          nextDate.setMonth(nextDate.getMonth() + 1);
+        }
+
+        setCurrentTargetDate(nextDate.toISOString());
+        setTimeLeft(calculateTimeLeft(nextDate.toISOString()));
+      } else {
+        setTimeLeft(newTimeLeft);
+      }
+    }, 1000); // Update every second
+
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [currentTargetDate, repeatInterval]);
 
-  // Container for all the time boxes
+  // Styling for the countdown boxes
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     gap: theme.spacing.md,
     justifyContent: 'center',
-    margin: `${theme.spacing.xl} 0`,
-    flexWrap: 'wrap' // Wrap on smaller screens
+    flexWrap: 'wrap'
   };
 
-  // Individual time box styling
   const timeBoxStyle: React.CSSProperties = {
     backgroundColor: theme.colors.surface,
     border: `2px solid ${theme.colors.secondary}`,
@@ -58,7 +74,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) =>
     boxShadow: theme.shadows.md
   };
 
-  // Large number styling
   const numberStyle: React.CSSProperties = {
     fontSize: theme.typography.sizes['2xl'],
     fontWeight: theme.typography.weights.bold,
@@ -67,7 +82,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) =>
     lineHeight: 1
   };
 
-  // Label under each number
   const labelStyle: React.CSSProperties = {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.textSecondary,

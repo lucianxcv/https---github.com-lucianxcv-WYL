@@ -99,3 +99,61 @@ export interface SpeakerSuggestion {
   status: 'pending' | 'approved' | 'declined';
 }
 
+// Add these new types to your existing types.ts file
+
+export interface WeatherData {
+  location: string;
+  temperature: number;
+  windSpeed: number;
+  windDirection: number;
+  windDirectionText: string;
+  description: string;
+  icon: string;
+  visibility: number;
+  humidity: number;
+  pressure: number;
+  uvIndex?: number;
+  sailingCondition: 'Poor' | 'Fair' | 'Good' | 'Excellent';
+  sailingDifficulty: 'Beginner' | 'Intermediate' | 'Expert' | 'Dangerous';
+  lastUpdated: string;
+}
+
+export interface TideData {
+  nextHigh: {
+    time: string;
+    height: number;
+  };
+  nextLow: {
+    time: string;
+    height: number;
+  };
+}
+
+export interface SailingConditions {
+  weather: WeatherData;
+  tides: TideData;
+  memberReports: MemberReport[];
+}
+
+export interface MemberReport {
+  id: number;
+  memberName: string;
+  location: string;
+  conditions: string;
+  timestamp: string;
+  photo?: string;
+}
+// Add this to your existing types
+export interface SailingLocation {
+  id: string;
+  name: string;
+  shortName: string;
+  coordinates: {
+    lat: number;
+    lon: number;
+  };
+  description: string;
+  skillLevel: 'Beginner' | 'Intermediate' | 'Expert' | 'All Levels';
+  features: string[];
+  weather?: WeatherData;
+}
