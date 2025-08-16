@@ -1,32 +1,18 @@
 // ==================== src/components/home/CommentsSection.tsx ====================
 /**
- * COMMENTS & SUGGESTIONS SECTION (PLACEHOLDER)
- * 
- * This is a placeholder for future functionality where logged-in users can:
- * - Post comments about luncheons
- * - Suggest speakers for future events
- * - View and interact with other users' comments
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change the placeholder text and styling
- * - Add mock comment data to show what it will look like
- * - Modify the form fields (add rating, categories, etc.)
- * - Change the layout and visual design
- * 
- * FUTURE BACKEND INTEGRATION POINTS:
- * - Replace mock data with API calls to fetch real comments
- * - Add form submission handlers that send data to your backend
- * - Implement user authentication checks
- * - Add real-time comment updates
+ * COMMENTS & SUGGESTIONS SECTION
+ *
+ * Now connected to real authentication system!
+ * Users can log in and access commenting features.
  */
 
 import React, { useState } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useAuth } from '../../utils/useAuth';
 
 export const CommentsSection: React.FC = () => {
   const theme = useTheme();
-  // These will eventually be replaced with real user authentication
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [showSuggestionForm, setShowSuggestionForm] = useState(false);
 
   const sectionStyle: React.CSSProperties = {
@@ -66,7 +52,10 @@ export const CommentsSection: React.FC = () => {
     fontWeight: theme.typography.weights.semibold,
     cursor: 'pointer',
     transition: 'all 0.3s ease',
-    marginRight: theme.spacing.md
+    marginRight: theme.spacing.md,
+    textDecoration: 'none',
+    display: 'inline-block',
+    textAlign: 'center'
   };
 
   const formStyle: React.CSSProperties = {
@@ -93,14 +82,14 @@ export const CommentsSection: React.FC = () => {
       id: 1,
       author: "Sarah M.",
       content: "Captain Johnson's presentation on deep-sea exploration was absolutely fascinating! The underwater footage was breathtaking.",
-      date: "2025-08-08",
+      date: "2025-08-07",
       showTitle: "Mysteries of the Mariana Trench"
     },
     {
       id: 2,
       author: "Mike R.",
       content: "I'd love to see a speaker about sustainable fishing practices. This topic is becoming increasingly important.",
-      date: "2025-08-07",
+      date: "2025-08-06",
       showTitle: "Speaker Suggestion"
     }
   ];
@@ -111,16 +100,15 @@ export const CommentsSection: React.FC = () => {
         💬 Comments & Suggestions
       </h2>
 
-      {/* 
-        PLACEHOLDER NOTICE
-        This explains to users what this section will become
+      {/*
+        PLACEHOLDER NOTICE - Updated for authentication
       */}
       <div style={placeholderStyle}>
         <p style={{ marginBottom: theme.spacing.md }}>
-          🚧 <strong>Coming Soon!</strong> 🚧
+          {isAuthenticated ? '🎉 Welcome! You can now:' : '🚧 Coming Soon! 🚧'}
         </p>
         <p style={{ marginBottom: theme.spacing.md }}>
-          This section will allow logged-in users to:
+          {isAuthenticated ? 'Participate in discussions:' : 'This section will allow logged-in users to:'}
         </p>
         <ul style={{ textAlign: 'left', maxWidth: '500px', margin: '0 auto', lineHeight: 1.6 }}>
           <li>📝 Comment on luncheon presentations</li>
@@ -130,43 +118,42 @@ export const CommentsSection: React.FC = () => {
         </ul>
       </div>
 
-      {/* 
-        AUTHENTICATION BUTTONS
-        These will eventually connect to real login system
+      {/*
+        AUTHENTICATION BUTTONS - Now working!
       */}
-      {!isLoggedIn ? (
+      {!isAuthenticated ? (
         <div style={{ textAlign: 'center', marginBottom: theme.spacing.lg }}>
-          <button 
+          <a
+            href="#auth"
             style={buttonStyle}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
-            onClick={() => {
-              // TODO: Connect to real authentication system
-              alert('Login functionality will be connected to backend authentication');
-            }}
           >
             🔐 Login to Comment
-          </button>
-          <button 
+          </a>
+          <a
+            href="#auth"
             style={buttonStyle}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
-            onClick={() => {
-              // TODO: Connect to real authentication system  
-              alert('Signup functionality will be connected to backend authentication');
-            }}
           >
             ✍️ Sign Up
-          </button>
+          </a>
         </div>
       ) : (
-        /* 
+        /*
           LOGGED-IN USER INTERFACE
           This is what users will see after authentication
         */
         <div>
-          <div style={{ display: 'flex', gap: theme.spacing.md, marginBottom: theme.spacing.lg }}>
-            <button 
+          <div style={{ marginBottom: theme.spacing.lg, textAlign: 'center' }}>
+            <p style={{ color: theme.colors.primary, marginBottom: theme.spacing.md }}>
+              👋 Welcome back, {user?.name || user?.email}!
+            </p>
+          </div>
+          
+          <div style={{ display: 'flex', gap: theme.spacing.md, marginBottom: theme.spacing.lg, justifyContent: 'center' }}>
+            <button
               style={buttonStyle}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
@@ -177,7 +164,7 @@ export const CommentsSection: React.FC = () => {
             >
               💭 Add Comment
             </button>
-            <button 
+            <button
               style={buttonStyle}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
@@ -187,7 +174,7 @@ export const CommentsSection: React.FC = () => {
             </button>
           </div>
 
-          {/* 
+          {/*
             SPEAKER SUGGESTION FORM
             This form will eventually submit to your backend API
           */}
@@ -226,8 +213,8 @@ export const CommentsSection: React.FC = () => {
                 <button type="submit" style={buttonStyle}>
                   📤 Submit Suggestion
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   style={{...buttonStyle, backgroundColor: theme.colors.textSecondary}}
                   onClick={() => setShowSuggestionForm(false)}
                 >
@@ -239,17 +226,17 @@ export const CommentsSection: React.FC = () => {
         </div>
       )}
 
-      {/* 
+      {/*
         MOCK COMMENTS PREVIEW
         Shows what the comments will look like when real data is connected
       */}
       <div>
-        <h3 style={{ 
-          color: theme.colors.primary, 
+        <h3 style={{
+          color: theme.colors.primary,
           marginBottom: theme.spacing.md,
-          fontSize: theme.typography.sizes.lg 
+          fontSize: theme.typography.sizes.lg
         }}>
-          📖 Recent Comments (Preview)
+          📖 Recent Comments {isAuthenticated ? '' : '(Preview)'}
         </h3>
         {mockComments.map((comment) => (
           <div key={comment.id} style={{
@@ -259,81 +246,38 @@ export const CommentsSection: React.FC = () => {
             marginBottom: theme.spacing.md,
             borderLeft: `4px solid ${theme.colors.accent}`
           }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: theme.spacing.xs 
+              marginBottom: theme.spacing.xs
             }}>
               <strong style={{ color: theme.colors.primary }}>
                 {comment.author}
               </strong>
-              <span style={{ 
-                fontSize: theme.typography.sizes.sm, 
-                color: theme.colors.textSecondary 
+              <span style={{
+                fontSize: theme.typography.sizes.sm,
+                color: theme.colors.textSecondary
               }}>
                 {new Date(comment.date).toLocaleDateString()}
               </span>
             </div>
-            <p style={{ 
-              color: theme.colors.text, 
+            <p style={{
+              color: theme.colors.text,
               margin: `${theme.spacing.xs} 0`,
-              lineHeight: 1.5 
+              lineHeight: 1.5
             }}>
               {comment.content}
             </p>
-            <small style={{ 
+            <small style={{
               color: theme.colors.textSecondary,
-              fontStyle: 'italic' 
+              fontStyle: 'italic'
             }}>
               Re: {comment.showTitle}
             </small>
           </div>
         ))}
       </div>
-
-      {/* 
-        DEVELOPMENT NOTES
-        Hidden in production, helpful during development
-      */}
-      <details style={{ marginTop: theme.spacing.lg }}>
-        <summary style={{ 
-          cursor: 'pointer', 
-          color: theme.colors.secondary,
-          fontWeight: theme.typography.weights.semibold 
-        }}>
-          🛠️ Developer Notes (Click to expand)
-        </summary>
-        <div style={{
-          backgroundColor: theme.colors.surface,
-          padding: theme.spacing.md,
-          borderRadius: '8px',
-          marginTop: theme.spacing.sm,
-          fontSize: theme.typography.sizes.sm,
-          lineHeight: 1.6
-        }}>
-          <p><strong>Backend Integration Checklist:</strong></p>
-          <ul>
-            <li>✅ User authentication (login/signup)</li>
-            <li>✅ Comment posting and retrieval</li>
-            <li>✅ Speaker suggestion submission</li>
-            <li>✅ User permission checking</li>
-            <li>✅ Real-time comment updates</li>
-            <li>✅ Content moderation</li>
-          </ul>
-          <p style={{ marginTop: theme.spacing.sm }}>
-            <strong>API Endpoints Needed:</strong>
-          </p>
-          <ul>
-            <li><code>POST /api/auth/login</code></li>
-            <li><code>POST /api/auth/register</code></li>
-            <li><code>GET /api/comments</code></li>
-            <li><code>POST /api/comments</code></li>
-            <li><code>POST /api/speaker-suggestions</code></li>
-          </ul>
-        </div>
-      </details>
     </section>
   );
 };
-

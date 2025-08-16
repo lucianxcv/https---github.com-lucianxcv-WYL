@@ -1,20 +1,13 @@
 // ==================== src/components/forms/AuthForm.tsx ====================
 /**
  * AUTHENTICATION FORM COMPONENT
- * 
- * Provides login and signup forms with form validation and error handling.
- * Currently uses mock authentication - will be connected to real backend later.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change form styling and layout
- * - Add more form fields (name, phone, etc.)
- * - Modify validation rules
- * - Change error message styling
- * - Add social login buttons (Google, Facebook)
+ *
+ * Now connected to real backend API!
+ * Provides login and signup forms with real authentication.
  */
-
 import React, { useState } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
+import { authApi } from '../../utils/apiService';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -28,89 +21,40 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
     email: '',
     password: '',
     confirmPassword: '',
-    username: ''
+    name: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const formStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.background,
-    borderRadius: '16px',
-    padding: theme.spacing.xl,
-    boxShadow: theme.shadows.lg,
-    border: `1px solid ${theme.colors.border}`,
-    maxWidth: '400px',
-    margin: '0 auto'
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
-  const titleStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes['2xl'],
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.lg,
-    textAlign: 'center'
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: theme.spacing.md,
-    border: `2px solid ${theme.colors.border}`,
-    borderRadius: '8px',
-    fontSize: theme.typography.sizes.base,
-    marginBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.background,
-    color: theme.colors.text,
-    boxSizing: 'border-box'
-  };
-
-  const errorStyle: React.CSSProperties = {
-    color: '#ef4444',
-    fontSize: theme.typography.sizes.sm,
-    marginBottom: theme.spacing.md,
-    marginTop: `-${theme.spacing.xs}`
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    width: '100%',
-    backgroundColor: theme.colors.primary,
-    color: '#ffffff',
-    padding: theme.spacing.md,
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: theme.typography.sizes.base,
-    fontWeight: theme.typography.weights.semibold,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    marginBottom: theme.spacing.md,
-    opacity: isSubmitting ? 0.7 : 1
-  };
-
-  const linkStyle: React.CSSProperties = {
-    color: theme.colors.secondary,
-    textDecoration: 'none',
-    fontWeight: theme.typography.weights.medium,
-    cursor: 'pointer'
-  };
-
-  // Form validation
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    // Email validation
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Please enter a valid email';
     }
 
+    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
+    // Signup-specific validation
     if (mode === 'signup') {
-      if (!formData.username) {
-        newErrors.username = 'Username is required';
+      if (!formData.name.trim()) {
+        newErrors.name = 'Name is required';
       }
       
       if (formData.password !== formData.confirmPassword) {
@@ -122,37 +66,132 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
     return Object.keys(newErrors).length === 0;
   };
 
-  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setErrors({});
 
-    // TODO: Replace with real API call
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful authentication
-      console.log(`${mode} attempt:`, formData);
-      alert(`${mode === 'login' ? 'Login' : 'Signup'} successful! (This is just a demo)`);
-      
-      onSuccess();
+      if (mode === 'signup') {
+        // Register new user
+        const response = await authApi.register({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name
+        });
+        
+        if (response.success) {
+          alert('Account created successfully! Please log in.');
+          onSwitchMode(); // Switch to login mode
+        } else {
+          setErrors({ general: response.error || 'Registration failed' });
+        }
+      } else {
+        // Login existing user
+        const response = await authApi.login({
+          email: formData.email,
+          password: formData.password
+        });
+        
+        if (response.success) {
+          // Store auth token if provided
+          if (response.data?.token) {
+            localStorage.setItem('auth_token', response.data.token);
+          }
+          
+          alert('Login successful!');
+          onSuccess();
+          
+          // Redirect to home after successful login
+          window.location.hash = '#home';
+        } else {
+          setErrors({ general: response.error || 'Login failed' });
+        }
+      }
     } catch (error) {
-      setErrors({ general: 'Authentication failed. Please try again.' });
+      console.error('Authentication error:', error);
+      setErrors({ 
+        general: 'Network error. Please check your connection and try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  // Styles
+  const formStyle: React.CSSProperties = {
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.xl,
+    borderRadius: '12px',
+    boxShadow: theme.shadows.lg,
+    border: `1px solid ${theme.colors.border}`,
+    maxWidth: '400px',
+    margin: '0 auto'
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+    fontWeight: theme.typography.weights.bold
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: theme.spacing.md,
+    border: `2px solid ${theme.colors.border}`,
+    borderRadius: '8px',
+    fontSize: theme.typography.sizes.base,
+    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+    fontFamily: theme.typography.fontFamily,
+    transition: 'border-color 0.3s ease'
+  };
+
+  const errorStyle: React.CSSProperties = {
+    color: theme.colors.error || '#e74c3c',
+    fontSize: theme.typography.sizes.sm,
+    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.xs,
+    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    borderRadius: '4px',
+    border: '1px solid rgba(231, 76, 60, 0.3)'
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: '100%',
+    backgroundColor: theme.colors.primary,
+    color: '#ffffff',
+    padding: theme.spacing.md,
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: theme.typography.sizes.base,
+    fontWeight: theme.typography.weights.semibold,
+    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+    transition: 'all 0.3s ease',
+    marginBottom: theme.spacing.md,
+    opacity: isSubmitting ? 0.7 : 1,
+    fontFamily: theme.typography.fontFamily
+  };
+
+  const switchButtonStyle: React.CSSProperties = {
+    background: 'none',
+    border: 'none',
+    color: theme.colors.primary,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    fontSize: theme.typography.sizes.base,
+    fontFamily: theme.typography.fontFamily
+  };
+
+  const centerStyle: React.CSSProperties = {
+    textAlign: 'center',
+    color: theme.colors.textSecondary
   };
 
   return (
@@ -165,17 +204,19 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         <div style={errorStyle}>{errors.general}</div>
       )}
 
-      {/* Username field for signup only */}
+      {/* Name field for signup only */}
       {mode === 'signup' && (
         <>
           <input
             style={inputStyle}
             type="text"
-            placeholder="Username"
-            value={formData.username}
-            onChange={(e) => handleInputChange('username', e.target.value)}
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+            onBlur={(e) => e.target.style.borderColor = theme.colors.border}
           />
-          {errors.username && <div style={errorStyle}>{errors.username}</div>}
+          {errors.name && <div style={errorStyle}>{errors.name}</div>}
         </>
       )}
 
@@ -186,6 +227,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         placeholder="Email Address"
         value={formData.email}
         onChange={(e) => handleInputChange('email', e.target.value)}
+        onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+        onBlur={(e) => e.target.style.borderColor = theme.colors.border}
+        autoComplete="email"
       />
       {errors.email && <div style={errorStyle}>{errors.email}</div>}
 
@@ -196,10 +240,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         placeholder="Password"
         value={formData.password}
         onChange={(e) => handleInputChange('password', e.target.value)}
+        onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+        onBlur={(e) => e.target.style.borderColor = theme.colors.border}
+        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
       />
       {errors.password && <div style={errorStyle}>{errors.password}</div>}
 
-      {/* Confirm password for signup only */}
+      {/* Confirm password field for signup only */}
       {mode === 'signup' && (
         <>
           <input
@@ -208,14 +255,17 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
             placeholder="Confirm Password"
             value={formData.confirmPassword}
             onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+            onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+            onBlur={(e) => e.target.style.borderColor = theme.colors.border}
+            autoComplete="new-password"
           />
           {errors.confirmPassword && <div style={errorStyle}>{errors.confirmPassword}</div>}
         </>
       )}
 
       {/* Submit button */}
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         style={buttonStyle}
         disabled={isSubmitting}
         onMouseEnter={(e) => {
@@ -229,30 +279,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
           }
         }}
       >
-        {isSubmitting ? 'Please wait...' : (mode === 'login' ? 'Login' : 'Create Account')}
+        {isSubmitting 
+          ? (mode === 'login' ? '🔄 Logging in...' : '🔄 Creating account...') 
+          : (mode === 'login' ? '🔐 Login' : '✍️ Create Account')
+        }
       </button>
 
-      {/* Switch between login/signup */}
-      <p style={{ textAlign: 'center', color: theme.colors.textSecondary }}>
+      {/* Switch mode button */}
+      <div style={centerStyle}>
         {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-        <span style={linkStyle} onClick={onSwitchMode}>
+        <button
+          type="button"
+          style={switchButtonStyle}
+          onClick={onSwitchMode}
+        >
           {mode === 'login' ? 'Sign up here' : 'Login here'}
-        </span>
-      </p>
-
-      {/* Developer note */}
-      <div style={{
-        marginTop: theme.spacing.lg,
-        padding: theme.spacing.sm,
-        backgroundColor: theme.colors.surface,
-        borderRadius: '8px',
-        fontSize: theme.typography.sizes.sm,
-        color: theme.colors.textSecondary
-      }}>
-        <strong>🛠️ Developer Note:</strong> This form currently uses mock authentication. 
-        It will be connected to your backend authentication system during implementation.
+        </button>
       </div>
     </form>
   );
 };
-

@@ -1,10 +1,10 @@
 // ==================== src/components/common/Navbar.tsx ====================
 /**
  * NAVIGATION BAR COMPONENT
- * 
+ *
  * The top navigation that appears on every page.
  * Changes appearance when user scrolls and includes responsive mobile menu.
- * 
+ *
  * BEGINNER MODIFICATIONS YOU CAN MAKE:
  * - Add or remove navigation items in the navItems array
  * - Change the logo text or add an image logo
@@ -16,10 +16,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { ThemeToggle } from './ThemeToggle';
+import { useAuth } from '../../utils/useAuth';
 
 export const Navbar: React.FC = () => {
   const theme = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Listen for scroll events to change navbar appearance
   useEffect(() => {
@@ -27,7 +29,7 @@ export const Navbar: React.FC = () => {
       // If user has scrolled more than 20px, add blur/transparency effect
       setScrolled(window.scrollY > 20);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     // Cleanup: remove event listener when component unmounts
     return () => window.removeEventListener('scroll', handleScroll);
@@ -49,7 +51,7 @@ export const Navbar: React.FC = () => {
     right: 0,
     zIndex: 1000, // High z-index so navbar stays on top
     // Background changes when scrolled for better readability
-    backgroundColor: scrolled 
+    backgroundColor: scrolled
       ? `rgba(30, 58, 95, 0.95)` // Semi-transparent when scrolled
       : theme.colors.primary,     // Solid when at top
     backdropFilter: scrolled ? 'blur(10px)' : 'none', // Blur effect when scrolled
@@ -100,12 +102,28 @@ export const Navbar: React.FC = () => {
     gap: theme.spacing.xs
   };
 
+  const authButtonStyle: React.CSSProperties = {
+    ...linkStyle,
+    backgroundColor: theme.colors.accent,
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: theme.typography.fontFamily
+  };
+
+  const userInfoStyle: React.CSSProperties = {
+    color: theme.colors.gold,
+    fontSize: theme.typography.sizes.sm,
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing.sm
+  };
+
   return (
     <nav style={navbarStyle} role="navigation" aria-label="Main navigation">
       <div style={containerStyle}>
         {/* Logo/Home link */}
-        <a 
-          href="#home" 
+        <a
+          href="#home"
           style={logoStyle}
           // Hover effect: slightly scale up the logo
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -119,7 +137,7 @@ export const Navbar: React.FC = () => {
         <ul style={desktopMenuStyle}>
           {navItems.map((item) => (
             <li key={item.href}>
-              <a 
+              <a
                 href={item.href}
                 style={linkStyle}
                 // Hover effects for each menu item
@@ -142,6 +160,33 @@ export const Navbar: React.FC = () => {
               </a>
             </li>
           ))}
+          
+          {/* Authentication Section */}
+          <li>
+            {isAuthenticated ? (
+              <div style={userInfoStyle}>
+                <span>Welcome, {user?.name || user?.email}</span>
+                <button
+                  style={authButtonStyle}
+                  onClick={logout}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.accent}
+                >
+                  🚪 Logout
+                </button>
+              </div>
+            ) : (
+              <a
+                href="#auth"
+                style={authButtonStyle}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.accent}
+              >
+                🔐 Login
+              </a>
+            )}
+          </li>
+          
           <li>
             <ThemeToggle />
           </li>
