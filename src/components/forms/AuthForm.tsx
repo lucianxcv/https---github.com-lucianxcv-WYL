@@ -132,7 +132,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
   };
 
   const errorStyle: React.CSSProperties = {
-    color: theme.colors.error || '#e74c3c',
+    color: '#e74c3c',
     fontSize: theme.typography.sizes.sm,
     marginBottom: theme.spacing.sm,
     padding: theme.spacing.xs,
