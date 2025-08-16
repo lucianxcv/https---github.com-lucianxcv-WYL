@@ -17,7 +17,7 @@ const isLocalhost = typeof window !== 'undefined' &&
 
 // API Base URL configuration
 const API_BASE_URL = isDevelopment || isLocalhost
-  ? 'http://localhost:3000'
+  ? 'http://localhost:5000'
   : 'https://wyl-backend.vercel.app';
 
 console.log('🌍 API Base URL:', API_BASE_URL);
