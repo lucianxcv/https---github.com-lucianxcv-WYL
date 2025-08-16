@@ -101,7 +101,10 @@ export interface SpeakerSuggestion {
 
 // Add these new types to your existing types.ts file
 
+// Update your existing WeatherData interface in src/data/types.ts
+// Update your existing WeatherData interface in src/data/types.ts
 export interface WeatherData {
+  id?: number;                    // Added: database ID
   location: string;
   temperature: number;
   windSpeed: number;
@@ -112,12 +115,11 @@ export interface WeatherData {
   visibility: number;
   humidity: number;
   pressure: number;
-  uvIndex?: number;
   sailingCondition: 'Poor' | 'Fair' | 'Good' | 'Excellent';
   sailingDifficulty: 'Beginner' | 'Intermediate' | 'Expert' | 'Dangerous';
+  locationId: string;             // Added: this was missing!
   lastUpdated: string;
 }
-
 export interface TideData {
   nextHigh: {
     time: string;
@@ -143,17 +145,34 @@ export interface MemberReport {
   timestamp: string;
   photo?: string;
 }
-// Add this to your existing types
+// Update your SailingLocation interface in src/data/types.ts
+
+// Update your SailingLocation interface in src/data/types.ts
+
 export interface SailingLocation {
   id: string;
   name: string;
   shortName: string;
-  coordinates: {
-    lat: number;
-    lon: number;
-  };
+  coordinates: { lat: number; lon: number };
   description: string;
-  skillLevel: 'Beginner' | 'Intermediate' | 'Expert' | 'All Levels';
+  skillLevel: "Beginner" | "Intermediate" | "Expert" | "All Levels" | string; // Allow both specific types AND generic string
   features: string[];
-  weather?: WeatherData;
+  weather?: { // Make weather optional with ?
+    location: string;
+    temperature: number;
+    windSpeed: number;
+    windDirection: number;
+    windDirectionText: string;
+    description: string;
+    icon: string;
+    visibility: number;
+    humidity: number;
+    pressure: number;
+    sailingCondition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    sailingDifficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+    locationId: string;
+    lastUpdated: string;
+  };
 }
+
+// Keep all your other existing types in this file...
