@@ -210,7 +210,7 @@ export interface Owner {
   name: string;
   title: string;
   bio: string;
-  achievements: string; // JSON string of achievements array
+  achievements: string[]; // JSON string of achievements array
   photoUrl?: string;
   email?: string;
   phone?: string;

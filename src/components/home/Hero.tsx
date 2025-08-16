@@ -83,7 +83,7 @@ export const Hero: React.FC = () => {
 
           {/* Updated CountdownTimer to use repeatInterval prop for auto-reset */}
           <CountdownTimer 
-            targetDate={sampleData.speakers[0].nextPresentationDate} 
+            targetDate={sampleData.speakers[0].nextPresentationDate || "2025-12-31T12:00:00"} 
             repeatInterval="weekly" // Auto-reset every week
           />
         </div>

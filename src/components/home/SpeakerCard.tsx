@@ -151,7 +151,7 @@ export const SpeakerCard: React.FC<Speaker> = ({
         {topic && <p style={topicStyle}>"{topic}"</p>}
         <p style={bioStyle}>{bio}</p>
         <span style={dateStyle} role="status" aria-live="polite">
-          📅 {formatDate(nextPresentationDate)}
+          📅 {nextPresentationDate ? formatDate(nextPresentationDate) : "TBA"}
         </span>
       </div>
     </article>

@@ -18,19 +18,24 @@ import { Speaker, PastShow, Owner } from './types';
 export const sampleData = {
   speakers: [
     {
-      id: 1,
+      id: "1",
       name: "Captain Sarah Johnson",
       title: "Deep Sea Explorer & Marine Biologist",
       bio: "Renowned ocean explorer with over 20 years of experience in deep-sea research. Led expeditions to the most remote corners of our oceans and discovered several new species of marine life.",
       photoUrl: "https://via.placeholder.com/150/4682b4/ffffff?text=SJ",
       nextPresentationDate: "2025-08-20T12:00:00",
-      topic: "Mysteries of the Mariana Trench"
+      topic: "Mysteries of the Mariana Trench",
+      isActive: true,
+      isFeatured: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      presentations: []
     }
   ] as Speaker[],
 
   pastShows: [
     {
-      id: 1,
+      id: "1",
       title: "Navigation by the Stars: Ancient Techniques",
       speakerName: "Admiral Sarah Chen",
       videoId: "dQw4w9WgXcQ",
