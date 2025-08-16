@@ -7,7 +7,7 @@
  */
 import React, { useState } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { authApi } from '../../utils/apiService';
+import { useAuth } from '../../utils/useAuth';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -17,6 +17,7 @@ interface AuthFormProps {
 
 export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMode }) => {
   const theme = useTheme();
+  const { signIn, signUp } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -76,45 +77,22 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
 
     try {
       if (mode === 'signup') {
-        // Register new user
-        const response = await authApi.register({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name
-        });
-        
-        if (response.success) {
-          alert('Account created successfully! Please log in.');
-          onSwitchMode(); // Switch to login mode
-        } else {
-          setErrors({ general: response.error || 'Registration failed' });
-        }
+        // Register new user using useAuth hook
+        await signUp(formData.email, formData.password, formData.name);
+        alert('Account created successfully! Please check your email to verify your account.');
+        onSwitchMode(); // Switch to login mode
       } else {
-        // Login existing user
-        const response = await authApi.login({
-          email: formData.email,
-          password: formData.password
-        });
-        
-        if (response.success) {
-          // Store auth token if provided
-          if (response.data?.token) {
-            localStorage.setItem('auth_token', response.data.token);
-          }
-          
-          alert('Login successful!');
-          onSuccess();
-          
-          // Redirect to home after successful login
-          window.location.hash = '#home';
-        } else {
-          setErrors({ general: response.error || 'Login failed' });
-        }
+        // Login existing user using useAuth hook
+        await signIn(formData.email, formData.password);
+        alert('Login successful!');
+        onSuccess();
+        // Redirect to home after successful login
+        window.location.hash = '#home';
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
       setErrors({ 
-        general: 'Network error. Please check your connection and try again.' 
+        general: error.message || 'Authentication failed. Please try again.' 
       });
     } finally {
       setIsSubmitting(false);
