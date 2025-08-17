@@ -160,6 +160,32 @@ export const Navbar: React.FC = () => {
             </li>
           ))}
           
+          {/* Show Admin link for admin users */}
+          {isAuthenticated && isAdmin && (
+            <li>
+              <a
+                href="#admin"
+                style={linkStyle}
+                onMouseEnter={(e) => {
+                  const target = e.currentTarget;
+                  target.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+                  target.style.transform = 'translateY(-3px)';
+                  target.style.boxShadow = '0 4px 12px rgba(255, 215, 0, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.currentTarget;
+                  target.style.backgroundColor = 'transparent';
+                  target.style.transform = 'translateY(0)';
+                  target.style.boxShadow = 'none';
+                }}
+                aria-label="Admin Dashboard"
+              >
+                <span>⚙️</span>
+                Admin
+              </a>
+            </li>
+          )}
+          
           {/* Authentication Section */}
           <li>
             {isAuthenticated ? (
