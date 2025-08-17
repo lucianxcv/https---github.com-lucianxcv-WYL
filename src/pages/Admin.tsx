@@ -76,7 +76,16 @@ export const Admin: React.FC = () => {
           adminApi.posts.getAll()
         ]);
 
-        if (statsResponse.success) setStats(statsResponse.data || stats);
+        if (statsResponse.success) {
+          const serverStats = statsResponse.data;
+          // Map server stats to local state format
+          setStats({
+            totalUsers: serverStats?.totalUsers || 0,
+            totalPosts: serverStats?.totalPosts || 0,
+            publishedPosts: serverStats?.publishedPosts || 0,
+            draftPosts: serverStats?.draftPosts || serverStats?.totalPosts || 0
+          });
+        }
         if (usersResponse.success) setUsers(usersResponse.data || []);
         if (postsResponse.success) setPosts(postsResponse.data || []);
       } catch (error) {
