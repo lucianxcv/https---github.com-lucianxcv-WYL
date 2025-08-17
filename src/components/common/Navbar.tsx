@@ -39,8 +39,7 @@ export const Navbar: React.FC = () => {
   const navItems = [
     { href: '#home', label: 'Home', icon: '🏠' },
     { href: '#upcoming', label: 'Upcoming Speakers', icon: '🎤' },
-    { href: '#past-shows', label: 'Past Shows', icon: '🎥' },
-    { href: '#owner', label: 'Captain', icon: '👨‍✈️' }
+    { href: '#past-shows', label: 'Past Shows', icon: '🎥' }
   ];
 
   // Main navbar styling
