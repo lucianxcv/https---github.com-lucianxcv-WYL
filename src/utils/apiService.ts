@@ -180,15 +180,20 @@ export const adminApi = {
       limit?: number;
       search?: string;
       published?: boolean;
+      category?: string;
     }) => {
       const query = new URLSearchParams();
       if (params?.page) query.set('page', params.page.toString());
       if (params?.limit) query.set('limit', params.limit.toString());
       if (params?.search) query.set('search', params.search);
       if (params?.published !== undefined) query.set('published', params.published.toString());
+      if (params?.category) query.set('category', params.category);
       
       return apiRequest<PaginatedResponse<Post>>(`/api/admin/posts?${query.toString()}`);
     },
+
+    getById: (id: string) =>
+      apiRequest<ApiResponse<Post>>(`/api/admin/posts/${id}`),
 
     create: (postData: CreatePostData) =>
       apiRequest<ApiResponse<Post>>('/api/admin/posts', {
@@ -206,6 +211,51 @@ export const adminApi = {
       apiRequest<ApiResponse<null>>(`/api/admin/posts/${id}`, {
         method: 'DELETE',
       }),
+
+    publish: (id: string) =>
+      apiRequest<ApiResponse<Post>>(`/api/admin/posts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'published' }),
+      }),
+
+    unpublish: (id: string) =>
+      apiRequest<ApiResponse<Post>>(`/api/admin/posts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'draft' }),
+      }),
+  },
+
+  // Speakers management (using posts with speaker category)
+  speakers: {
+    getAll: () => 
+      apiRequest<PaginatedResponse<Post>>('/api/admin/posts?category=speaker'),
+      
+    create: (speakerData: {
+      title: string;
+      content: string;
+      topic?: string;
+      presentationDate?: string;
+      status?: 'upcoming' | 'past';
+    }) =>
+      apiRequest<ApiResponse<Post>>('/api/admin/posts', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...speakerData,
+          category: 'speaker',
+          type: 'speaker'
+        })
+      }),
+      
+    update: (id: string, speakerData: any) =>
+      apiRequest<ApiResponse<Post>>(`/api/admin/posts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(speakerData)
+      }),
+      
+    delete: (id: string) =>
+      apiRequest<ApiResponse<null>>(`/api/admin/posts/${id}`, {
+        method: 'DELETE'
+      })
   },
 
   // Comment moderation
@@ -230,10 +280,8 @@ export const adminApi = {
   },
 };
 
-// ==================== EXISTING API FUNCTIONS ====================
-
-// Weather API functions - matching your weatherService.ts imports
-export const weatherAPI = {
+// ==================== WEATHER API ====================
+export const weatherApi = {
   getAllLocations: () => apiRequest<any[]>('/api/weather/locations'),
   getLocation: (locationId: string) => apiRequest<any>(`/api/weather/location/${locationId}`),
   updateWeather: () => apiRequest<any>('/api/weather/update', { method: 'POST' }),
@@ -243,10 +291,9 @@ export const weatherAPI = {
     apiRequest<any>(`/api/weather/forecast?lat=${lat}&lon=${lon}`),
 };
 
-// Also export as weatherApi for consistency
-export const weatherApi = weatherAPI;
+// ==================== OTHER EXISTING APIS ====================
 
-// Speakers API functions
+// Speakers API functions (legacy - will be replaced by adminApi.speakers)
 export const speakersApi = {
   getAll: () => apiRequest<any[]>('/api/speakers'),
   getById: (id: string) => apiRequest<any>(`/api/speakers/${id}`),

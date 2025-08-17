@@ -69,16 +69,16 @@ export const Admin: React.FC = () => {
       
       setLoading(true);
       try {
-        // Load posts, users, and stats in parallel
-        const [postsResponse, usersResponse, statsResponse] = await Promise.all([
-          adminApi.getPosts(),
-          adminApi.getUsers(),
-          adminApi.getStats()
+        // Load stats, users, and posts
+        const [statsResponse, usersResponse, postsResponse] = await Promise.all([
+          adminApi.getStats(),
+          adminApi.users.getAll(),
+          adminApi.posts.getAll()
         ]);
 
-        if (postsResponse.success) setPosts(postsResponse.data || []);
-        if (usersResponse.success) setUsers(usersResponse.data || []);
         if (statsResponse.success) setStats(statsResponse.data || stats);
+        if (usersResponse.success) setUsers(usersResponse.data || []);
+        if (postsResponse.success) setPosts(postsResponse.data || []);
       } catch (error) {
         console.error('Failed to load admin data:', error);
       } finally {
