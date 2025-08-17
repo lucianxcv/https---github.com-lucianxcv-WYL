@@ -64,7 +64,6 @@ export function useAuth(): AuthState & AuthActions {
           
           try {
             const createResponse = await authApi.register({
-              id: supabaseUser.id,
               email: supabaseUser.email!,
               name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
             });
