@@ -83,7 +83,7 @@ export const Admin: React.FC = () => {
             totalUsers: serverStats?.totalUsers || 0,
             totalPosts: serverStats?.totalPosts || 0,
             publishedPosts: serverStats?.publishedPosts || 0,
-            draftPosts: serverStats?.draftPosts || serverStats?.totalPosts || 0
+            draftPosts: 0 // Will be calculated later
           });
         }
         if (usersResponse.success) setUsers(usersResponse.data || []);
