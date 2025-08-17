@@ -1,7 +1,7 @@
 // ==================== src/utils/useAuth.ts ====================
 /**
  * AUTHENTICATION HOOK
- * 
+ *
  * Custom React hook for managing authentication state with Supabase
  * and syncing with your backend
  */
@@ -39,8 +39,11 @@ export function useAuth(): AuthState & AuthActions {
   // Load user profile from backend
   const loadUserProfile = async () => {
     try {
+      console.log('🔄 Loading user profile from backend...');
       const response = await authApi.getMe();
+      
       if (response.success && response.data) {
+        console.log('✅ User profile found:', response.data);
         const user = response.data;
         setAuthState(prev => ({
           ...prev,
@@ -51,6 +54,46 @@ export function useAuth(): AuthState & AuthActions {
           isLoading: false,
         }));
       } else {
+        console.log('❌ User profile not found in backend, attempting to create...');
+        
+        // User doesn't exist in backend, try to create profile
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+        
+        if (supabaseUser) {
+          console.log('🔄 Creating backend user profile for:', supabaseUser.email);
+          
+          try {
+            const createResponse = await authApi.register({
+              id: supabaseUser.id,
+              email: supabaseUser.email!,
+              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+            });
+            
+            if (createResponse.success) {
+              console.log('✅ User profile created successfully');
+              // Try to load profile again after creation
+              const retryResponse = await authApi.getMe();
+              
+              if (retryResponse.success && retryResponse.data) {
+                const user = retryResponse.data;
+                setAuthState(prev => ({
+                  ...prev,
+                  user,
+                  isAuthenticated: true,
+                  isAdmin: user.role === UserRole.ADMIN,
+                  isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
+                  isLoading: false,
+                }));
+                return;
+              }
+            }
+          } catch (registrationError) {
+            console.error('❌ Failed to create user profile:', registrationError);
+          }
+        }
+        
+        // If all fails, set unauthenticated
+        console.log('❌ Could not create or load user profile, setting unauthenticated');
         setAuthState(prev => ({
           ...prev,
           user: null,
@@ -61,7 +104,7 @@ export function useAuth(): AuthState & AuthActions {
         }));
       }
     } catch (error) {
-      console.error('Failed to load user profile:', error);
+      console.error('❌ Failed to load user profile:', error);
       setAuthState(prev => ({
         ...prev,
         user: null,
@@ -78,7 +121,7 @@ export function useAuth(): AuthState & AuthActions {
     // Get initial session
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session?.user) {
         await loadUserProfile();
       } else {
@@ -156,19 +199,7 @@ export function useAuth(): AuthState & AuthActions {
 
       if (error) throw error;
 
-      // Then, create user profile in backend
-      if (data.user) {
-        try {
-          await authApi.register({
-            email,
-            name: name || email.split('@')[0],
-          });
-        } catch (backendError) {
-          console.warn('Backend user creation failed, but Supabase account exists:', backendError);
-          // Don't throw here - the user can still sign in later and we'll create the profile then
-        }
-      }
-
+      // Backend profile creation will be handled by loadUserProfile when they sign in
       console.log('Sign up successful:', data.user?.email);
     } catch (error) {
       console.error('Sign up error:', error);
