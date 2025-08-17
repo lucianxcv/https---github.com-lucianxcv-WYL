@@ -10,6 +10,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { useAuth } from '../utils/useAuth';
+import { Post, User } from '../data/types';
 import { adminApi } from '../utils/apiService';
 
 export const Admin: React.FC = () => {
