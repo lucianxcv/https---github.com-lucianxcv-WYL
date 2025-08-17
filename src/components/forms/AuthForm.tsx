@@ -86,8 +86,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         await signIn(formData.email, formData.password);
         alert('Login successful!');
         onSuccess();
-        // Redirect to home after successful login
-        window.location.hash = '#home';
+        
+        // Redirect based on user role
+        // Note: We'll need to wait a moment for auth state to update
+        setTimeout(() => {
+          // This will be set by useAuth hook after successful login
+          window.location.hash = '#home'; // Default redirect
+        }, 1000);
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
