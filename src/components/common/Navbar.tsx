@@ -21,7 +21,7 @@ import { useAuth } from '../../utils/useAuth';
 export const Navbar: React.FC = () => {
   const theme = useTheme();
   const [scrolled, setScrolled] = useState(false);
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, isAdmin, signOut } = useAuth();
 
   // Listen for scroll events to change navbar appearance
   useEffect(() => {
