@@ -3,7 +3,7 @@
  * AUTHENTICATION HOOK
  *
  * Custom React hook for managing authentication state with Supabase
- * and syncing with your backend
+ * and syncing with your backend. Now includes fallback for backend failures.
  */
 
 import { useState, useEffect } from 'react';
@@ -17,6 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isModerator: boolean;
+  backendError: boolean; // Track if backend is failing
 }
 
 interface AuthActions {
@@ -34,65 +35,19 @@ export function useAuth(): AuthState & AuthActions {
     isAuthenticated: false,
     isAdmin: false,
     isModerator: false,
+    backendError: false,
   });
 
-  // Load user profile from backend
+  // Load user profile from backend with fallback
   const loadUserProfile = async () => {
     try {
       console.log('🔄 Loading user profile from backend...');
-      const response = await authApi.getMe();
       
-      if (response.success && response.data) {
-        console.log('✅ User profile found:', response.data);
-        const user = response.data;
-        setAuthState(prev => ({
-          ...prev,
-          user,
-          isAuthenticated: true,
-          isAdmin: user.role === UserRole.ADMIN,
-          isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
-          isLoading: false,
-        }));
-      } else {
-        console.log('❌ User profile not found in backend, attempting to create...');
-        
-        // User doesn't exist in backend, try to create profile
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-        
-        if (supabaseUser) {
-          console.log('🔄 Creating backend user profile for:', supabaseUser.email);
-          
-          try {
-            const createResponse = await authApi.register({
-              email: supabaseUser.email!,
-              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
-            });
-            
-            if (createResponse.success) {
-              console.log('✅ User profile created successfully');
-              // Try to load profile again after creation
-              const retryResponse = await authApi.getMe();
-              
-              if (retryResponse.success && retryResponse.data) {
-                const user = retryResponse.data;
-                setAuthState(prev => ({
-                  ...prev,
-                  user,
-                  isAuthenticated: true,
-                  isAdmin: user.role === UserRole.ADMIN,
-                  isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
-                  isLoading: false,
-                }));
-                return;
-              }
-            }
-          } catch (registrationError) {
-            console.error('❌ Failed to create user profile:', registrationError);
-          }
-        }
-        
-        // If all fails, set unauthenticated
-        console.log('❌ Could not create or load user profile, setting unauthenticated');
+      // Get current Supabase user first
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      
+      if (!supabaseUser) {
+        console.log('❌ No Supabase user found');
         setAuthState(prev => ({
           ...prev,
           user: null,
@@ -100,8 +55,128 @@ export function useAuth(): AuthState & AuthActions {
           isAdmin: false,
           isModerator: false,
           isLoading: false,
+          backendError: false,
         }));
+        return;
       }
+
+      try {
+        // Try to get user from backend
+        const response = await authApi.getMe();
+
+        if (response.success && response.data) {
+          console.log('✅ User profile found:', response.data);
+          const user = response.data;
+          setAuthState(prev => ({
+            ...prev,
+            user,
+            isAuthenticated: true,
+            isAdmin: user.role === UserRole.ADMIN,
+            isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
+            isLoading: false,
+            backendError: false,
+          }));
+          return;
+        }
+      } catch (backendError) {
+        console.warn('⚠️ Backend unavailable, using Supabase fallback:', backendError);
+        
+        // Backend is down, create a fallback user from Supabase data
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.USER, // Default role when backend is unavailable
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setAuthState(prev => ({
+          ...prev,
+          user: fallbackUser,
+          isAuthenticated: true,
+          isAdmin: false, // Can't verify admin status without backend
+          isModerator: false,
+          isLoading: false,
+          backendError: true,
+        }));
+        return;
+      }
+
+      // If we get here, user exists in Supabase but not in backend
+      console.log('❌ User profile not found in backend, attempting to create...');
+
+      try {
+        const createResponse = await authApi.register({
+          email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+        });
+
+        if (createResponse.success) {
+          console.log('✅ User profile created successfully');
+          // Try to load profile again after creation
+          const retryResponse = await authApi.getMe();
+
+          if (retryResponse.success && retryResponse.data) {
+            const user = retryResponse.data;
+            setAuthState(prev => ({
+              ...prev,
+              user,
+              isAuthenticated: true,
+              isAdmin: user.role === UserRole.ADMIN,
+              isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
+              isLoading: false,
+              backendError: false,
+            }));
+            return;
+          }
+        }
+      } catch (registrationError) {
+        console.error('❌ Failed to create user profile:', registrationError);
+        
+        // Fall back to Supabase-only auth
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.USER,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setAuthState(prev => ({
+          ...prev,
+          user: fallbackUser,
+          isAuthenticated: true,
+          isAdmin: false,
+          isModerator: false,
+          isLoading: false,
+          backendError: true,
+        }));
+        return;
+      }
+
+      // Final fallback - something went wrong
+      console.log('❌ Could not create or load user profile, using Supabase fallback');
+      const fallbackUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        role: UserRole.USER,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      setAuthState(prev => ({
+        ...prev,
+        user: fallbackUser,
+        isAuthenticated: true,
+        isAdmin: false,
+        isModerator: false,
+        isLoading: false,
+        backendError: true,
+      }));
+
     } catch (error) {
       console.error('❌ Failed to load user profile:', error);
       setAuthState(prev => ({
@@ -111,6 +186,7 @@ export function useAuth(): AuthState & AuthActions {
         isAdmin: false,
         isModerator: false,
         isLoading: false,
+        backendError: true,
       }));
     }
   };
@@ -131,6 +207,7 @@ export function useAuth(): AuthState & AuthActions {
           isAdmin: false,
           isModerator: false,
           isLoading: false,
+          backendError: false,
         }));
       }
     };
@@ -152,6 +229,7 @@ export function useAuth(): AuthState & AuthActions {
             isAdmin: false,
             isModerator: false,
             isLoading: false,
+            backendError: false,
           }));
         }
       }
@@ -224,6 +302,11 @@ export function useAuth(): AuthState & AuthActions {
 
   const updateProfile = async (profileData: Partial<User>) => {
     if (!authState.user) throw new Error('Not authenticated');
+
+    if (authState.backendError) {
+      console.warn('Cannot update profile: backend unavailable');
+      throw new Error('Backend unavailable - cannot update profile');
+    }
 
     try {
       const response = await authApi.updateProfile(profileData);
