@@ -2,10 +2,9 @@
 /**
  * AUTHENTICATION FORM COMPONENT
  *
- * Now connected to real backend API!
- * Provides login and signup forms with real authentication.
+ * Now properly integrated with useAuth hook and removes manual redirects.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useAuth } from '../../utils/useAuth';
 
@@ -17,7 +16,7 @@ interface AuthFormProps {
 
 export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMode }) => {
   const theme = useTheme();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isAuthenticated, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,6 +25,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Call onSuccess when authentication succeeds
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      onSuccess();
+    }
+  }, [isAuthenticated, isLoading, onSuccess]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -57,7 +63,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
       if (!formData.name.trim()) {
         newErrors.name = 'Name is required';
       }
-      
+
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
@@ -77,34 +83,26 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
 
     try {
       if (mode === 'signup') {
-        // Register new user using useAuth hook
         await signUp(formData.email, formData.password, formData.name);
+        // Show success message and switch to login
         alert('Account created successfully! Please check your email to verify your account.');
-        onSwitchMode(); // Switch to login mode
+        onSwitchMode();
       } else {
-        // Login existing user using useAuth hook
         await signIn(formData.email, formData.password);
-        alert('Login successful!');
-        onSuccess();
-        
-        // Redirect based on user role
-        // Note: We'll need to wait a moment for auth state to update
-        setTimeout(() => {
-          // This will be set by useAuth hook after successful login
-          window.location.hash = '#home'; // Default redirect
-        }, 1000);
+        // Success will be handled by useEffect when isAuthenticated changes
+        console.log('Login successful - auth state will update automatically');
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setErrors({ 
-        general: error.message || 'Authentication failed. Please try again.' 
+      setErrors({
+        general: error.message || 'Authentication failed. Please try again.'
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Styles
+  // Styles (keeping existing styles)
   const formStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
     padding: theme.spacing.xl,
@@ -155,10 +153,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
     borderRadius: '8px',
     fontSize: theme.typography.sizes.base,
     fontWeight: theme.typography.weights.semibold,
-    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+    cursor: (isSubmitting || isLoading) ? 'not-allowed' : 'pointer',
     transition: 'all 0.3s ease',
     marginBottom: theme.spacing.md,
-    opacity: isSubmitting ? 0.7 : 1,
+    opacity: (isSubmitting || isLoading) ? 0.7 : 1,
     fontFamily: theme.typography.fontFamily
   };
 
@@ -250,20 +248,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
       <button
         type="submit"
         style={buttonStyle}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isLoading}
         onMouseEnter={(e) => {
-          if (!isSubmitting) {
+          if (!isSubmitting && !isLoading) {
             e.currentTarget.style.backgroundColor = theme.colors.secondary;
           }
         }}
         onMouseLeave={(e) => {
-          if (!isSubmitting) {
+          if (!isSubmitting && !isLoading) {
             e.currentTarget.style.backgroundColor = theme.colors.primary;
           }
         }}
       >
-        {isSubmitting 
-          ? (mode === 'login' ? '🔄 Logging in...' : '🔄 Creating account...') 
+        {(isSubmitting || isLoading)
+          ? (mode === 'login' ? '🔄 Logging in...' : '🔄 Creating account...')
           : (mode === 'login' ? '🔐 Login' : '✍️ Create Account')
         }
       </button>

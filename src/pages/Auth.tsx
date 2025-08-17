@@ -1,28 +1,29 @@
 // ==================== src/pages/Auth.tsx ====================
 /**
  * AUTHENTICATION PAGE
- * 
+ *
  * Standalone page for user login and registration.
- * Currently uses mock authentication that will be replaced with real backend integration.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change page layout and styling
- * - Add forgot password functionality
- * - Modify form fields or validation
- * - Add social login options
- * - Change success/error messages
+ * Now properly integrated with global auth state.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { AuthForm } from '../components/forms/AuthForm';
+import { useAuth } from '../utils/useAuth';
 
 export const Auth: React.FC = () => {
   const theme = useTheme();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Redirect to home if user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      window.location.hash = '#home';
+    }
+  }, [isAuthenticated, isLoading]);
 
   const pageStyle: React.CSSProperties = {
     fontFamily: theme.typography.fontFamily,
@@ -43,30 +44,21 @@ export const Auth: React.FC = () => {
   };
 
   const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    // TODO: In real implementation, this would:
-    // - Store authentication token
-    // - Redirect user to intended page
-    // - Update global auth state
+    // The useAuth hook will handle the state update
+    // and the useEffect above will handle the redirect
+    console.log('Auth success - redirect will happen automatically');
   };
 
   const handleSwitchMode = () => {
     setAuthMode(authMode === 'login' ? 'signup' : 'login');
   };
 
-  return (
-    <div style={pageStyle}>
-      <Navbar />
-      
-      <main style={mainStyle}>
-        {!isAuthenticated ? (
-          <AuthForm 
-            mode={authMode}
-            onSuccess={handleAuthSuccess}
-            onSwitchMode={handleSwitchMode}
-          />
-        ) : (
-          // Success state after authentication
+  // Don't render anything if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return (
+      <div style={pageStyle}>
+        <Navbar />
+        <main style={mainStyle}>
           <div style={{
             backgroundColor: theme.colors.background,
             borderRadius: '16px',
@@ -80,36 +72,32 @@ export const Auth: React.FC = () => {
               color: theme.colors.primary,
               marginBottom: theme.spacing.lg
             }}>
-              ✅ Authentication Successful!
+              ✅ Already Logged In!
             </h2>
             <p style={{
               color: theme.colors.textSecondary,
               marginBottom: theme.spacing.lg,
               lineHeight: 1.6
             }}>
-              Welcome! You can now participate in discussions and suggest speakers.
-              In a real implementation, you would be automatically redirected.
+              Redirecting you to the homepage...
             </p>
-            <button
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: '#ffffff',
-                padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: theme.typography.sizes.base,
-                fontWeight: theme.typography.weights.semibold,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
-              onClick={() => window.location.href = '#home'}
-            >
-              🏠 Return to Homepage
-            </button>
           </div>
-        )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div style={pageStyle}>
+      <Navbar />
+
+      <main style={mainStyle}>
+        <AuthForm
+          mode={authMode}
+          onSuccess={handleAuthSuccess}
+          onSwitchMode={handleSwitchMode}
+        />
       </main>
 
       <Footer />
