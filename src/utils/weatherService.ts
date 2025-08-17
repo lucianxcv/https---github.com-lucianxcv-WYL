@@ -1,4 +1,4 @@
-import { weatherAPI } from './apiService';
+import { weatherApi } from './apiService';
 import { SailingLocation } from '../data/types'; // Import from your main types file
 
 // Main function to fetch all weather data
@@ -7,7 +7,7 @@ export const fetchAllLocationWeather = async (): Promise<SailingLocation[]> => {
     console.log('🌊 Fetching weather from backend...');
     
     // Call your backend API
-    const response = await weatherAPI.getAllLocations();
+    const response = await weatherApi.getAllLocations();
     
     // Handle the response structure: {success: true, data: Array(4), message: '...'}
     // TypeScript fix: cast to any to access .data property
@@ -33,7 +33,7 @@ export const updateAllWeatherData = async (): Promise<boolean> => {
   try {
     console.log('🔄 Updating weather data...');
     
-    await weatherAPI.updateWeather();
+    await weatherApi.updateWeather();
     
     console.log('✅ Weather data updated successfully');
     return true;
@@ -49,7 +49,7 @@ export const getLocationWeather = async (locationId: string): Promise<SailingLoc
   try {
     console.log(`🌊 Fetching weather for location: ${locationId}`);
     
-    const response = await weatherAPI.getLocation(locationId);
+    const response = await weatherApi.getLocation(locationId);
     
     // Handle the response structure
     const location = (response as any)?.data || response;
