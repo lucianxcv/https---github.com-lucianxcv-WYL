@@ -16,8 +16,8 @@ export const Admin: React.FC = () => {
   const theme = useTheme();
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('speakers');
-  const [posts, setPosts] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalPosts: 0,
@@ -83,7 +83,7 @@ export const Admin: React.FC = () => {
             totalUsers: serverStats?.totalUsers || 0,
             totalPosts: serverStats?.totalPosts || 0,
             publishedPosts: serverStats?.publishedPosts || 0,
-            draftPosts: 0 // Will be calculated later
+            draftPosts: 0 // Will be calculated from posts data later
           });
         }
         if (usersResponse.success) setUsers(usersResponse.data || []);
