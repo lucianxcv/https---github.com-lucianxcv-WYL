@@ -1,8 +1,7 @@
-// ==================== src/pages/Admin.tsx - UPDATED ====================
 /**
- * ADMIN DASHBOARD PAGE - WITH USER MANAGEMENT
+ * ADMIN DASHBOARD PAGE - WITH BLOG POST MANAGEMENT
  *
- * Now includes working User Management interface
+ * Updated to include the new BlogPostManagement component
  */
 
 import React, { useState, useEffect } from 'react';
@@ -11,6 +10,7 @@ import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { useAuth } from '../utils/useAuth';
 import { UserManagement } from '../components/admin/UserManagement';
+import { BlogPostManagement } from '../components/admin/BlogPostManagement'; // NEW IMPORT
 import { Post, User } from '../data/types';
 import { adminApi } from '../utils/apiService';
 
@@ -91,7 +91,7 @@ export const Admin: React.FC = () => {
             totalUsers: serverStats?.totalUsers || 0,
             totalPosts: serverStats?.totalPosts || 0,
             publishedPosts: serverStats?.publishedPosts || 0,
-            draftPosts: 0
+            draftPosts: (serverStats?.totalPosts || 0) - (serverStats?.publishedPosts || 0)
           });
         }
         if (usersResponse.success) setUsers(usersResponse.data || []);
@@ -107,7 +107,7 @@ export const Admin: React.FC = () => {
   }, [isAuthenticated, isAdmin]);
 
   // Refresh stats when users are updated
-  const handleUserUpdate = async () => {
+  const handleDataUpdate = async () => {
     try {
       const statsResponse = await adminApi.getStats();
       if (statsResponse.success) {
@@ -116,7 +116,7 @@ export const Admin: React.FC = () => {
           totalUsers: serverStats?.totalUsers || 0,
           totalPosts: serverStats?.totalPosts || 0,
           publishedPosts: serverStats?.publishedPosts || 0,
-          draftPosts: 0
+          draftPosts: (serverStats?.totalPosts || 0) - (serverStats?.publishedPosts || 0)
         });
       }
     } catch (error) {
@@ -255,7 +255,8 @@ export const Admin: React.FC = () => {
             padding: theme.spacing.lg,
             borderRadius: '12px',
             textAlign: 'center',
-            border: `1px solid ${theme.colors.border}`
+            border: `1px solid ${theme.colors.border}`,
+            boxShadow: theme.shadows.md
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>👥</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Total Users</h3>
@@ -273,7 +274,8 @@ export const Admin: React.FC = () => {
             padding: theme.spacing.lg,
             borderRadius: '12px',
             textAlign: 'center',
-            border: `1px solid ${theme.colors.border}`
+            border: `1px solid ${theme.colors.border}`,
+            boxShadow: theme.shadows.md
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>📝</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Total Posts</h3>
@@ -291,7 +293,8 @@ export const Admin: React.FC = () => {
             padding: theme.spacing.lg,
             borderRadius: '12px',
             textAlign: 'center',
-            border: `1px solid ${theme.colors.border}`
+            border: `1px solid ${theme.colors.border}`,
+            boxShadow: theme.shadows.md
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>✅</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Published</h3>
@@ -309,7 +312,8 @@ export const Admin: React.FC = () => {
             padding: theme.spacing.lg,
             borderRadius: '12px',
             textAlign: 'center',
-            border: `1px solid ${theme.colors.border}`
+            border: `1px solid ${theme.colors.border}`,
+            boxShadow: theme.shadows.md
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>📄</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Drafts</h3>
@@ -361,7 +365,7 @@ export const Admin: React.FC = () => {
               }
             }}
           >
-            📝 Post Management
+            📝 Blog Management
           </button>
 
           <button
@@ -382,31 +386,13 @@ export const Admin: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - UPDATED WITH BLOG MANAGEMENT */}
         {activeTab === 'users' && (
-          <UserManagement onUserUpdate={handleUserUpdate} />
+          <UserManagement onUserUpdate={handleDataUpdate} />
         )}
 
         {activeTab === 'posts' && (
-          <div style={cardStyle}>
-            <h2 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              color: theme.colors.primary,
-              marginBottom: theme.spacing.lg
-            }}>
-              📝 Post Management
-            </h2>
-            <p style={{ color: theme.colors.textSecondary }}>
-              Post management interface coming soon! This will include:
-            </p>
-            <ul style={{ color: theme.colors.text, lineHeight: 1.6 }}>
-              <li>Create and edit blog posts</li>
-              <li>Rich text editor with formatting</li>
-              <li>Publish/unpublish posts</li>
-              <li>Category and tag management</li>
-              <li>SEO optimization tools</li>
-            </ul>
-          </div>
+          <BlogPostManagement onPostUpdate={handleDataUpdate} />
         )}
 
         {activeTab === 'speakers' && (
@@ -418,16 +404,32 @@ export const Admin: React.FC = () => {
             }}>
               🎤 Speaker Management
             </h2>
-            <p style={{ color: theme.colors.textSecondary }}>
+            <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
               Speaker management interface coming soon! This will include:
             </p>
-            <ul style={{ color: theme.colors.text, lineHeight: 1.6 }}>
-              <li>Add new speakers and their details</li>
-              <li>Upload speaker photos</li>
-              <li>Schedule presentations</li>
-              <li>Manage speaker topics and bios</li>
-              <li>Track presentation history</li>
+            <ul style={{ color: theme.colors.text, lineHeight: 1.8, paddingLeft: theme.spacing.lg }}>
+              <li>✨ Add new speakers and their details</li>
+              <li>📸 Upload speaker photos</li>
+              <li>📅 Schedule presentations</li>
+              <li>📝 Manage speaker topics and bios</li>
+              <li>📊 Track presentation history</li>
+              <li>🎯 Featured speaker highlights</li>
             </ul>
+            <div style={{
+              marginTop: theme.spacing.lg,
+              padding: theme.spacing.md,
+              backgroundColor: theme.colors.surface,
+              borderRadius: '8px',
+              border: `1px solid ${theme.colors.border}`
+            }}>
+              <p style={{ 
+                color: theme.colors.textSecondary, 
+                margin: 0,
+                fontSize: theme.typography.sizes.sm 
+              }}>
+                🚀 <strong>Coming Next:</strong> After blog management is complete, we'll build the speaker management system with presentation scheduling and speaker profiles.
+              </p>
+            </div>
           </div>
         )}
 
