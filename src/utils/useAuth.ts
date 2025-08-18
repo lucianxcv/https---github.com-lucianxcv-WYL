@@ -68,8 +68,8 @@ export function useAuth(): AuthState & AuthActions {
           ...prev,
           user: userCache,
           isAuthenticated: true,
-          isAdmin: userCache.role === UserRole.ADMIN,
-          isModerator: userCache.role === UserRole.MODERATOR || userCache.role === UserRole.ADMIN,
+          isAdmin: userCache?.role === UserRole.ADMIN,
+          isModerator: userCache?.role === UserRole.MODERATOR || userCache?.role === UserRole.ADMIN,
           isLoading: false,
           backendError: false,
         }));
