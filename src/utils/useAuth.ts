@@ -1,12 +1,5 @@
-// ==================== src/utils/useAuth.ts ====================
-/**
- * AUTHENTICATION HOOK
- *
- * Custom React hook for managing authentication state with Supabase
- * and syncing with your backend. Now includes fallback for backend failures.
- */
-
-import { useState, useEffect } from 'react';
+// ==================== src/utils/useAuth.ts - OPTIMIZED ====================
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { authApi } from './apiService';
 import { User, UserRole } from '../data/types';
@@ -17,7 +10,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isModerator: boolean;
-  backendError: boolean; // Track if backend is failing
+  backendError: boolean;
 }
 
 interface AuthActions {
@@ -27,6 +20,11 @@ interface AuthActions {
   updateProfile: (profileData: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
+
+// Cache for user data to reduce API calls
+let userCache: User | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useAuth(): AuthState & AuthActions {
   const [authState, setAuthState] = useState<AuthState>({
@@ -38,16 +36,18 @@ export function useAuth(): AuthState & AuthActions {
     backendError: false,
   });
 
-  // Load user profile from backend with fallback
-  const loadUserProfile = async () => {
+  // Optimized user profile loading with caching and retry logic
+  const loadUserProfile = useCallback(async (retryCount = 0) => {
     try {
       console.log('🔄 Loading user profile from backend...');
-      
+
       // Get current Supabase user first
       const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      
+
       if (!supabaseUser) {
         console.log('❌ No Supabase user found');
+        userCache = null;
+        cacheTimestamp = 0;
         setAuthState(prev => ({
           ...prev,
           user: null,
@@ -60,13 +60,44 @@ export function useAuth(): AuthState & AuthActions {
         return;
       }
 
+      // Check cache first (avoid unnecessary API calls)
+      const now = Date.now();
+      if (userCache && (now - cacheTimestamp) < CACHE_DURATION) {
+        console.log('📋 Using cached user profile');
+        setAuthState(prev => ({
+          ...prev,
+          user: userCache,
+          isAuthenticated: true,
+          isAdmin: userCache.role === UserRole.ADMIN,
+          isModerator: userCache.role === UserRole.MODERATOR || userCache.role === UserRole.ADMIN,
+          isLoading: false,
+          backendError: false,
+        }));
+        return;
+      }
+
       try {
-        // Try to get user from backend
-        const response = await authApi.getMe();
+        // Try to get user from backend with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        const response = await Promise.race([
+          authApi.getMe(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 10000)
+          )
+        ]) as any;
+
+        clearTimeout(timeoutId);
 
         if (response.success && response.data) {
           console.log('✅ User profile found:', response.data);
           const user = response.data;
+          
+          // Update cache
+          userCache = user;
+          cacheTimestamp = now;
+          
           setAuthState(prev => ({
             ...prev,
             user,
@@ -78,24 +109,35 @@ export function useAuth(): AuthState & AuthActions {
           }));
           return;
         }
-      } catch (backendError) {
-        console.warn('⚠️ Backend unavailable, using Supabase fallback:', backendError);
-        
-        // Backend is down, create a fallback user from Supabase data
+      } catch (backendError: any) {
+        console.warn('⚠️ Backend unavailable:', backendError.message);
+
+        // Retry logic for transient failures
+        if (retryCount < 2 && !backendError.message.includes('timeout')) {
+          console.log(`🔄 Retrying... (${retryCount + 1}/2)`);
+          setTimeout(() => loadUserProfile(retryCount + 1), 1000 * (retryCount + 1));
+          return;
+        }
+
+        // Create fallback user from Supabase data
         const fallbackUser: User = {
           id: supabaseUser.id,
           email: supabaseUser.email!,
           name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-          role: UserRole.USER, // Default role when backend is unavailable
+          role: UserRole.USER,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
+
+        // Cache fallback user temporarily
+        userCache = fallbackUser;
+        cacheTimestamp = now - (CACHE_DURATION / 2); // Shorter cache for fallback
 
         setAuthState(prev => ({
           ...prev,
           user: fallbackUser,
           isAuthenticated: true,
-          isAdmin: false, // Can't verify admin status without backend
+          isAdmin: false,
           isModerator: false,
           isLoading: false,
           backendError: true,
@@ -114,50 +156,15 @@ export function useAuth(): AuthState & AuthActions {
 
         if (createResponse.success) {
           console.log('✅ User profile created successfully');
-          // Try to load profile again after creation
-          const retryResponse = await authApi.getMe();
-
-          if (retryResponse.success && retryResponse.data) {
-            const user = retryResponse.data;
-            setAuthState(prev => ({
-              ...prev,
-              user,
-              isAuthenticated: true,
-              isAdmin: user.role === UserRole.ADMIN,
-              isModerator: user.role === UserRole.MODERATOR || user.role === UserRole.ADMIN,
-              isLoading: false,
-              backendError: false,
-            }));
-            return;
-          }
+          // Retry loading after creation
+          setTimeout(() => loadUserProfile(0), 1000);
+          return;
         }
       } catch (registrationError) {
         console.error('❌ Failed to create user profile:', registrationError);
-        
-        // Fall back to Supabase-only auth
-        const fallbackUser: User = {
-          id: supabaseUser.id,
-          email: supabaseUser.email!,
-          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-          role: UserRole.USER,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        setAuthState(prev => ({
-          ...prev,
-          user: fallbackUser,
-          isAuthenticated: true,
-          isAdmin: false,
-          isModerator: false,
-          isLoading: false,
-          backendError: true,
-        }));
-        return;
       }
 
-      // Final fallback - something went wrong
-      console.log('❌ Could not create or load user profile, using Supabase fallback');
+      // Final fallback
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email!,
@@ -166,6 +173,9 @@ export function useAuth(): AuthState & AuthActions {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      userCache = fallbackUser;
+      cacheTimestamp = now - (CACHE_DURATION / 2);
 
       setAuthState(prev => ({
         ...prev,
@@ -189,39 +199,21 @@ export function useAuth(): AuthState & AuthActions {
         backendError: true,
       }));
     }
-  };
+  }, []);
 
-  // Listen for auth state changes
+  // Initialize auth on mount
   useEffect(() => {
-    // Get initial session
+    let mounted = true;
+    
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      if (session?.user) {
-        await loadUserProfile();
-      } else {
-        setAuthState(prev => ({
-          ...prev,
-          user: null,
-          isAuthenticated: false,
-          isAdmin: false,
-          isModerator: false,
-          isLoading: false,
-          backendError: false,
-        }));
-      }
-    };
+        if (!mounted) return;
 
-    initializeAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (session?.user) {
           await loadUserProfile();
-        } else if (event === 'SIGNED_OUT') {
+        } else {
           setAuthState(prev => ({
             ...prev,
             user: null,
@@ -232,13 +224,62 @@ export function useAuth(): AuthState & AuthActions {
             backendError: false,
           }));
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) {
+          setAuthState(prev => ({ ...prev, isLoading: false }));
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes with debouncing
+    let authChangeTimeout: NodeJS.Timeout;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state changed:', event, session?.user?.email);
+
+        // Clear existing timeout
+        if (authChangeTimeout) {
+          clearTimeout(authChangeTimeout);
+        }
+
+        // Debounce auth state changes
+        authChangeTimeout = setTimeout(async () => {
+          if (!mounted) return;
+
+          if (event === 'SIGNED_IN' && session?.user) {
+            await loadUserProfile();
+          } else if (event === 'SIGNED_OUT') {
+            userCache = null;
+            cacheTimestamp = 0;
+            setAuthState(prev => ({
+              ...prev,
+              user: null,
+              isAuthenticated: false,
+              isAdmin: false,
+              isModerator: false,
+              isLoading: false,
+              backendError: false,
+            }));
+          }
+        }, 500); // 500ms debounce
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout);
+      }
+      subscription.unsubscribe();
+    };
+  }, [loadUserProfile]);
 
-  // Auth actions
+  // Optimized auth actions
   const signIn = async (email: string, password: string) => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
 
@@ -250,8 +291,8 @@ export function useAuth(): AuthState & AuthActions {
 
       if (error) throw error;
 
-      // User profile will be loaded by the auth state change listener
       console.log('Sign in successful:', data.user?.email);
+      // User profile will be loaded by the auth state change listener
     } catch (error) {
       console.error('Sign in error:', error);
       setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -263,20 +304,18 @@ export function useAuth(): AuthState & AuthActions {
     setAuthState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      // First, create account with Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name: name || email.split('@')[0], // Use email prefix as default name
+            name: name || email.split('@')[0],
           }
         }
       });
 
       if (error) throw error;
 
-      // Backend profile creation will be handled by loadUserProfile when they sign in
       console.log('Sign up successful:', data.user?.email);
     } catch (error) {
       console.error('Sign up error:', error);
@@ -289,6 +328,10 @@ export function useAuth(): AuthState & AuthActions {
     setAuthState(prev => ({ ...prev, isLoading: true }));
 
     try {
+      // Clear cache
+      userCache = null;
+      cacheTimestamp = 0;
+
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -312,6 +355,11 @@ export function useAuth(): AuthState & AuthActions {
       const response = await authApi.updateProfile(profileData);
       if (response.success && response.data) {
         const updatedUser = response.data;
+        
+        // Update cache
+        userCache = updatedUser;
+        cacheTimestamp = Date.now();
+        
         setAuthState(prev => ({
           ...prev,
           user: updatedUser,
@@ -327,6 +375,9 @@ export function useAuth(): AuthState & AuthActions {
 
   const refreshUser = async () => {
     if (authState.isAuthenticated) {
+      // Clear cache to force refresh
+      userCache = null;
+      cacheTimestamp = 0;
       await loadUserProfile();
     }
   };
