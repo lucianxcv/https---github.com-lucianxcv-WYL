@@ -169,7 +169,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
 
   // Update user role
   const updateUserRole = async (userId: string, newRole: UserRole) => {
-    if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+    if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
       return;
     }
 
@@ -200,7 +200,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
 
   // Delete user
   const deleteUser = async (userId: string, userEmail: string) => {
-    if (!confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+    if (!window.confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
       return;
     }
 
