@@ -1,8 +1,8 @@
-// ==================== src/pages/Admin.tsx ====================
+// ==================== src/pages/Admin.tsx - UPDATED ====================
 /**
- * ADMIN DASHBOARD PAGE - REAL AUTHENTICATION
+ * ADMIN DASHBOARD PAGE - WITH USER MANAGEMENT
  *
- * Now connected to real authentication system and backend APIs
+ * Now includes working User Management interface
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,13 +10,14 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { useAuth } from '../utils/useAuth';
+import { UserManagement } from '../components/admin/UserManagement';
 import { Post, User } from '../data/types';
 import { adminApi } from '../utils/apiService';
 
 export const Admin: React.FC = () => {
   const theme = useTheme();
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('speakers');
+  const [activeTab, setActiveTab] = useState('users');
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({
@@ -38,7 +39,7 @@ export const Admin: React.FC = () => {
     maxWidth: '1200px',
     margin: '0 auto',
     padding: theme.spacing.xl,
-    marginTop: '80px' // Account for fixed navbar
+    marginTop: '80px'
   };
 
   const cardStyle: React.CSSProperties = {
@@ -63,28 +64,34 @@ export const Admin: React.FC = () => {
     transition: 'all 0.3s ease'
   };
 
+  const tabButtonStyle = (isActive: boolean): React.CSSProperties => ({
+    ...buttonStyle,
+    backgroundColor: isActive ? theme.colors.primary : theme.colors.surface,
+    color: isActive ? '#ffffff' : theme.colors.text,
+    border: `2px solid ${isActive ? theme.colors.primary : theme.colors.border}`
+  });
+
   // Load admin data
   useEffect(() => {
     const loadAdminData = async () => {
       if (!isAuthenticated || !isAdmin) return;
-      
+
       setLoading(true);
       try {
         // Load stats, users, and posts
         const [statsResponse, usersResponse, postsResponse] = await Promise.all([
           adminApi.getStats(),
-          adminApi.users.getAll(),
-          adminApi.posts.getAll()
+          adminApi.users.getAll({ limit: 5 }), // Just get first 5 for stats
+          adminApi.posts.getAll({ limit: 5 })   // Just get first 5 for stats
         ]);
 
         if (statsResponse.success) {
           const serverStats = statsResponse.data;
-          // Map server stats to local state format
           setStats({
             totalUsers: serverStats?.totalUsers || 0,
             totalPosts: serverStats?.totalPosts || 0,
             publishedPosts: serverStats?.publishedPosts || 0,
-            draftPosts: 0 // Will be calculated from posts data later
+            draftPosts: 0
           });
         }
         if (usersResponse.success) setUsers(usersResponse.data || []);
@@ -98,6 +105,24 @@ export const Admin: React.FC = () => {
 
     loadAdminData();
   }, [isAuthenticated, isAdmin]);
+
+  // Refresh stats when users are updated
+  const handleUserUpdate = async () => {
+    try {
+      const statsResponse = await adminApi.getStats();
+      if (statsResponse.success) {
+        const serverStats = statsResponse.data;
+        setStats({
+          totalUsers: serverStats?.totalUsers || 0,
+          totalPosts: serverStats?.totalPosts || 0,
+          publishedPosts: serverStats?.publishedPosts || 0,
+          draftPosts: 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to refresh stats:', error);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -234,10 +259,10 @@ export const Admin: React.FC = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>👥</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Total Users</h3>
-            <p style={{ 
-              fontSize: theme.typography.sizes.xl, 
-              fontWeight: theme.typography.weights.bold, 
-              margin: theme.spacing.xs 
+            <p style={{
+              fontSize: theme.typography.sizes.xl,
+              fontWeight: theme.typography.weights.bold,
+              margin: theme.spacing.xs
             }}>
               {stats.totalUsers}
             </p>
@@ -252,10 +277,10 @@ export const Admin: React.FC = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>📝</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Total Posts</h3>
-            <p style={{ 
-              fontSize: theme.typography.sizes.xl, 
-              fontWeight: theme.typography.weights.bold, 
-              margin: theme.spacing.xs 
+            <p style={{
+              fontSize: theme.typography.sizes.xl,
+              fontWeight: theme.typography.weights.bold,
+              margin: theme.spacing.xs
             }}>
               {stats.totalPosts}
             </p>
@@ -270,10 +295,10 @@ export const Admin: React.FC = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>✅</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Published</h3>
-            <p style={{ 
-              fontSize: theme.typography.sizes.xl, 
-              fontWeight: theme.typography.weights.bold, 
-              margin: theme.spacing.xs 
+            <p style={{
+              fontSize: theme.typography.sizes.xl,
+              fontWeight: theme.typography.weights.bold,
+              margin: theme.spacing.xs
             }}>
               {stats.publishedPosts}
             </p>
@@ -288,84 +313,123 @@ export const Admin: React.FC = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>📄</div>
             <h3 style={{ color: theme.colors.primary, margin: 0 }}>Drafts</h3>
-            <p style={{ 
-              fontSize: theme.typography.sizes.xl, 
-              fontWeight: theme.typography.weights.bold, 
-              margin: theme.spacing.xs 
+            <p style={{
+              fontSize: theme.typography.sizes.xl,
+              fontWeight: theme.typography.weights.bold,
+              margin: theme.spacing.xs
             }}>
               {stats.draftPosts}
             </p>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div style={cardStyle}>
-          <h2 style={{
-            fontSize: theme.typography.sizes['2xl'],
-            color: theme.colors.primary,
-            marginBottom: theme.spacing.lg
-          }}>
-            🚀 Quick Actions
-          </h2>
-          
-          <div style={{ display: 'flex', gap: theme.spacing.md, flexWrap: 'wrap' }}>
-            <button
-              style={{...buttonStyle, backgroundColor: theme.colors.secondary}}
-              onClick={() => setActiveTab('speakers')}
-            >
-              🎤 Add New Speaker
-            </button>
-            
-            <button
-              style={{...buttonStyle, backgroundColor: theme.colors.accent}}
-              onClick={() => setActiveTab('posts')}
-            >
-              📝 Create Blog Post
-            </button>
-            
-            <button
-              style={buttonStyle}
-              onClick={() => setActiveTab('users')}
-            >
-              👥 Manage Users
-            </button>
-          </div>
+        {/* Navigation Tabs */}
+        <div style={{
+          display: 'flex',
+          gap: theme.spacing.sm,
+          marginBottom: theme.spacing.xl,
+          flexWrap: 'wrap'
+        }}>
+          <button
+            style={tabButtonStyle(activeTab === 'users')}
+            onClick={() => setActiveTab('users')}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'users') {
+                e.currentTarget.style.backgroundColor = theme.colors.border;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'users') {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }
+            }}
+          >
+            👥 User Management
+          </button>
+
+          <button
+            style={tabButtonStyle(activeTab === 'posts')}
+            onClick={() => setActiveTab('posts')}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'posts') {
+                e.currentTarget.style.backgroundColor = theme.colors.border;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'posts') {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }
+            }}
+          >
+            📝 Post Management
+          </button>
+
+          <button
+            style={tabButtonStyle(activeTab === 'speakers')}
+            onClick={() => setActiveTab('speakers')}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'speakers') {
+                e.currentTarget.style.backgroundColor = theme.colors.border;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'speakers') {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }
+            }}
+          >
+            🎤 Speaker Management
+          </button>
         </div>
 
-        {/* Content Area - We'll add tabs here next */}
-        <div style={cardStyle}>
-          <h2 style={{
-            fontSize: theme.typography.sizes['2xl'],
-            color: theme.colors.primary,
-            marginBottom: theme.spacing.lg
-          }}>
-            📋 Management Tools
-          </h2>
-          
-          <p style={{ color: theme.colors.textSecondary }}>
-            Content management tabs will be added next. For now, you can:
-          </p>
-          
-          <ul style={{ color: theme.colors.text, lineHeight: 1.6 }}>
-            <li>View real user and post statistics above</li>
-            <li>Access is restricted to admin users only</li>
-            <li>Authentication is working with your backend</li>
-          </ul>
-          
-          <div style={{
-            marginTop: theme.spacing.lg,
-            padding: theme.spacing.md,
-            backgroundColor: theme.colors.surface,
-            borderRadius: '8px'
-          }}>
-            <strong>Next steps:</strong>
-            <ul style={{ marginTop: theme.spacing.sm }}>
-              <li>Add speaker creation form</li>
-              <li>Add blog post editor</li>
-              <li>Add user management interface</li>
+        {/* Tab Content */}
+        {activeTab === 'users' && (
+          <UserManagement onUserUpdate={handleUserUpdate} />
+        )}
+
+        {activeTab === 'posts' && (
+          <div style={cardStyle}>
+            <h2 style={{
+              fontSize: theme.typography.sizes['2xl'],
+              color: theme.colors.primary,
+              marginBottom: theme.spacing.lg
+            }}>
+              📝 Post Management
+            </h2>
+            <p style={{ color: theme.colors.textSecondary }}>
+              Post management interface coming soon! This will include:
+            </p>
+            <ul style={{ color: theme.colors.text, lineHeight: 1.6 }}>
+              <li>Create and edit blog posts</li>
+              <li>Rich text editor with formatting</li>
+              <li>Publish/unpublish posts</li>
+              <li>Category and tag management</li>
+              <li>SEO optimization tools</li>
             </ul>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'speakers' && (
+          <div style={cardStyle}>
+            <h2 style={{
+              fontSize: theme.typography.sizes['2xl'],
+              color: theme.colors.primary,
+              marginBottom: theme.spacing.lg
+            }}>
+              🎤 Speaker Management
+            </h2>
+            <p style={{ color: theme.colors.textSecondary }}>
+              Speaker management interface coming soon! This will include:
+            </p>
+            <ul style={{ color: theme.colors.text, lineHeight: 1.6 }}>
+              <li>Add new speakers and their details</li>
+              <li>Upload speaker photos</li>
+              <li>Schedule presentations</li>
+              <li>Manage speaker topics and bios</li>
+              <li>Track presentation history</li>
+            </ul>
+          </div>
+        )}
 
         {loading && (
           <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
