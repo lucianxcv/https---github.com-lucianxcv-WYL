@@ -1,7 +1,7 @@
 /**
- * ADMIN DASHBOARD PAGE - WITH BLOG POST MANAGEMENT
+ * ADMIN DASHBOARD PAGE - WITH BLOG AND SPEAKER MANAGEMENT
  *
- * Updated to include the new BlogPostManagement component
+ * Complete admin dashboard with all management systems
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +10,8 @@ import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { useAuth } from '../utils/useAuth';
 import { UserManagement } from '../components/admin/UserManagement';
-import { BlogPostManagement } from '../components/admin/BlogPostManagement'; // NEW IMPORT
+import { BlogPostManagement } from '../components/admin/BlogPostManagement';
+import { SpeakerManagement } from '../components/admin/SpeakerManagement';
 import { Post, User } from '../data/types';
 import { adminApi } from '../utils/apiService';
 
@@ -106,7 +107,7 @@ export const Admin: React.FC = () => {
     loadAdminData();
   }, [isAuthenticated, isAdmin]);
 
-  // Refresh stats when users are updated
+  // Refresh stats when data is updated
   const handleDataUpdate = async () => {
     try {
       const statsResponse = await adminApi.getStats();
@@ -386,7 +387,7 @@ export const Admin: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab Content - UPDATED WITH BLOG MANAGEMENT */}
+        {/* Tab Content - ALL MANAGEMENT SYSTEMS */}
         {activeTab === 'users' && (
           <UserManagement onUserUpdate={handleDataUpdate} />
         )}
@@ -396,41 +397,7 @@ export const Admin: React.FC = () => {
         )}
 
         {activeTab === 'speakers' && (
-          <div style={cardStyle}>
-            <h2 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              color: theme.colors.primary,
-              marginBottom: theme.spacing.lg
-            }}>
-              🎤 Speaker Management
-            </h2>
-            <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
-              Speaker management interface coming soon! This will include:
-            </p>
-            <ul style={{ color: theme.colors.text, lineHeight: 1.8, paddingLeft: theme.spacing.lg }}>
-              <li>✨ Add new speakers and their details</li>
-              <li>📸 Upload speaker photos</li>
-              <li>📅 Schedule presentations</li>
-              <li>📝 Manage speaker topics and bios</li>
-              <li>📊 Track presentation history</li>
-              <li>🎯 Featured speaker highlights</li>
-            </ul>
-            <div style={{
-              marginTop: theme.spacing.lg,
-              padding: theme.spacing.md,
-              backgroundColor: theme.colors.surface,
-              borderRadius: '8px',
-              border: `1px solid ${theme.colors.border}`
-            }}>
-              <p style={{ 
-                color: theme.colors.textSecondary, 
-                margin: 0,
-                fontSize: theme.typography.sizes.sm 
-              }}>
-                🚀 <strong>Coming Next:</strong> After blog management is complete, we'll build the speaker management system with presentation scheduling and speaker profiles.
-              </p>
-            </div>
-          </div>
+          <SpeakerManagement onSpeakerUpdate={handleDataUpdate} />
         )}
 
         {loading && (
