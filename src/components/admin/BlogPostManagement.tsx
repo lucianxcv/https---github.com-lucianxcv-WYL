@@ -41,6 +41,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
   const [filterPublished, setFilterPublished] = useState<'all' | 'published' | 'draft'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const cardStyle: React.CSSProperties = {
@@ -172,8 +173,11 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
 
   // Handle delete post
   const handleDelete = async (postId: string) => {
-    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return;
+    setShowDeleteConfirm(postId);
+  };
 
+  // Confirm delete post
+  const confirmDelete = async (postId: string) => {
     try {
       const response = await adminApi.posts.delete(postId);
       if (response.success) {
@@ -185,6 +189,8 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
     } catch (error) {
       console.error('Failed to delete post:', error);
       setError('Failed to delete post. Please try again.');
+    } finally {
+      setShowDeleteConfirm(null);
     }
   };
 
@@ -252,6 +258,84 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
         border: '1px solid #fecaca'
       }}>
         ⚠️ {error}
+      </div>
+    );
+  };
+
+  // Render delete confirmation modal
+  const renderDeleteConfirmation = () => {
+    if (!showDeleteConfirm) return null;
+
+    const postToDelete = posts.find(p => p.id === showDeleteConfirm);
+    
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: theme.colors.background,
+          padding: theme.spacing.xl,
+          borderRadius: '12px',
+          maxWidth: '500px',
+          width: '90%',
+          boxShadow: theme.shadows.lg,
+          border: `1px solid ${theme.colors.border}`
+        }}>
+          <h3 style={{
+            color: '#dc2626',
+            marginBottom: theme.spacing.md,
+            fontSize: theme.typography.sizes.lg
+          }}>
+            🗑️ Delete Post
+          </h3>
+          
+          <p style={{
+            color: theme.colors.text,
+            marginBottom: theme.spacing.md,
+            lineHeight: 1.5
+          }}>
+            Are you sure you want to delete <strong>"{postToDelete?.title}"</strong>?
+          </p>
+          
+          <p style={{
+            color: '#dc2626',
+            marginBottom: theme.spacing.lg,
+            fontSize: theme.typography.sizes.sm
+          }}>
+            ⚠️ This action cannot be undone.
+          </p>
+
+          <div style={{
+            display: 'flex',
+            gap: theme.spacing.sm,
+            justifyContent: 'flex-end'
+          }}>
+            <button
+              style={secondaryButtonStyle}
+              onClick={() => setShowDeleteConfirm(null)}
+            >
+              Cancel
+            </button>
+            <button
+              style={{
+                ...buttonStyle,
+                backgroundColor: '#dc2626'
+              }}
+              onClick={() => confirmDelete(showDeleteConfirm)}
+            >
+              🗑️ Delete Post
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
@@ -425,292 +509,297 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
   );
 
   return (
-    <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: theme.spacing.lg
-      }}>
-        <h2 style={{
-          fontSize: theme.typography.sizes['2xl'],
-          color: theme.colors.primary,
-          margin: 0
+    <>
+      {/* Delete Confirmation Modal */}
+      {renderDeleteConfirmation()}
+      
+      <div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: theme.spacing.lg
         }}>
-          📝 Blog Post Management
-        </h2>
-        {!showCreateForm && (
-          <button
-            style={buttonStyle}
-            onClick={() => setShowCreateForm(true)}
-          >
-            ➕ New Post
-          </button>
-        )}
-      </div>
-
-      {/* Global Error Display */}
-      {!showCreateForm && renderError()}
-
-      {/* Filters */}
-      {!showCreateForm && (
-        <div style={cardStyle}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr auto auto',
-            gap: theme.spacing.md,
-            alignItems: 'end'
+          <h2 style={{
+            fontSize: theme.typography.sizes['2xl'],
+            color: theme.colors.primary,
+            margin: 0
           }}>
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: theme.spacing.xs,
-                fontWeight: theme.typography.weights.semibold,
-                color: theme.colors.text
-              }}>
-                🔍 Search Posts
-              </label>
-              <input
-                type="text"
-                style={inputStyle}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by title or content..."
-              />
-            </div>
-
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: theme.spacing.xs,
-                fontWeight: theme.typography.weights.semibold,
-                color: theme.colors.text
-              }}>
-                📊 Filter by Status
-              </label>
-              <select
-                style={inputStyle}
-                value={filterPublished}
-                onChange={(e) => setFilterPublished(e.target.value as any)}
-              >
-                <option value="all">All Posts</option>
-                <option value="published">Published Only</option>
-                <option value="draft">Drafts Only</option>
-              </select>
-            </div>
-
+            📝 Blog Post Management
+          </h2>
+          {!showCreateForm && (
             <button
-              style={secondaryButtonStyle}
-              onClick={clearFilters}
+              style={buttonStyle}
+              onClick={() => setShowCreateForm(true)}
             >
-              🗑️ Clear
+              ➕ New Post
             </button>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* Create/Edit Form */}
-      {showCreateForm && renderPostForm()}
+        {/* Global Error Display */}
+        {!showCreateForm && renderError()}
 
-      {/* Posts List */}
-      {!showCreateForm && (
-        <>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
-              <p>Loading posts...</p>
-            </div>
-          ) : posts.length === 0 ? (
+        {/* Filters */}
+        {!showCreateForm && (
+          <div style={cardStyle}>
             <div style={{
-              ...cardStyle,
-              textAlign: 'center',
-              padding: theme.spacing.xl
+              display: 'grid',
+              gridTemplateColumns: '1fr auto auto',
+              gap: theme.spacing.md,
+              alignItems: 'end'
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>📝</div>
-              <h3 style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.sm }}>
-                No posts found
-              </h3>
-              <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.lg }}>
-                {searchTerm || filterPublished !== 'all'
-                  ? 'Try adjusting your search or filters.'
-                  : 'Create your first blog post to get started!'}
-              </p>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: theme.spacing.xs,
+                  fontWeight: theme.typography.weights.semibold,
+                  color: theme.colors.text
+                }}>
+                  🔍 Search Posts
+                </label>
+                <input
+                  type="text"
+                  style={inputStyle}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by title or content..."
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: theme.spacing.xs,
+                  fontWeight: theme.typography.weights.semibold,
+                  color: theme.colors.text
+                }}>
+                  📊 Filter by Status
+                </label>
+                <select
+                  style={inputStyle}
+                  value={filterPublished}
+                  onChange={(e) => setFilterPublished(e.target.value as any)}
+                >
+                  <option value="all">All Posts</option>
+                  <option value="published">Published Only</option>
+                  <option value="draft">Drafts Only</option>
+                </select>
+              </div>
+
               <button
-                style={buttonStyle}
-                onClick={() => setShowCreateForm(true)}
+                style={secondaryButtonStyle}
+                onClick={clearFilters}
               >
-                ➕ Create First Post
+                🗑️ Clear
               </button>
             </div>
-          ) : (
-            <div>
-              {posts.map((post) => (
-                <div key={post.id} style={cardStyle}>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto',
-                    gap: theme.spacing.md,
-                    alignItems: 'start'
-                  }}>
-                    <div>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: theme.spacing.sm,
-                        marginBottom: theme.spacing.sm
-                      }}>
-                        <h3 style={{
-                          margin: 0,
-                          color: theme.colors.text,
-                          fontSize: theme.typography.sizes.lg
-                        }}>
-                          {post.title}
-                        </h3>
-                        <span style={{
-                          fontSize: theme.typography.sizes.xs,
-                          padding: `2px 8px`,
-                          borderRadius: '12px',
-                          backgroundColor: post.published ? '#22c55e' : '#f59e0b',
-                          color: 'white',
-                          fontWeight: theme.typography.weights.semibold
-                        }}>
-                          {post.published ? '✅ Published' : '📄 Draft'}
-                        </span>
-                      </div>
+          </div>
+        )}
 
-                      {post.excerpt && (
-                        <p style={{
-                          color: theme.colors.textSecondary,
-                          marginBottom: theme.spacing.sm,
-                          lineHeight: 1.5
-                        }}>
-                          {post.excerpt}
-                        </p>
-                      )}
+        {/* Create/Edit Form */}
+        {showCreateForm && renderPostForm()}
 
-                      <div style={{
-                        fontSize: theme.typography.sizes.xs,
-                        color: theme.colors.textSecondary,
-                        display: 'flex',
-                        gap: theme.spacing.md,
-                        flexWrap: 'wrap'
-                      }}>
-                        <span>👁️ {post.views || 0} views</span>
-                        <span>📅 {new Date(post.createdAt).toLocaleDateString()}</span>
-                        <span>👤 {post.author?.name || post.author?.email}</span>
-                        {post.publishedAt && (
-                          <span>📢 Published {new Date(post.publishedAt).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
-
+        {/* Posts List */}
+        {!showCreateForm && (
+          <>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
+                <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
+                <p>Loading posts...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div style={{
+                ...cardStyle,
+                textAlign: 'center',
+                padding: theme.spacing.xl
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>📝</div>
+                <h3 style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.sm }}>
+                  No posts found
+                </h3>
+                <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.lg }}>
+                  {searchTerm || filterPublished !== 'all'
+                    ? 'Try adjusting your search or filters.'
+                    : 'Create your first blog post to get started!'}
+                </p>
+                <button
+                  style={buttonStyle}
+                  onClick={() => setShowCreateForm(true)}
+                >
+                  ➕ Create First Post
+                </button>
+              </div>
+            ) : (
+              <div>
+                {posts.map((post) => (
+                  <div key={post.id} style={cardStyle}>
                     <div style={{
-                      display: 'flex',
-                      gap: theme.spacing.xs,
-                      flexWrap: 'wrap',
-                      justifyContent: 'flex-end'
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      gap: theme.spacing.md,
+                      alignItems: 'start'
                     }}>
-                      <button
-                        style={{
-                          ...secondaryButtonStyle,
-                          padding: `4px 8px`,
-                          fontSize: theme.typography.sizes.xs
-                        }}
-                        onClick={() => startEdit(post)}
-                        title="Edit post"
-                      >
-                        ✏️ Edit
-                      </button>
+                      <div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: theme.spacing.sm,
+                          marginBottom: theme.spacing.sm
+                        }}>
+                          <h3 style={{
+                            margin: 0,
+                            color: theme.colors.text,
+                            fontSize: theme.typography.sizes.lg
+                          }}>
+                            {post.title}
+                          </h3>
+                          <span style={{
+                            fontSize: theme.typography.sizes.xs,
+                            padding: `2px 8px`,
+                            borderRadius: '12px',
+                            backgroundColor: post.published ? '#22c55e' : '#f59e0b',
+                            color: 'white',
+                            fontWeight: theme.typography.weights.semibold
+                          }}>
+                            {post.published ? '✅ Published' : '📄 Draft'}
+                          </span>
+                        </div>
 
-                      <button
-                        style={{
-                          ...secondaryButtonStyle,
-                          padding: `4px 8px`,
-                          fontSize: theme.typography.sizes.xs,
-                          backgroundColor: post.published ? '#f59e0b' : '#22c55e',
-                          color: 'white'
-                        }}
-                        onClick={() => handleTogglePublish(post)}
-                        title={post.published ? 'Unpublish post' : 'Publish post'}
-                      >
-                        {post.published ? '📤 Unpublish' : '📢 Publish'}
-                      </button>
+                        {post.excerpt && (
+                          <p style={{
+                            color: theme.colors.textSecondary,
+                            marginBottom: theme.spacing.sm,
+                            lineHeight: 1.5
+                          }}>
+                            {post.excerpt}
+                          </p>
+                        )}
 
-                      <button
-                        style={{
-                          ...secondaryButtonStyle,
-                          padding: `4px 8px`,
+                        <div style={{
                           fontSize: theme.typography.sizes.xs,
-                          backgroundColor: '#ef4444',
-                          color: 'white'
-                        }}
-                        onClick={() => handleDelete(post.id)}
-                        title="Delete post permanently"
-                      >
-                        🗑️ Delete
-                      </button>
+                          color: theme.colors.textSecondary,
+                          display: 'flex',
+                          gap: theme.spacing.md,
+                          flexWrap: 'wrap'
+                        }}>
+                          <span>👁️ {post.views || 0} views</span>
+                          <span>📅 {new Date(post.createdAt).toLocaleDateString()}</span>
+                          <span>👤 {post.author?.name || post.author?.email}</span>
+                          {post.publishedAt && (
+                            <span>📢 Published {new Date(post.publishedAt).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        gap: theme.spacing.xs,
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end'
+                      }}>
+                        <button
+                          style={{
+                            ...secondaryButtonStyle,
+                            padding: `4px 8px`,
+                            fontSize: theme.typography.sizes.xs
+                          }}
+                          onClick={() => startEdit(post)}
+                          title="Edit post"
+                        >
+                          ✏️ Edit
+                        </button>
+
+                        <button
+                          style={{
+                            ...secondaryButtonStyle,
+                            padding: `4px 8px`,
+                            fontSize: theme.typography.sizes.xs,
+                            backgroundColor: post.published ? '#f59e0b' : '#22c55e',
+                            color: 'white'
+                          }}
+                          onClick={() => handleTogglePublish(post)}
+                          title={post.published ? 'Unpublish post' : 'Publish post'}
+                        >
+                          {post.published ? '📤 Unpublish' : '📢 Publish'}
+                        </button>
+
+                        <button
+                          style={{
+                            ...secondaryButtonStyle,
+                            padding: `4px 8px`,
+                            fontSize: theme.typography.sizes.xs,
+                            backgroundColor: '#ef4444',
+                            color: 'white'
+                          }}
+                          onClick={() => handleDelete(post.id)}
+                          title="Delete post permanently"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: theme.spacing.sm,
-                  marginTop: theme.spacing.lg
-                }}>
-                  <button
-                    style={{
-                      ...secondaryButtonStyle,
-                      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                      opacity: currentPage === 1 ? 0.5 : 1
-                    }}
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    ← Previous
-                  </button>
-
-                  <span style={{
-                    color: theme.colors.textSecondary,
-                    fontSize: theme.typography.sizes.sm,
-                    padding: `0 ${theme.spacing.md}`
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm,
+                    marginTop: theme.spacing.lg
                   }}>
-                    Page {currentPage} of {totalPages}
-                  </span>
+                    <button
+                      style={{
+                        ...secondaryButtonStyle,
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                        opacity: currentPage === 1 ? 0.5 : 1
+                      }}
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ← Previous
+                    </button>
 
-                  <button
-                    style={{
-                      ...secondaryButtonStyle,
-                      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                      opacity: currentPage === totalPages ? 0.5 : 1
-                    }}
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next →
-                  </button>
+                    <span style={{
+                      color: theme.colors.textSecondary,
+                      fontSize: theme.typography.sizes.sm,
+                      padding: `0 ${theme.spacing.md}`
+                    }}>
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    <button
+                      style={{
+                        ...secondaryButtonStyle,
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                        opacity: currentPage === totalPages ? 0.5 : 1
+                      }}
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
+
+                {/* Results summary */}
+                <div style={{
+                  textAlign: 'center',
+                  color: theme.colors.textSecondary,
+                  fontSize: theme.typography.sizes.sm,
+                  marginTop: theme.spacing.lg,
+                  padding: theme.spacing.md
+                }}>
+                  📊 Showing {posts.length} posts {totalPages > 1 ? `(page ${currentPage} of ${totalPages})` : ''}
                 </div>
-              )}
-
-              {/* Results summary */}
-              <div style={{
-                textAlign: 'center',
-                color: theme.colors.textSecondary,
-                fontSize: theme.typography.sizes.sm,
-                marginTop: theme.spacing.lg,
-                padding: theme.spacing.md
-              }}>
-                📊 Showing {posts.length} posts {totalPages > 1 ? `(page ${currentPage} of ${totalPages})` : ''}
               </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
