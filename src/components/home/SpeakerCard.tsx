@@ -1,30 +1,34 @@
-// ==================== src/components/home/SpeakerCard.tsx ====================
 /**
- * SPEAKER CARD COMPONENT
+ * FIXED SPEAKER CARD COMPONENT
  * 
- * Displays information about an upcoming speaker with photo, bio, and presentation details.
- * Features hover animations and responsive layout.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change the card layout (photo position, text alignment)
- * - Modify hover effects or animations
- * - Add more speaker information fields
- * - Change colors, fonts, or spacing
- * - Add social media links for speakers
+ * Update your existing src/components/home/SpeakerCard.tsx with this version
+ * This removes the redundant role attribute and handles the presentations property
  */
 
 import React, { useState } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { formatDate } from '../../utils/dateUtils';
-import { Speaker } from '../../data/types';
 
-export const SpeakerCard: React.FC<Speaker> = ({ 
-  name, 
-  title, 
-  bio, 
-  photoUrl, 
-  nextPresentationDate, 
-  topic 
+// Updated Speaker interface to match what we're actually using
+interface Speaker {
+  id: string;
+  name: string;
+  title: string;
+  bio: string;
+  photoUrl?: string;
+  nextPresentationDate?: string;
+  topic?: string;
+  isActive?: boolean;
+  isFeatured?: boolean;
+}
+
+export const SpeakerCard: React.FC<Speaker> = ({
+  name,
+  title,
+  bio,
+  photoUrl,
+  nextPresentationDate,
+  topic
 }) => {
   const theme = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -121,12 +125,11 @@ export const SpeakerCard: React.FC<Speaker> = ({
   };
 
   return (
-    <article 
+    <article
       style={cardStyle}
       // Hover state management
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      role="article"
       aria-label={`Speaker: ${name}`}
     >
       {/* Decorative background element */}
@@ -150,7 +153,7 @@ export const SpeakerCard: React.FC<Speaker> = ({
         <h4 style={titleStyle}>{title}</h4>
         {topic && <p style={topicStyle}>"{topic}"</p>}
         <p style={bioStyle}>{bio}</p>
-        <span style={dateStyle} role="status" aria-live="polite">
+        <span style={dateStyle} aria-live="polite">
           📅 {nextPresentationDate ? formatDate(nextPresentationDate) : "TBA"}
         </span>
       </div>
