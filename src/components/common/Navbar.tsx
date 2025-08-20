@@ -1,12 +1,12 @@
 /**
- * ENHANCED NAVIGATION COMPONENT WITH BEAUTIFUL WAVE BACKGROUND
+ * CLASSIC ELEGANT NAVIGATION COMPONENT
  * 
- * Major improvements:
- * - Beautiful animated wave background
- * - Ocean-themed gradient colors
- * - Smooth wave animations
- * - Enhanced visual depth
- * - Better contrast and readability
+ * Sophisticated yacht club styling:
+ * - Deep navy and maritime colors
+ * - Classic typography and spacing
+ * - Subtle animations and transitions
+ * - Refined, timeless design
+ * - Premium yacht club aesthetic
  */
 
 import React, { useState, useEffect } from 'react';
@@ -57,45 +57,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     left: 0,
     right: 0,
     zIndex: 1000,
-    background: isScrolled 
-      ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%)'
-      : 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 30%, #0369a1 70%, #164e63 100%)',
-    backdropFilter: 'blur(20px)',
-    borderBottom: `1px solid ${isScrolled ? '#0284c7' : 'rgba(255,255,255,0.2)'}`,
-    transition: 'all 0.3s ease',
-    boxShadow: isScrolled ? '0 8px 32px rgba(14, 165, 233, 0.3)' : '0 4px 20px rgba(14, 165, 233, 0.2)',
-    overflow: 'hidden'
-  };
-
-  // Wave background element
-  const waveBackgroundStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.9) 0%, rgba(2, 132, 199, 0.8) 50%, rgba(3, 105, 161, 0.9) 100%)',
-    zIndex: -2
-  };
-
-  const waveOverlayStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '200%',
-    height: '100%',
-    background: `
-      repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        rgba(255, 255, 255, 0.03) 40px,
-        rgba(255, 255, 255, 0.08) 80px,
-        rgba(255, 255, 255, 0.03) 120px,
-        transparent 160px
-      )
-    `,
-    animation: 'waveMove 20s linear infinite',
-    zIndex: -1
+    backgroundColor: isScrolled 
+      ? '#1e293b' // Slate 800 - elegant dark
+      : '#0f172a', // Slate 900 - deep navy
+    backdropFilter: 'blur(12px)',
+    borderBottom: isScrolled 
+      ? '1px solid #334155' // Subtle slate border
+      : '1px solid rgba(51, 65, 85, 0.3)',
+    transition: 'all 0.4s ease',
+    boxShadow: isScrolled 
+      ? '0 4px 20px rgba(15, 23, 42, 0.4)' 
+      : '0 2px 10px rgba(15, 23, 42, 0.2)'
   };
 
   const containerStyle: React.CSSProperties = {
@@ -105,27 +77,24 @@ export const Navbar: React.FC<NavbarProps> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: '80px',
-    position: 'relative',
-    zIndex: 10
+    height: '80px'
   };
 
   const logoStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
     textDecoration: 'none',
-    color: '#ffffff',
-    fontWeight: theme.typography.weights.bold,
+    color: '#f8fafc', // Slate 50 - elegant white
+    fontWeight: 600,
     fontSize: theme.typography.sizes.xl,
     transition: 'all 0.3s ease',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+    fontFamily: 'serif' // Classic serif font for elegance
   };
 
   const logoIconStyle: React.CSSProperties = {
-    fontSize: '2rem',
-    animation: 'float 3s ease-in-out infinite',
-    filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))'
+    fontSize: '2.2rem',
+    transition: 'all 0.3s ease'
   };
 
   const desktopMenuStyle: React.CSSProperties = {
@@ -139,21 +108,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
     textDecoration: 'none',
-    color: '#ffffff',
+    color: isActive ? '#e2e8f0' : '#cbd5e1', // Slate variations
     fontSize: theme.typography.sizes.base,
-    fontWeight: isActive ? theme.typography.weights.semibold : theme.typography.weights.medium,
+    fontWeight: isActive ? 600 : 500,
     padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-    borderRadius: '25px',
+    borderRadius: '6px',
     transition: 'all 0.3s ease',
     position: 'relative',
-    backgroundColor: isActive 
-      ? 'rgba(255, 255, 255, 0.25)' 
-      : 'transparent',
-    border: isActive 
-      ? '1px solid rgba(255, 255, 255, 0.3)' 
-      : '1px solid transparent',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-    backdropFilter: isActive ? 'blur(10px)' : 'none'
+    borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent' // Blue accent for active
   });
 
   const userMenuStyle: React.CSSProperties = {
@@ -167,25 +129,24 @@ export const Navbar: React.FC<NavbarProps> = ({
     height: '40px',
     borderRadius: '50%',
     objectFit: 'cover',
-    border: '2px solid rgba(255, 255, 255, 0.8)',
+    border: '2px solid #64748b', // Slate 500
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+    transition: 'all 0.3s ease'
   };
 
   const userPlaceholderStyle: React.CSSProperties = {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    border: '2px solid rgba(255, 255, 255, 0.6)',
+    backgroundColor: '#334155', // Slate 700
+    border: '2px solid #64748b',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '1.2rem',
-    color: '#ffffff',
+    color: '#e2e8f0',
     cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+    transition: 'all 0.3s ease'
   };
 
   const mobileMenuButtonStyle: React.CSSProperties = {
@@ -193,12 +154,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     background: 'none',
     border: 'none',
     fontSize: '1.5rem',
-    color: '#ffffff',
+    color: '#f8fafc',
     cursor: 'pointer',
     padding: theme.spacing.sm,
-    borderRadius: '8px',
-    transition: 'all 0.3s ease',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
+    borderRadius: '6px',
+    transition: 'all 0.3s ease'
   };
 
   const mobileMenuStyle: React.CSSProperties = {
@@ -206,10 +166,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     top: '80px',
     left: 0,
     right: 0,
-    background: 'linear-gradient(180deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 8px 32px rgba(14, 165, 233, 0.4)',
+    backgroundColor: '#1e293b',
+    border: '1px solid #334155',
+    boxShadow: '0 10px 40px rgba(15, 23, 42, 0.6)',
     transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
     transition: 'transform 0.3s ease',
     zIndex: 999,
@@ -225,45 +184,41 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const actionButtonStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    color: '#0369a1',
+    backgroundColor: '#3b82f6', // Classic blue
+    color: '#ffffff',
     border: 'none',
-    borderRadius: '25px',
+    borderRadius: '6px',
     padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     display: 'flex',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    textDecoration: 'none',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-    backdropFilter: 'blur(10px)'
+    textDecoration: 'none'
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
     backgroundColor: 'transparent',
-    color: '#ffffff',
-    border: '2px solid rgba(255, 255, 255, 0.8)',
-    borderRadius: '25px',
+    color: '#e2e8f0',
+    border: '1px solid #64748b',
+    borderRadius: '6px',
     padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: 500,
     cursor: 'pointer',
     transition: 'all 0.3s ease',
-    textDecoration: 'none',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-    backdropFilter: 'blur(10px)'
+    textDecoration: 'none'
   };
 
   // Navigation items
   const navItems = [
-    { id: 'home', label: 'Home', href: '#home', icon: '🏠' },
-    { id: 'speakers', label: 'Speakers', href: '#upcoming', icon: '🎤' },
-    { id: 'blog', label: 'Articles', href: '#blog', icon: '📝' },
-    { id: 'weather', label: 'Weather', href: '#weather', icon: '🌊' },
-    { id: 'about', label: 'About', href: '#owner', icon: 'ℹ️' }
+    { id: 'home', label: 'Home', href: '#home', icon: '⌂' },
+    { id: 'speakers', label: 'Speakers', href: '#upcoming', icon: '◉' },
+    { id: 'blog', label: 'Articles', href: '#blog', icon: '※' },
+    { id: 'weather', label: 'Conditions', href: '#weather', icon: '⚓' },
+    { id: 'about', label: 'About', href: '#owner', icon: '◈' }
   ];
 
   const handleNavClick = (href: string) => {
@@ -288,21 +243,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // CSS animations
   const animations = `
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-5px); }
-    }
-    
-    @keyframes waveMove {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-160px); }
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    
     @media (max-width: 768px) {
       .desktop-menu { display: none !important; }
       .mobile-menu-button { display: block !important; }
@@ -317,10 +257,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <style>{animations}</style>
       <nav style={navbarStyle}>
-        {/* Wave Background */}
-        <div style={waveBackgroundStyle} />
-        <div style={waveOverlayStyle} />
-        
         <div style={containerStyle}>
           {/* Logo */}
           <a 
@@ -331,16 +267,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               handleNavClick('#home');
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.textShadow = '3px 3px 6px rgba(0,0,0,0.4)';
+              e.currentTarget.style.transform = 'scale(1.02)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
             }}
           >
-            <span style={logoIconStyle}>⛵</span>
-            <span>WYL</span>
+            <span style={logoIconStyle}>⚓</span>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>WYL</span>
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 400 }}>
+                EST. 1927
+              </span>
+            </div>
           </a>
 
           {/* Desktop Navigation */}
@@ -356,20 +295,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   onMouseEnter={(e) => {
                     if (activeSection !== item.id) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                      e.currentTarget.style.color = '#f8fafc';
+                      e.currentTarget.style.backgroundColor = '#334155';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (activeSection !== item.id) {
+                      e.currentTarget.style.color = '#cbd5e1';
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
                     }
                   }}
                 >
-                  <span style={{ marginRight: theme.spacing.xs }}>{item.icon}</span>
+                  <span style={{ 
+                    marginRight: theme.spacing.xs, 
+                    fontSize: '0.9rem',
+                    opacity: 0.8 
+                  }}>
+                    {item.icon}
+                  </span>
                   {item.label}
                 </a>
               </li>
@@ -391,13 +334,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                     alt={user.name || 'User'}
                     style={userAvatarStyle}
                     title={`${user.name || 'User'} (${user.role})`}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#64748b';
+                    }}
                   />
                 ) : (
                   <div 
                     style={userPlaceholderStyle}
                     title={`${user?.name || 'User'} (${user?.role})`}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                      e.currentTarget.style.backgroundColor = '#475569';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#64748b';
+                      e.currentTarget.style.backgroundColor = '#334155';
+                    }}
                   >
-                    👤
+                    ◉
                   </div>
                 )}
 
@@ -415,19 +372,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                       window.location.hash = '#admin';
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-                      e.currentTarget.style.color = '#0369a1';
-                      e.currentTarget.style.textShadow = 'none';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.backgroundColor = '#475569';
+                      e.currentTarget.style.borderColor = '#94a3b8';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#ffffff';
-                      e.currentTarget.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
-                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.borderColor = '#64748b';
                     }}
                   >
-                    ⚙️ Admin
+                    ⚙ Admin
                   </a>
                 )}
 
@@ -440,19 +393,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   onClick={handleSignOut}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ef4444';
-                    e.currentTarget.style.borderColor = '#ef4444';
+                    e.currentTarget.style.backgroundColor = '#dc2626';
+                    e.currentTarget.style.borderColor = '#dc2626';
                     e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-                    e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = '#64748b';
+                    e.currentTarget.style.color = '#e2e8f0';
                   }}
                 >
-                  🚪 Sign Out
+                  ◉ Sign Out
                 </button>
               </div>
             ) : (
@@ -464,19 +415,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   window.location.hash = '#auth';
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.color = '#0369a1';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+                  e.currentTarget.style.backgroundColor = '#2563eb';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-                  e.currentTarget.style.color = '#0369a1';
+                  e.currentTarget.style.backgroundColor = '#3b82f6';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
                 }}
               >
-                🔐 Sign In
+                ◉ Member Sign In
               </a>
             )}
 
@@ -486,12 +433,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="mobile-menu-button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.backgroundColor = '#334155';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               {isMobileMenuOpen ? '✕' : '☰'}
@@ -512,12 +457,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   width: '100%',
                   textAlign: 'left',
                   padding: theme.spacing.md,
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
                   backgroundColor: activeSection === item.id 
-                    ? 'rgba(255, 255, 255, 0.25)' 
-                    : 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)'
+                    ? '#334155' 
+                    : 'transparent'
                 }}
                 onClick={(e) => {
                   e.preventDefault();
@@ -531,7 +475,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile User Actions */}
             <div style={{
-              borderTop: '1px solid rgba(255, 255, 255, 0.3)',
+              borderTop: '1px solid #334155',
               paddingTop: theme.spacing.md,
               marginTop: theme.spacing.md
             }}>
@@ -543,26 +487,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                     alignItems: 'center',
                     gap: theme.spacing.md,
                     padding: theme.spacing.md,
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(10px)'
+                    backgroundColor: '#334155',
+                    borderRadius: '6px'
                   }}>
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name || 'User'} style={userAvatarStyle} />
                     ) : (
-                      <div style={userPlaceholderStyle}>👤</div>
+                      <div style={userPlaceholderStyle}>◉</div>
                     )}
                     <div>
                       <div style={{ 
-                        fontWeight: theme.typography.weights.semibold,
-                        color: '#ffffff',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
+                        fontWeight: 600,
+                        color: '#f8fafc'
                       }}>
                         {user?.name || 'User'}
                       </div>
                       <div style={{ 
                         fontSize: theme.typography.sizes.sm, 
-                        color: 'rgba(255, 255, 255, 0.8)'
+                        color: '#94a3b8'
                       }}>
                         {user?.role}
                       </div>
@@ -580,7 +522,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setIsMobileMenuOpen(false);
                       }}
                     >
-                      ⚙️ Admin Dashboard
+                      ⚙ Admin Dashboard
                     </a>
                   )}
 
@@ -593,7 +535,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                     onClick={handleSignOut}
                   >
-                    🚪 Sign Out
+                    ◉ Sign Out
                   </button>
                 </div>
               ) : (
@@ -606,7 +548,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  🔐 Sign In
+                  ◉ Member Sign In
                 </a>
               )}
             </div>
@@ -622,11 +564,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(3, 105, 161, 0.4)',
+              backgroundColor: 'rgba(15, 23, 42, 0.5)',
               zIndex: 998,
               opacity: isMobileMenuOpen ? 1 : 0,
-              transition: 'opacity 0.3s ease',
-              backdropFilter: 'blur(4px)'
+              transition: 'opacity 0.3s ease'
             }}
             onClick={() => setIsMobileMenuOpen(false)}
           />
