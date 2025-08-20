@@ -438,19 +438,6 @@ export const MultiLocationWeather: React.FC = () => {
         transform: translateY(0);
       }
     }
-    
-    @media (max-width: 768px) {
-      .weather-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .weather-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
   `;
 
   const filteredData = selectedLocation === 'all' 
@@ -547,7 +534,7 @@ export const MultiLocationWeather: React.FC = () => {
           <LoadingSkeleton />
         ) : (
           <>
-            <div style={gridStyle} className="weather-grid">
+            <div style={gridStyle}>
               {filteredData.map((data, index) => (
                 <WeatherCard key={data.location} data={data} index={index} />
               ))}
