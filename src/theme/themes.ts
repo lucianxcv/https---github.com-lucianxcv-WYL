@@ -29,7 +29,8 @@ export const themes = {
     shadows: {
       sm: '0 2px 8px rgba(30, 58, 95, 0.08)',   // Small shadow for buttons
       md: '0 4px 16px rgba(30, 58, 95, 0.12)',  // Medium shadow for cards
-      lg: '0 8px 32px rgba(30, 58, 95, 0.16)'   // Large shadow for modals
+      lg: '0 8px 32px rgba(30, 58, 95, 0.16)',  // Large shadow for modals
+      xl: '0 20px 25px -5px rgba(30, 58, 95, 0.1), 0 10px 10px -5px rgba(30, 58, 95, 0.04)' // Extra large shadow
     }
   },
   dark: {
@@ -47,7 +48,8 @@ export const themes = {
     shadows: {
       sm: '0 2px 8px rgba(0, 0, 0, 0.3)',
       md: '0 4px 16px rgba(0, 0, 0, 0.4)', 
-      lg: '0 8px 32px rgba(0, 0, 0, 0.5)'
+      lg: '0 8px 32px rgba(0, 0, 0, 0.5)',
+      xl: '0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1)' // Extra large shadow for dark mode
     }
   }
 };

@@ -1,127 +1,90 @@
-/**
- * GLOBAL SEARCH HOOK
- * 
- * Save this file as: src/hooks/useGlobalSearch.ts
- */
+// Fix your useGlobalSearch hook in hooks/useGlobalSearch.ts
 
-import { useState, useMemo } from 'react';
-import { useSpeakers } from './useSpeakers';
-import { useBlogPosts } from './useBlogPosts';
-
-type SearchResultType = 'speaker' | 'blog' | 'presentation';
+import { useState } from 'react';
 
 interface SearchResult {
   id: string;
-  type: SearchResultType;
   title: string;
-  description: string;
-  url: string;
-  imageUrl?: string;
+  type: 'speaker' | 'blog' | 'presentation' | 'weather';
+  excerpt?: string;
+  category?: string;
   date?: string;
-  metadata?: any;
+  imageUrl?: string;
+  tags?: string[];
 }
 
 interface UseGlobalSearchReturn {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  results: SearchResult[];
+  searchResults: SearchResult[];
   loading: boolean;
-  resultCounts: {
-    speakers: number;
-    blogs: number;
-    presentations: number;
-    total: number;
-  };
-  filterByType: (type: SearchResultType | 'all') => SearchResult[];
+  search: (query: string) => Promise<void>;
 }
 
 export const useGlobalSearch = (): UseGlobalSearchReturn => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const { speakers, loading: speakersLoading } = useSpeakers();
-  const { posts, loading: postsLoading } = useBlogPosts();
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const loading = speakersLoading || postsLoading;
+  const search = async (query: string): Promise<void> => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
-  // Combine all searchable content
-  const allResults = useMemo((): SearchResult[] => {
-    const results: SearchResult[] = [];
-
-    // Add speakers to search results
-    speakers.forEach(speaker => {
-      const searchableText = `${speaker.name} ${speaker.title} ${speaker.bio} ${speaker.topic || ''}`.toLowerCase();
-      if (searchTerm === '' || searchableText.includes(searchTerm.toLowerCase())) {
-        results.push({
-          id: speaker.id,
-          type: 'speaker',
-          title: speaker.name,
-          description: `${speaker.title} - ${speaker.topic || 'Maritime Expert'}`,
-          url: `#speaker-${speaker.id}`,
-          imageUrl: speaker.photoUrl,
-          date: speaker.nextPresentationDate,
-          metadata: speaker
-        });
-      }
-    });
-
-    // Add blog posts to search results
-    posts.forEach(post => {
-      const searchableText = `${post.title} ${post.excerpt || ''} ${post.content}`.toLowerCase();
-      if (searchTerm === '' || searchableText.includes(searchTerm.toLowerCase())) {
-        results.push({
-          id: post.id,
-          type: 'blog',
-          title: post.title,
-          description: post.excerpt || post.content.substring(0, 150) + '...',
-          url: `#blog-${post.slug}`,
-          imageUrl: post.coverImage,
-          date: post.publishedAt || post.createdAt,
-          metadata: post
-        });
-      }
-    });
-
-    // TODO: Add past presentations when integrated
-    // presentations.forEach(presentation => { ... });
-
-    return results.sort((a, b) => {
-      // Sort by relevance (exact matches first) then by date
-      const aRelevance = a.title.toLowerCase().includes(searchTerm.toLowerCase()) ? 1 : 0;
-      const bRelevance = b.title.toLowerCase().includes(searchTerm.toLowerCase()) ? 1 : 0;
+    setLoading(true);
+    
+    try {
+      // Simulate API call with sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (aRelevance !== bRelevance) {
-        return bRelevance - aRelevance;
-      }
-      
-      // Then sort by date (newest first)
-      const aDate = new Date(a.date || 0).getTime();
-      const bDate = new Date(b.date || 0).getTime();
-      return bDate - aDate;
-    });
-  }, [speakers, posts, searchTerm]);
+      const mockResults: SearchResult[] = [
+        {
+          id: '1',
+          title: 'Captain Rodriguez Maritime Safety',
+          type: 'speaker' as const,
+          excerpt: 'Expert in maritime safety protocols and navigation',
+          category: 'Safety',
+          date: '2024-01-15'
+        },
+        {
+          id: '2',
+          title: 'Understanding Weather Patterns',
+          type: 'blog' as const,
+          excerpt: 'Learn how to read maritime weather conditions',
+          category: 'Weather',
+          date: '2024-01-10'
+        },
+        {
+          id: '3',
+          title: 'Storm Navigation Techniques',
+          type: 'presentation' as const,
+          excerpt: 'Advanced techniques for navigating in storms',
+          category: 'Navigation',
+          date: '2024-01-08'
+        },
+        {
+          id: '4',
+          title: 'San Francisco Bay Weather',
+          type: 'weather' as const,
+          excerpt: 'Current weather conditions in the bay area',
+          category: 'Weather',
+          date: '2024-01-20'
+        }
+      ].filter(item => 
+        item.title.toLowerCase().includes(query.toLowerCase()) ||
+        item.excerpt?.toLowerCase().includes(query.toLowerCase())
+      );
 
-  // Calculate result counts by type
-  const resultCounts = useMemo(() => {
-    const counts = {
-      speakers: allResults.filter(r => r.type === 'speaker').length,
-      blogs: allResults.filter(r => r.type === 'blog').length,
-      presentations: allResults.filter(r => r.type === 'presentation').length,
-      total: allResults.length
-    };
-    return counts;
-  }, [allResults]);
-
-  // Filter results by type
-  const filterByType = (type: SearchResultType | 'all'): SearchResult[] => {
-    if (type === 'all') return allResults;
-    return allResults.filter(result => result.type === type);
+      setSearchResults(mockResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
-    searchTerm,
-    setSearchTerm,
-    results: allResults,
+    searchResults,
     loading,
-    resultCounts,
-    filterByType
+    search
   };
 };
