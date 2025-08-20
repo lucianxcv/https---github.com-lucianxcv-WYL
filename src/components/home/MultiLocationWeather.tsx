@@ -1,15 +1,11 @@
 /**
  * ENHANCED WEATHER DASHBOARD COMPONENT
  * 
- * Major improvements:
- * - Modern card design with better visual hierarchy
- * - Enhanced weather icons and animations
- * - Better data visualization
- * - Wind direction indicators
- * - Tide information display
- * - Interactive location switcher
- * - Loading states and error handling
- * - Responsive grid layout
+ * Fixed version with proper grid layout and clickable cards
+ * - 6 cards per row on large screens, responsive down to 1 on mobile
+ * - Clickable cards to show individual location details
+ * - Proper filtering and individual location view
+ * - Enhanced visual design
  */
 
 import React, { useState, useEffect } from 'react';
@@ -48,6 +44,8 @@ export const MultiLocationWeather: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'single'>('grid');
+  const [singleLocationData, setSingleLocationData] = useState<WeatherData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Featured locations for the dashboard
@@ -55,7 +53,9 @@ export const MultiLocationWeather: React.FC = () => {
     { id: 'sf-bay', name: 'San Francisco Bay', lat: 37.7749, lon: -122.4194, featured: true },
     { id: 'golden-gate', name: 'Golden Gate', lat: 37.8199, lon: -122.4783, featured: true },
     { id: 'alcatraz', name: 'Alcatraz Island', lat: 37.8267, lon: -122.4230, featured: true },
-    { id: 'sausalito', name: 'Sausalito', lat: 37.8590, lon: -122.4852, featured: true }
+    { id: 'sausalito', name: 'Sausalito', lat: 37.8590, lon: -122.4852, featured: true },
+    { id: 'angel-island', name: 'Angel Island', lat: 37.8625, lon: -122.4319, featured: true },
+    { id: 'tiburon', name: 'Tiburon', lat: 37.8736, lon: -122.4486, featured: true }
   ];
 
   const sectionStyle: React.CSSProperties = {
@@ -63,7 +63,7 @@ export const MultiLocationWeather: React.FC = () => {
     borderRadius: '24px',
     padding: theme.spacing.xl,
     margin: `${theme.spacing.xl} auto`,
-    maxWidth: '1200px',
+    maxWidth: '1400px',
     boxShadow: theme.shadows.lg,
     border: `1px solid ${theme.colors.border}`
   };
@@ -92,22 +92,11 @@ export const MultiLocationWeather: React.FC = () => {
   const controlsStyle: React.CSSProperties = {
     display: 'flex',
     gap: theme.spacing.sm,
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap'
   };
 
-  const selectStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.surface,
-    color: theme.colors.text,
-    border: `2px solid ${theme.colors.border}`,
-    borderRadius: '12px',
-    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease'
-  };
-
-  const refreshButtonStyle: React.CSSProperties = {
+  const buttonStyle: React.CSSProperties = {
     backgroundColor: theme.colors.primary,
     color: '#ffffff',
     border: 'none',
@@ -122,10 +111,16 @@ export const MultiLocationWeather: React.FC = () => {
     gap: theme.spacing.xs
   };
 
+  const backButtonStyle: React.CSSProperties = {
+    ...buttonStyle,
+    backgroundColor: theme.colors.secondary
+  };
+
+  // FIXED: Proper grid layout for 6 cards per row
   const gridStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: theme.spacing.lg
+    gridTemplateColumns: 'repeat(6, 1fr)', // 6 columns on large screens
+    gap: theme.spacing.md
   };
 
   const lastUpdatedStyle: React.CSSProperties = {
@@ -135,56 +130,63 @@ export const MultiLocationWeather: React.FC = () => {
     marginTop: theme.spacing.md
   };
 
-  // Weather card component
-  const WeatherCard: React.FC<{ data: WeatherData; index: number }> = ({ data, index }) => {
+  // Enhanced weather card component with click functionality
+  const WeatherCard: React.FC<{ data: WeatherData; index: number; onClick?: () => void }> = ({ 
+    data, 
+    index, 
+    onClick 
+  }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const cardStyle: React.CSSProperties = {
       backgroundColor: theme.colors.surface,
-      borderRadius: '20px',
-      padding: theme.spacing.lg,
+      borderRadius: '16px',
+      padding: theme.spacing.md,
       border: `1px solid ${theme.colors.border}`,
       boxShadow: isHovered ? theme.shadows.md : theme.shadows.sm,
       transition: 'all 0.4s ease',
       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
       position: 'relative',
       overflow: 'hidden',
-      animation: `slideInUp 0.6s ease-out ${index * 0.1}s both`
+      animation: `slideInUp 0.6s ease-out ${index * 0.1}s both`,
+      cursor: onClick ? 'pointer' : 'default',
+      minHeight: '180px'
     };
 
     const locationNameStyle: React.CSSProperties = {
-      fontSize: theme.typography.sizes.lg,
+      fontSize: theme.typography.sizes.sm,
       fontWeight: theme.typography.weights.bold,
       color: theme.colors.text,
-      marginBottom: theme.spacing.sm
+      marginBottom: theme.spacing.xs,
+      lineHeight: 1.2
     };
 
     const temperatureStyle: React.CSSProperties = {
-      fontSize: theme.typography.sizes['3xl'],
+      fontSize: theme.typography.sizes.xl,
       fontWeight: theme.typography.weights.bold,
       color: theme.colors.primary,
-      marginBottom: theme.spacing.sm
+      marginBottom: theme.spacing.xs
     };
 
     const conditionStyle: React.CSSProperties = {
-      fontSize: theme.typography.sizes.md,
+      fontSize: theme.typography.sizes.xs,
       color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.md,
+      marginBottom: theme.spacing.sm,
       fontWeight: theme.typography.weights.medium
     };
 
-    const detailsGridStyle: React.CSSProperties = {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.md
+    const detailsStyle: React.CSSProperties = {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: theme.spacing.xs,
+      fontSize: theme.typography.sizes.xs
     };
 
     const detailItemStyle: React.CSSProperties = {
       display: 'flex',
       alignItems: 'center',
-      gap: theme.spacing.xs,
-      fontSize: theme.typography.sizes.sm,
+      justifyContent: 'space-between',
+      fontSize: theme.typography.sizes.xs,
       color: theme.colors.text
     };
 
@@ -200,6 +202,73 @@ export const MultiLocationWeather: React.FC = () => {
       return '🌤️';
     };
 
+    return (
+      <div
+        style={cardStyle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={onClick}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: theme.spacing.xs }}>
+          <h3 style={locationNameStyle}>{data.location}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
+            <span style={{ fontSize: '1rem' }}>{getWeatherIcon(data.condition)}</span>
+            <span style={temperatureStyle}>{Math.round(data.temperature)}°</span>
+          </div>
+          <p style={conditionStyle}>{data.condition}</p>
+        </div>
+
+        {/* Compact Details */}
+        <div style={detailsStyle}>
+          <div style={detailItemStyle}>
+            <span>💧 Humidity</span>
+            <span>{data.humidity}%</span>
+          </div>
+          <div style={detailItemStyle}>
+            <span>💨 Wind</span>
+            <span>{data.windSpeed}mph</span>
+          </div>
+          <div style={detailItemStyle}>
+            <span>👁️ Visibility</span>
+            <span>{data.visibility}mi</span>
+          </div>
+        </div>
+
+        {/* Click indicator */}
+        {onClick && (
+          <div style={{
+            position: 'absolute',
+            bottom: theme.spacing.xs,
+            right: theme.spacing.xs,
+            fontSize: '0.75rem',
+            color: theme.colors.textSecondary,
+            opacity: isHovered ? 1 : 0.5,
+            transition: 'opacity 0.3s ease'
+          }}>
+            👆 Click for details
+          </div>
+        )}
+
+        {/* Hover effect overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `linear-gradient(135deg, ${theme.colors.primary}05, ${theme.colors.secondary}05)`,
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+          pointerEvents: 'none',
+          borderRadius: '16px'
+        }} />
+      </div>
+    );
+  };
+
+  // Single location detailed view
+  const SingleLocationView: React.FC<{ data: WeatherData }> = ({ data }) => {
     const getWindDirection = (degrees: number) => {
       const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
       const index = Math.round(degrees / 22.5) % 16;
@@ -217,54 +286,177 @@ export const MultiLocationWeather: React.FC = () => {
     const uvInfo = getUVLevel(data.uvIndex);
 
     return (
-      <div
-        style={cardStyle}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: theme.spacing.xs }}>
-          <div>
-            <h3 style={locationNameStyle}>{data.location}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
-              <span style={{ fontSize: '1.2rem' }}>{getWeatherIcon(data.condition)}</span>
-              <span style={temperatureStyle}>{Math.round(data.temperature)}°</span>
-            </div>
-            <p style={conditionStyle}>{data.condition}</p>
+      <div style={{
+        backgroundColor: theme.colors.surface,
+        borderRadius: '20px',
+        padding: theme.spacing.xl,
+        border: `1px solid ${theme.colors.border}`,
+        boxShadow: theme.shadows.md
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: theme.spacing.lg }}>
+          <h3 style={{
+            fontSize: theme.typography.sizes['2xl'],
+            fontWeight: theme.typography.weights.bold,
+            color: theme.colors.text,
+            marginBottom: theme.spacing.sm
+          }}>
+            {data.location}
+          </h3>
+          <div style={{
+            fontSize: theme.typography.sizes['4xl'],
+            fontWeight: theme.typography.weights.bold,
+            color: theme.colors.primary,
+            marginBottom: theme.spacing.sm
+          }}>
+            {Math.round(data.temperature)}°F
           </div>
+          <p style={{
+            fontSize: theme.typography.sizes.lg,
+            color: theme.colors.textSecondary,
+            marginBottom: theme.spacing.lg
+          }}>
+            {data.condition}
+          </p>
         </div>
 
-        {/* Compact Weather Details */}
-        <div style={detailsGridStyle}>
-          <div style={detailItemStyle}>
-            <span>💧</span>
-            <span>{data.humidity}%</span>
-          </div>
-
-          <div style={detailItemStyle}>
-            <span>💨</span>
-            <span>{data.windSpeed}mph</span>
-          </div>
-
-          <div style={detailItemStyle}>
-            <span>👁️</span>
-            <span>{data.visibility}mi</span>
-          </div>
-        </div>
-
-        {/* Hover effect overlay */}
+        {/* Detailed weather grid */}
         <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `linear-gradient(135deg, ${theme.colors.primary}05, ${theme.colors.secondary}05)`,
-          opacity: isHovered ? 1 : 0,
-          transition: 'opacity 0.3s ease',
-          pointerEvents: 'none',
-          borderRadius: '20px'
-        }} />
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: theme.spacing.lg
+        }}>
+          <div style={{
+            backgroundColor: theme.colors.background,
+            padding: theme.spacing.md,
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>💨</div>
+            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.windSpeed} mph
+            </div>
+            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              {getWindDirection(data.windDirection)} ({data.windDirection}°)
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: theme.colors.background,
+            padding: theme.spacing.md,
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>💧</div>
+            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.humidity}%
+            </div>
+            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              Humidity
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: theme.colors.background,
+            padding: theme.spacing.md,
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>👁️</div>
+            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.visibility} mi
+            </div>
+            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              Visibility
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: theme.colors.background,
+            padding: theme.spacing.md,
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌡️</div>
+            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.pressure} mb
+            </div>
+            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              Pressure
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: theme.colors.background,
+            padding: theme.spacing.md,
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>☀️</div>
+            <div style={{ 
+              fontSize: theme.typography.sizes.lg, 
+              fontWeight: theme.typography.weights.bold, 
+              color: uvInfo.color 
+            }}>
+              {data.uvIndex}
+            </div>
+            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              UV Index ({uvInfo.level})
+            </div>
+          </div>
+
+          {data.tideHigh && (
+            <div style={{
+              backgroundColor: theme.colors.background,
+              padding: theme.spacing.md,
+              borderRadius: '12px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌊</div>
+              <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+                {data.tideHigh}
+              </div>
+              <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+                High Tide
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Additional info if available */}
+        {(data.sunrise || data.sunset) && (
+          <div style={{
+            marginTop: theme.spacing.lg,
+            padding: theme.spacing.md,
+            backgroundColor: theme.colors.background,
+            borderRadius: '12px',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center'
+          }}>
+            {data.sunrise && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: theme.spacing.xs }}>🌅</div>
+                <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.semibold }}>
+                  {data.sunrise}
+                </div>
+                <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
+                  Sunrise
+                </div>
+              </div>
+            )}
+            {data.sunset && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: theme.spacing.xs }}>🌇</div>
+                <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.semibold }}>
+                  {data.sunset}
+                </div>
+                <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
+                  Sunset
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -275,46 +467,41 @@ export const MultiLocationWeather: React.FC = () => {
       {[...Array(6)].map((_, index) => (
         <div key={index} style={{
           backgroundColor: theme.colors.surface,
-          borderRadius: '12px',
-          padding: theme.spacing.sm,
+          borderRadius: '16px',
+          padding: theme.spacing.md,
           border: `1px solid ${theme.colors.border}`,
           animation: 'pulse 2s ease-in-out infinite',
-          minHeight: '140px'
+          minHeight: '180px'
         }}>
           <div style={{
-            height: '16px',
+            height: '14px',
             backgroundColor: theme.colors.border,
             borderRadius: '8px',
             marginBottom: theme.spacing.xs,
             width: '70%'
           }} />
           <div style={{
-            height: '24px',
+            height: '20px',
             backgroundColor: theme.colors.border,
             borderRadius: '8px',
             marginBottom: theme.spacing.xs,
             width: '50%'
           }} />
           <div style={{
-            height: '12px',
+            height: '10px',
             backgroundColor: theme.colors.border,
             borderRadius: '6px',
             marginBottom: theme.spacing.sm,
             width: '80%'
           }} />
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: '2px'
-          }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} style={{
-                height: '10px',
-                backgroundColor: theme.colors.border,
-                borderRadius: '5px'
-              }} />
-            ))}
-          </div>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} style={{
+              height: '8px',
+              backgroundColor: theme.colors.border,
+              borderRadius: '4px',
+              marginBottom: '4px'
+            }} />
+          ))}
         </div>
       ))}
     </div>
@@ -383,6 +570,32 @@ export const MultiLocationWeather: React.FC = () => {
           uvIndex: 8,
           sunrise: '6:43 AM',
           sunset: '7:22 PM'
+        },
+        {
+          location: 'Angel Island',
+          temperature: 64,
+          condition: 'Partly Cloudy',
+          humidity: 70,
+          windSpeed: 14,
+          windDirection: 290,
+          visibility: 8,
+          pressure: 1011,
+          uvIndex: 5,
+          tideHigh: '2:45 PM',
+          tideLow: '9:00 PM'
+        },
+        {
+          location: 'Tiburon',
+          temperature: 72,
+          condition: 'Sunny',
+          humidity: 52,
+          windSpeed: 7,
+          windDirection: 200,
+          visibility: 14,
+          pressure: 1016,
+          uvIndex: 9,
+          sunrise: '6:44 AM',
+          sunset: '7:21 PM'
         }
       ];
 
@@ -396,10 +609,24 @@ export const MultiLocationWeather: React.FC = () => {
     }
   };
 
+  // Handle card click to show single location
+  const handleCardClick = (data: WeatherData) => {
+    setSingleLocationData(data);
+    setViewMode('single');
+  };
+
+  // Handle back to grid view
+  const handleBackToGrid = () => {
+    setViewMode('grid');
+    setSingleLocationData(null);
+    setSelectedLocation('all');
+  };
+
   useEffect(() => {
     loadWeatherData();
   }, []);
 
+  // Responsive CSS
   const animations = `
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -417,13 +644,19 @@ export const MultiLocationWeather: React.FC = () => {
       }
     }
     
-    @media (max-width: 1200px) {
+    .weather-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: ${theme.spacing.md};
+    }
+    
+    @media (max-width: 1400px) {
       .weather-grid {
         grid-template-columns: repeat(4, 1fr) !important;
       }
     }
     
-    @media (max-width: 900px) {
+    @media (max-width: 1000px) {
       .weather-grid {
         grid-template-columns: repeat(3, 1fr) !important;
       }
@@ -432,7 +665,7 @@ export const MultiLocationWeather: React.FC = () => {
     @media (max-width: 768px) {
       .weather-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+        gap: ${theme.spacing.sm} !important;
       }
     }
     
@@ -465,10 +698,7 @@ export const MultiLocationWeather: React.FC = () => {
           <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
             Unable to load current weather conditions. Please try again.
           </p>
-          <button
-            style={refreshButtonStyle}
-            onClick={loadWeatherData}
-          >
+          <button style={buttonStyle} onClick={loadWeatherData}>
             🔄 Retry
           </button>
         </div>
@@ -485,39 +715,70 @@ export const MultiLocationWeather: React.FC = () => {
         {/* Header with Controls */}
         <div style={headerStyle}>
           <div style={controlsStyle}>
-            <select
-              style={selectStyle}
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
-              onBlur={(e) => e.target.style.borderColor = theme.colors.border}
-            >
-              <option value="all">All Locations</option>
-              <option value="san francisco">San Francisco Bay</option>
-              <option value="golden gate">Golden Gate</option>
-              <option value="alcatraz">Alcatraz Island</option>
-              <option value="sausalito">Sausalito</option>
-            </select>
-
-            <button
-              style={refreshButtonStyle}
-              onClick={loadWeatherData}
-              disabled={loading}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.backgroundColor = theme.colors.secondary;
+            {viewMode === 'single' ? (
+              <button
+                style={backButtonStyle}
+                onClick={handleBackToGrid}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.accent;
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.backgroundColor = theme.colors.primary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.secondary;
                   e.currentTarget.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {loading ? '⏳' : '🔄'} {loading ? 'Updating...' : 'Refresh'}
-            </button>
+                }}
+              >
+                ← Back to All Locations
+              </button>
+            ) : (
+              <>
+                <select
+                  style={{
+                    backgroundColor: theme.colors.surface,
+                    color: theme.colors.text,
+                    border: `2px solid ${theme.colors.border}`,
+                    borderRadius: '12px',
+                    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+                    fontSize: theme.typography.sizes.sm,
+                    fontWeight: theme.typography.weights.medium,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.colors.border}
+                >
+                  <option value="all">All Locations</option>
+                  <option value="san francisco">San Francisco Bay</option>
+                  <option value="golden gate">Golden Gate</option>
+                  <option value="alcatraz">Alcatraz Island</option>
+                  <option value="sausalito">Sausalito</option>
+                  <option value="angel">Angel Island</option>
+                  <option value="tiburon">Tiburon</option>
+                </select>
+
+                <button
+                  style={buttonStyle}
+                  onClick={loadWeatherData}
+                  disabled={loading}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = theme.colors.secondary;
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary;
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }
+                  }}
+                >
+                  {loading ? '⏳' : '🔄'} {loading ? 'Updating...' : 'Refresh'}
+                </button>
+              </>
+            )}
           </div>
 
           <div style={{
@@ -532,14 +793,21 @@ export const MultiLocationWeather: React.FC = () => {
           </div>
         </div>
 
-        {/* Weather Cards */}
+        {/* Content */}
         {loading ? (
           <LoadingSkeleton />
+        ) : viewMode === 'single' && singleLocationData ? (
+          <SingleLocationView data={singleLocationData} />
         ) : (
           <>
             <div style={gridStyle} className="weather-grid">
               {filteredData.map((data, index) => (
-                <WeatherCard key={data.location} data={data} index={index} />
+                <WeatherCard 
+                  key={data.location} 
+                  data={data} 
+                  index={index}
+                  onClick={() => handleCardClick(data)}
+                />
               ))}
             </div>
 
