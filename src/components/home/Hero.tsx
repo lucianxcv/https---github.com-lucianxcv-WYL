@@ -204,51 +204,6 @@ export const Hero: React.FC = () => {
         {backgroundWaves}
         
         <div style={heroContentStyle} className="hero-content">
-          {/* Main title with enhanced styling */}
-          <h1 style={heroTitleStyle} className="float-animation">
-            🛥️ Wednesday Yachting Luncheon
-          </h1>
-
-          {/* Enhanced subtitle */}
-          <p style={heroTaglineStyle}>
-            San Francisco's Premier Maritime Dining & Speaker Experience
-          </p>
-
-          {/* Enhanced description */}
-          <p style={heroDescriptionStyle}>
-            Join us every Wednesday at the historic St. Francis Yacht Club for inspiring maritime 
-            presentations paired with exceptional dining overlooking the San Francisco Bay.
-          </p>
-
-          {/* Call-to-action buttons */}
-          <div style={ctaContainerStyle}>
-            <button
-              className="hero-button"
-              style={primaryButtonStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-              }}
-            >
-              🎫 Reserve Your Spot
-            </button>
-
-            <button
-              className="hero-secondary-button"
-              style={secondaryButtonStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              📖 Learn More
-            </button>
-          </div>
-
           {/* Enhanced countdown section */}
           <div style={countdownContainerStyle}>
             <h3 style={{
@@ -265,40 +220,6 @@ export const Hero: React.FC = () => {
               targetDate={sampleData.speakers[0].nextPresentationDate || "2025-12-31T12:00:00"}
               repeatInterval="weekly"
             />
-          </div>
-
-          {/* Quick stats */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-            gap: theme.spacing.md,
-            marginTop: theme.spacing.xl,
-            maxWidth: '500px',
-            margin: `${theme.spacing.xl} auto 0 auto`
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>📅</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Every Wed</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>12:00 PM</div>
-            </div>
-            
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🎤</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Expert Speakers</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Maritime Leaders</div>
-            </div>
-            
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌊</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Bay Views</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Stunning Location</div>
-            </div>
-            
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🍽️</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Fine Dining</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Premium Cuisine</div>
-            </div>
           </div>
         </div>
       </section>
