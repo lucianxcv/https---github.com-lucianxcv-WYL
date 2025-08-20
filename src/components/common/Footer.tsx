@@ -225,93 +225,7 @@ export const Footer: React.FC<FooterProps> = ({
       <div style={containerStyle}>
         {/* Top Section */}
         <div style={topSectionStyle}>
-          {/* About Section */}
-          <div>
-            <h3 style={sectionTitleStyle}>
-              ⛵ Wednesday Yachting Luncheon
-            </h3>
-            <p style={{
-              color: theme.colors.textSecondary,
-              lineHeight: 1.6,
-              marginBottom: theme.spacing.md,
-              fontSize: theme.typography.sizes.base
-            }}>
-              San Francisco's premier maritime dining and speaker experience. Join us every Wednesday 
-              at the historic St. Francis Yacht Club for inspiring presentations and exceptional cuisine.
-            </p>
-            <div style={{display: 'flex', flexWrap: 'wrap', gap: theme.spacing.sm}}>
-              <span style={badgeStyle}>
-                🏆 Since 1927
-              </span>
-              <span style={{...badgeStyle, backgroundColor: theme.colors.secondary}}>
-                📍 SF Bay Area
-              </span>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 style={sectionTitleStyle}>
-              🧭 Quick Links
-            </h3>
-            <nav>
-              {quickLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  style={linkStyle}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick(link.href);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = theme.colors.primary;
-                    e.currentTarget.style.paddingLeft = theme.spacing.sm;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = theme.colors.textSecondary;
-                    e.currentTarget.style.paddingLeft = '0';
-                  }}
-                >
-                  <span style={{marginRight: theme.spacing.sm}}>{link.icon}</span>
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 style={sectionTitleStyle}>
-              📚 Maritime Resources
-            </h3>
-            <nav>
-              {resources.map((resource, index) => (
-                <a
-                  key={index}
-                  href={resource.href}
-                  style={linkStyle}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick(resource.href);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = theme.colors.primary;
-                    e.currentTarget.style.paddingLeft = theme.spacing.sm;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = theme.colors.textSecondary;
-                    e.currentTarget.style.paddingLeft = '0';
-                  }}
-                >
-                  <span style={{marginRight: theme.spacing.sm}}>{resource.icon}</span>
-                  {resource.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          {/* Newsletter Signup */}
+          {/* Newsletter Signup - First Position */}
           {showNewsletter && (
             <div>
               <h3 style={sectionTitleStyle}>
@@ -386,6 +300,68 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
             </div>
           )}
+
+          {/* Quick Links */}
+          <div>
+            <h3 style={sectionTitleStyle}>
+              🧭 Quick Links
+            </h3>
+            <nav>
+              {quickLinks.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.href}
+                  style={linkStyle}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleLinkClick(link.href);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = theme.colors.primary;
+                    e.currentTarget.style.paddingLeft = theme.spacing.sm;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = theme.colors.textSecondary;
+                    e.currentTarget.style.paddingLeft = '0';
+                  }}
+                >
+                  <span style={{marginRight: theme.spacing.sm}}>{link.icon}</span>
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h3 style={sectionTitleStyle}>
+              📚 Maritime Resources
+            </h3>
+            <nav>
+              {resources.map((resource, index) => (
+                <a
+                  key={index}
+                  href={resource.href}
+                  style={linkStyle}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleLinkClick(resource.href);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = theme.colors.primary;
+                    e.currentTarget.style.paddingLeft = theme.spacing.sm;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = theme.colors.textSecondary;
+                    e.currentTarget.style.paddingLeft = '0';
+                  }}
+                >
+                  <span style={{marginRight: theme.spacing.sm}}>{resource.icon}</span>
+                  {resource.label}
+                </a>
+              ))}
+            </nav>
+          </div>
         </div>
 
         {/* Location & Contact Info */}
