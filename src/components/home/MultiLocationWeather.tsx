@@ -267,7 +267,7 @@ export const MultiLocationWeather: React.FC = () => {
     );
   };
 
-  // Single location detailed view
+  // Compact single location detailed view - same size as grid cards
   const SingleLocationView: React.FC<{ data: WeatherData }> = ({ data }) => {
     const getWindDirection = (degrees: number) => {
       const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
@@ -287,171 +287,177 @@ export const MultiLocationWeather: React.FC = () => {
 
     return (
       <div style={{
+        maxWidth: '400px', // Same width as a regular card would be in the grid
+        margin: '0 auto', // Center it
         backgroundColor: theme.colors.surface,
-        borderRadius: '20px',
-        padding: theme.spacing.xl,
-        border: `1px solid ${theme.colors.border}`,
-        boxShadow: theme.shadows.md
+        borderRadius: '16px',
+        padding: theme.spacing.lg,
+        border: `2px solid ${theme.colors.primary}`, // Highlight it's selected
+        boxShadow: theme.shadows.lg,
+        animation: 'slideInUp 0.5s ease-out'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: theme.spacing.lg }}>
+        {/* Compact header */}
+        <div style={{ textAlign: 'center', marginBottom: theme.spacing.md }}>
           <h3 style={{
-            fontSize: theme.typography.sizes['2xl'],
+            fontSize: theme.typography.sizes.lg,
             fontWeight: theme.typography.weights.bold,
             color: theme.colors.text,
-            marginBottom: theme.spacing.sm
+            marginBottom: theme.spacing.xs
           }}>
             {data.location}
           </h3>
           <div style={{
-            fontSize: theme.typography.sizes['4xl'],
+            fontSize: theme.typography.sizes['2xl'],
             fontWeight: theme.typography.weights.bold,
             color: theme.colors.primary,
-            marginBottom: theme.spacing.sm
+            marginBottom: theme.spacing.xs
           }}>
             {Math.round(data.temperature)}°F
           </div>
           <p style={{
-            fontSize: theme.typography.sizes.lg,
+            fontSize: theme.typography.sizes.sm,
             color: theme.colors.textSecondary,
-            marginBottom: theme.spacing.lg
+            marginBottom: theme.spacing.md
           }}>
             {data.condition}
           </p>
         </div>
 
-        {/* Detailed weather grid */}
+        {/* Compact details in 2 columns */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: theme.spacing.lg
+          gridTemplateColumns: '1fr 1fr',
+          gap: theme.spacing.sm,
+          marginBottom: theme.spacing.md
         }}>
           <div style={{
             backgroundColor: theme.colors.background,
-            padding: theme.spacing.md,
-            borderRadius: '12px',
+            padding: theme.spacing.sm,
+            borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>💨</div>
-            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
-              {data.windSpeed} mph
+            <div style={{ fontSize: '1rem', marginBottom: '2px' }}>💨</div>
+            <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.windSpeed}mph
             </div>
-            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
-              {getWindDirection(data.windDirection)} ({data.windDirection}°)
+            <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
+              {getWindDirection(data.windDirection)}
             </div>
           </div>
 
           <div style={{
             backgroundColor: theme.colors.background,
-            padding: theme.spacing.md,
-            borderRadius: '12px',
+            padding: theme.spacing.sm,
+            borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>💧</div>
-            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+            <div style={{ fontSize: '1rem', marginBottom: '2px' }}>💧</div>
+            <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
               {data.humidity}%
             </div>
-            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+            <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
               Humidity
             </div>
           </div>
 
           <div style={{
             backgroundColor: theme.colors.background,
-            padding: theme.spacing.md,
-            borderRadius: '12px',
+            padding: theme.spacing.sm,
+            borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>👁️</div>
-            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
-              {data.visibility} mi
+            <div style={{ fontSize: '1rem', marginBottom: '2px' }}>👁️</div>
+            <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.visibility}mi
             </div>
-            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+            <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
               Visibility
             </div>
           </div>
 
           <div style={{
             backgroundColor: theme.colors.background,
-            padding: theme.spacing.md,
-            borderRadius: '12px',
+            padding: theme.spacing.sm,
+            borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌡️</div>
-            <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
-              {data.pressure} mb
+            <div style={{ fontSize: '1rem', marginBottom: '2px' }}>🌡️</div>
+            <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              {data.pressure}mb
             </div>
-            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+            <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
               Pressure
             </div>
           </div>
+        </div>
 
+        {/* Additional compact info */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: theme.spacing.sm
+        }}>
           <div style={{
             backgroundColor: theme.colors.background,
-            padding: theme.spacing.md,
-            borderRadius: '12px',
+            padding: theme.spacing.sm,
+            borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>☀️</div>
+            <div style={{ fontSize: '1rem', marginBottom: '2px' }}>☀️</div>
             <div style={{ 
-              fontSize: theme.typography.sizes.lg, 
+              fontSize: theme.typography.sizes.sm, 
               fontWeight: theme.typography.weights.bold, 
               color: uvInfo.color 
             }}>
-              {data.uvIndex}
+              UV {data.uvIndex}
             </div>
-            <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
-              UV Index ({uvInfo.level})
+            <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
+              {uvInfo.level}
             </div>
           </div>
 
           {data.tideHigh && (
             <div style={{
               backgroundColor: theme.colors.background,
-              padding: theme.spacing.md,
-              borderRadius: '12px',
+              padding: theme.spacing.sm,
+              borderRadius: '8px',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌊</div>
-              <div style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
+              <div style={{ fontSize: '1rem', marginBottom: '2px' }}>🌊</div>
+              <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.bold, color: theme.colors.text }}>
                 {data.tideHigh}
               </div>
-              <div style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.textSecondary }}>
+              <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
                 High Tide
               </div>
             </div>
           )}
         </div>
 
-        {/* Additional info if available */}
+        {/* Sunrise/Sunset if available */}
         {(data.sunrise || data.sunset) && (
           <div style={{
-            marginTop: theme.spacing.lg,
-            padding: theme.spacing.md,
+            marginTop: theme.spacing.sm,
+            padding: theme.spacing.sm,
             backgroundColor: theme.colors.background,
-            borderRadius: '12px',
+            borderRadius: '8px',
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center'
           }}>
             {data.sunrise && (
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: theme.spacing.xs }}>🌅</div>
-                <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.semibold }}>
+                <div style={{ fontSize: '0.8rem', marginBottom: '2px' }}>🌅</div>
+                <div style={{ fontSize: theme.typography.sizes.xs, fontWeight: theme.typography.weights.semibold }}>
                   {data.sunrise}
-                </div>
-                <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
-                  Sunrise
                 </div>
               </div>
             )}
             {data.sunset && (
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: theme.spacing.xs }}>🌇</div>
-                <div style={{ fontSize: theme.typography.sizes.sm, fontWeight: theme.typography.weights.semibold }}>
+                <div style={{ fontSize: '0.8rem', marginBottom: '2px' }}>🌇</div>
+                <div style={{ fontSize: theme.typography.sizes.xs, fontWeight: theme.typography.weights.semibold }}>
                   {data.sunset}
-                </div>
-                <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
-                  Sunset
                 </div>
               </div>
             )}
