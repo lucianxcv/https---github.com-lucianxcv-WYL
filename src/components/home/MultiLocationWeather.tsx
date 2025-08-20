@@ -223,18 +223,18 @@ export const MultiLocationWeather: React.FC = () => {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: theme.spacing.md }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: theme.spacing.xs }}>
           <div>
             <h3 style={locationNameStyle}>{data.location}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-              <span style={{ fontSize: '2rem' }}>{getWeatherIcon(data.condition)}</span>
-              <span style={temperatureStyle}>{Math.round(data.temperature)}°F</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
+              <span style={{ fontSize: '1.2rem' }}>{getWeatherIcon(data.condition)}</span>
+              <span style={temperatureStyle}>{Math.round(data.temperature)}°</span>
             </div>
             <p style={conditionStyle}>{data.condition}</p>
           </div>
         </div>
 
-        {/* Weather Details Grid */}
+        {/* Compact Weather Details */}
         <div style={detailsGridStyle}>
           <div style={detailItemStyle}>
             <span>💧</span>
@@ -243,36 +243,14 @@ export const MultiLocationWeather: React.FC = () => {
 
           <div style={detailItemStyle}>
             <span>💨</span>
-            <span>{data.windSpeed} mph</span>
+            <span>{data.windSpeed}mph</span>
           </div>
 
           <div style={detailItemStyle}>
             <span>👁️</span>
-            <span>{data.visibility} mi</span>
-          </div>
-
-          <div style={detailItemStyle}>
-            <span>☀️</span>
-            <span>UV {data.uvIndex}</span>
+            <span>{data.visibility}mi</span>
           </div>
         </div>
-
-        {/* Sunrise/Sunset - Compact */}
-        {(data.sunrise || data.sunset) && (
-          <div style={{
-            marginTop: theme.spacing.sm,
-            padding: theme.spacing.xs,
-            backgroundColor: theme.colors.background,
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: theme.typography.sizes.xs,
-            color: theme.colors.textSecondary
-          }}>
-            {data.sunrise && <span>🌅 {data.sunrise.split(' ')[1] || data.sunrise}</span>}
-            {data.sunset && <span>🌇 {data.sunset.split(' ')[1] || data.sunset}</span>}
-          </div>
-        )}
 
         {/* Hover effect overlay */}
         <div style={{
@@ -294,46 +272,46 @@ export const MultiLocationWeather: React.FC = () => {
   // Loading skeleton
   const LoadingSkeleton: React.FC = () => (
     <div style={gridStyle}>
-      {[...Array(4)].map((_, index) => (
+      {[...Array(6)].map((_, index) => (
         <div key={index} style={{
           backgroundColor: theme.colors.surface,
-          borderRadius: '16px',
-          padding: theme.spacing.md,
+          borderRadius: '12px',
+          padding: theme.spacing.sm,
           border: `1px solid ${theme.colors.border}`,
           animation: 'pulse 2s ease-in-out infinite',
-          minHeight: '200px'
+          minHeight: '140px'
         }}>
           <div style={{
-            height: '20px',
+            height: '16px',
             backgroundColor: theme.colors.border,
-            borderRadius: '10px',
-            marginBottom: theme.spacing.sm,
+            borderRadius: '8px',
+            marginBottom: theme.spacing.xs,
             width: '70%'
           }} />
           <div style={{
-            height: '36px',
+            height: '24px',
             backgroundColor: theme.colors.border,
-            borderRadius: '10px',
-            marginBottom: theme.spacing.sm,
+            borderRadius: '8px',
+            marginBottom: theme.spacing.xs,
             width: '50%'
           }} />
           <div style={{
-            height: '14px',
+            height: '12px',
             backgroundColor: theme.colors.border,
-            borderRadius: '7px',
-            marginBottom: theme.spacing.md,
+            borderRadius: '6px',
+            marginBottom: theme.spacing.sm,
             width: '80%'
           }} />
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr',
-            gap: theme.spacing.xs
+            gap: '2px'
           }}>
-            {[...Array(4)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div key={i} style={{
-                height: '12px',
+                height: '10px',
                 backgroundColor: theme.colors.border,
-                borderRadius: '6px'
+                borderRadius: '5px'
               }} />
             ))}
           </div>
@@ -439,17 +417,22 @@ export const MultiLocationWeather: React.FC = () => {
       }
     }
     
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       .weather-grid {
         grid-template-columns: repeat(4, 1fr) !important;
-        gap: 8px !important;
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .weather-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
       }
     }
     
     @media (max-width: 768px) {
       .weather-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
+        gap: 8px !important;
       }
     }
     
