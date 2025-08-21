@@ -1,7 +1,7 @@
 /**
- * ENHANCED HOMEPAGE COMPONENT
+ * ENHANCED HOMEPAGE COMPONENT WITH PROPER NAVIGATION
  * 
- * Replace your existing src/pages/HomePage.tsx with this enhanced version
+ * Replace your existing src/pages/HomePage.tsx with this version
  */
 
 import React, { useState } from 'react';
@@ -68,17 +68,28 @@ export const HomePage: React.FC = () => {
       const speakerSection = document.getElementById('upcoming');
       speakerSection?.scrollIntoView({ behavior: 'smooth' });
     } else if (result.type === 'blog') {
-      // Navigate to blog post (for now, scroll to blog section)
-      const blogSection = document.getElementById('blog');
-      blogSection?.scrollIntoView({ behavior: 'smooth' });
+      // Navigate to specific blog post
+      window.location.hash = `#blog-post-${result.id}`;
+    } else if (result.type === 'presentation') {
+      // Navigate to past shows archive
+      window.location.hash = '#past-shows';
     }
   };
 
   // Handle blog post clicks
   const handleBlogPostClick = (post: any) => {
-    // TODO: Navigate to full blog post page
-    // For now, we'll just show an alert
-    alert(`Navigate to blog post: ${post.title}`);
+    // Navigate to individual blog post page
+    window.location.hash = `#blog-post-${post.id}`;
+  };
+
+  // Navigate to all articles page
+  const handleViewAllArticles = () => {
+    window.location.hash = '#articles';
+  };
+
+  // Navigate to past shows archive
+  const handleViewAllPresentations = () => {
+    window.location.hash = '#past-shows';
   };
 
   return (
@@ -219,6 +230,7 @@ export const HomePage: React.FC = () => {
                     transition: 'all 0.3s ease',
                     boxShadow: theme.shadows.sm
                   }}
+                  onClick={handleViewAllArticles}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = theme.shadows.md;
@@ -281,6 +293,7 @@ export const HomePage: React.FC = () => {
                 transition: 'all 0.3s ease',
                 boxShadow: theme.shadows.sm
               }}
+              onClick={handleViewAllPresentations}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = theme.shadows.md;
@@ -489,6 +502,94 @@ export const HomePage: React.FC = () => {
               >
                 🎤 Become a Speaker
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Navigation Links */}
+        <section style={sectionStyle}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: theme.spacing.lg,
+            marginTop: theme.spacing.xl
+          }}>
+            {/* Articles Link */}
+            <div
+              style={{
+                backgroundColor: theme.colors.background,
+                borderRadius: '16px',
+                padding: theme.spacing.lg,
+                textAlign: 'center',
+                border: `1px solid ${theme.colors.border}`,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onClick={handleViewAllArticles}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = theme.shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: theme.spacing.sm }}>📚</div>
+              <h4 style={{
+                fontSize: theme.typography.sizes.lg,
+                fontWeight: theme.typography.weights.semibold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.xs
+              }}>
+                All Articles
+              </h4>
+              <p style={{
+                fontSize: theme.typography.sizes.sm,
+                color: theme.colors.textSecondary,
+                margin: 0
+              }}>
+                Browse our complete collection of maritime insights
+              </p>
+            </div>
+
+            {/* Past Shows Link */}
+            <div
+              style={{
+                backgroundColor: theme.colors.background,
+                borderRadius: '16px',
+                padding: theme.spacing.lg,
+                textAlign: 'center',
+                border: `1px solid ${theme.colors.border}`,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onClick={handleViewAllPresentations}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = theme.shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: theme.spacing.sm }}>🎬</div>
+              <h4 style={{
+                fontSize: theme.typography.sizes.lg,
+                fontWeight: theme.typography.weights.semibold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.xs
+              }}>
+                Presentation Archive
+              </h4>
+              <p style={{
+                fontSize: theme.typography.sizes.sm,
+                color: theme.colors.textSecondary,
+                margin: 0
+              }}>
+                Watch recordings of past presentations
+              </p>
             </div>
           </div>
         </section>

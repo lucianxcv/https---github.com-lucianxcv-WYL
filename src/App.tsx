@@ -1,9 +1,8 @@
-// ==================== src/App.tsx ====================
 /**
- * MAIN APPLICATION COMPONENT
+ * MAIN APPLICATION COMPONENT - ENHANCED ROUTING
  *
  * This is the root component that sets up routing and provides global theme context.
- * Now includes proper authentication-aware routing.
+ * Now includes routing for all pages: Home, Auth, Admin, Articles, Blog Posts, and Past Shows Archive.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -11,17 +10,56 @@ import { ThemeProvider } from './theme/ThemeProvider';
 import { HomePage } from './pages/HomePage';
 import { Admin } from './pages/Admin';
 import { Auth } from './pages/Auth';
+import { AllArticlesPage } from './pages/AllArticlesPage';
+import { BlogPostPage } from './pages/BlogPostPage';
+import { PastShowsArchivePage } from './pages/PastShowsArchivePage';
 import { useAuth } from './utils/useAuth';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('home');
+  const [routeParams, setRouteParams] = useState<{[key: string]: string}>({});
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
+
+  // Parse the URL hash to extract page and parameters
+  const parseRoute = (hash: string): { page: string; params: {[key: string]: string} } => {
+    const route = hash.slice(1); // Remove the '#'
+    
+    // Handle different route patterns
+    if (route.startsWith('blog-post-')) {
+      const postId = route.replace('blog-post-', '');
+      return { page: 'blog-post', params: { postId } };
+    }
+    
+    if (route.startsWith('articles')) {
+      return { page: 'articles', params: {} };
+    }
+    
+    if (route.startsWith('past-shows') || route.startsWith('archive')) {
+      return { page: 'past-shows', params: {} };
+    }
+    
+    // Handle simple routes
+    switch (route) {
+      case 'home':
+      case '':
+        return { page: 'home', params: {} };
+      case 'auth':
+      case 'login':
+        return { page: 'auth', params: {} };
+      case 'admin':
+        return { page: 'admin', params: {} };
+      default:
+        return { page: 'home', params: {} };
+    }
+  };
 
   // Listen for URL hash changes to handle routing
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1); // Remove the '#'
-      setCurrentPage(hash || 'home'); // Default to 'home' if no hash
+      const hash = window.location.hash;
+      const { page, params } = parseRoute(hash);
+      setCurrentPage(page);
+      setRouteParams(params);
     };
 
     // Set initial page based on current URL
@@ -61,9 +99,12 @@ const App: React.FC = () => {
           alignItems: 'center',
           height: '100vh',
           fontSize: '18px',
-          fontFamily: 'Arial, sans-serif'
+          fontFamily: 'Arial, sans-serif',
+          flexDirection: 'column',
+          gap: '16px'
         }}>
-          🔄 Loading...
+          <div style={{ fontSize: '3rem' }}>⚓</div>
+          <div>🔄 Loading...</div>
         </div>
       </ThemeProvider>
     );
@@ -86,6 +127,17 @@ const App: React.FC = () => {
           return <HomePage />;
         }
         return <Auth />;
+
+      case 'articles':
+        return <AllArticlesPage />;
+
+      case 'blog-post':
+        // Extract post ID from route params
+        const postId = routeParams.postId || '1';
+        return <BlogPostPage postId={postId} />;
+
+      case 'past-shows':
+        return <PastShowsArchivePage />;
         
       case 'home':
       default:

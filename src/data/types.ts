@@ -188,15 +188,38 @@ export interface CreateCommentData {
   parentId?: string;
 }
 
-// ============== EXISTING TYPES (Enhanced) ==============
+// ============== ENHANCED PAST SHOW TYPES ==============
 
-// Past show/video information
+// Enhanced past show/video information for archive page
 export interface PastShow {
+  id: string;
+  title: string;
+  speakerName: string;
+  date: string; // ISO date string
+  year: number;
+  description: string;
+  videoId?: string; // YouTube video ID
+  thumbnailUrl?: string;
+  duration: number; // in minutes
+  topic: string;
+  views?: number;
+  downloadUrl?: string;
+  speakerBio?: string;
+  speakerCompany?: string;
+  featured?: boolean;
+  tags: string[];
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Simplified version for basic usage (backwards compatibility)
+export interface SimplePastShow {
   id: number;
   title: string;
   speakerName: string;
-  videoId: string; // YouTube video ID
-  date: string; // ISO date string
+  videoId: string;
+  date: string;
   year: number;
   description: string;
   isPublished: boolean;
@@ -204,7 +227,27 @@ export interface PastShow {
   updatedAt: string;
 }
 
-// Owner/Captain information
+// ============== BLOG POST TYPES ==============
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content?: string;
+  author: string;
+  date: string;
+  category: string;
+  tags: string[];
+  readTime: number;
+  imageUrl?: string;
+  authorBio?: string;
+  authorAvatar?: string;
+  views?: number;
+  featured?: boolean;
+}
+
+// ============== OWNER/CAPTAIN TYPES ==============
+
 export interface Owner {
   id: string;
   name: string;
@@ -218,7 +261,8 @@ export interface Owner {
   updatedAt: string;
 }
 
-// Weather data types
+// ============== WEATHER DATA TYPES ==============
+
 export interface WeatherData {
   id?: number;
   location: string;
