@@ -470,7 +470,7 @@ export const Footer: React.FC<FooterProps> = ({
                   lineHeight: 1.6
                 }}>
                   <div>◈ Every Wednesday</div>
-                  <div>◉ 12:00 PM – 2:00 PM</div>
+                  <div>◉ 11:00 PM – 2:00 PM</div>
                   <div>※ Guest Speaker: 12:30 PM</div>
                   <div style={{ marginTop: theme.spacing.xs, fontSize: theme.typography.sizes.sm }}>
                     <em>Members and guests welcome</em>
@@ -486,7 +486,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Copyright */}
           <div style={copyrightStyle}>
             <span>⚓</span>
-            <span>© 2024 Wednesday Yachting Luncheon</span>
+            <span>© 2025 Wednesday Yachting Luncheon</span>
             <span>•</span>
             <span>St. Francis Yacht Club</span>
           </div>
@@ -560,7 +560,7 @@ export const Footer: React.FC<FooterProps> = ({
           ))}
         </div>
 
-        {/* Prestige Badge */}
+        {/* Prestige Badge & Developer Credit */}
         <div style={{
           textAlign: 'center',
           marginTop: theme.spacing.lg,
@@ -571,10 +571,48 @@ export const Footer: React.FC<FooterProps> = ({
             ...badgeStyle,
             display: 'inline-flex',
             fontSize: theme.typography.sizes.xs,
-            color: '#64748b'
+            color: '#64748b',
+            marginBottom: theme.spacing.sm
           }}>
             <span style={{ marginRight: theme.spacing.xs }}>⚓</span>
             <span>Established 1927 • A Tradition of Maritime Excellence</span>
+          </div>
+          
+          {/* Developer Credit */}
+          <div style={{
+            fontSize: theme.typography.sizes.xs,
+            color: '#475569', // Slightly more subtle color
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: theme.spacing.xs,
+            marginTop: theme.spacing.xs
+          }}>
+            <span>⚡</span>
+            <span>Crafted by</span>
+            <a
+              href="https://github.com/lucianxcv"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#64748b',
+                textDecoration: 'none',
+                fontWeight: 500,
+                transition: 'all 0.3s ease',
+                padding: `2px ${theme.spacing.xs}`,
+                borderRadius: '3px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.backgroundColor = '#1e293b';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              lucianxcv
+            </a>
           </div>
         </div>
       </div>
