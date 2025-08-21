@@ -4,28 +4,34 @@
  * 
  * Updated: Supports auto-reset based on repeatInterval prop (daily, weekly, monthly)
  * This makes the countdown restart automatically when it reaches zero.
+ * Now displays as a compact single row format: "[6 days 14 hours 27 min etc]"
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState as useReactState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { calculateTimeLeft } from '../../utils/dateUtils';
+import { calculateTimeLeft as calcTimeLeft } from '../../utils/dateUtils';
 
-interface CountdownTimerProps {
+interface CountdownProps {
   targetDate: string; // ISO date string of the target event
   repeatInterval?: 'daily' | 'weekly' | 'monthly'; // Optional auto-reset interval
+  compact?: boolean; // New prop to enable compact row display
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, repeatInterval }) => {
+const CountdownTimerComponent: React.FC<CountdownProps> = ({ 
+  targetDate, 
+  repeatInterval, 
+  compact = false 
+}) => {
   const theme = useTheme();
 
   // State to track the current target date (changes on reset)
-  const [currentTargetDate, setCurrentTargetDate] = useState(targetDate);
+  const [currentTargetDate, setCurrentTargetDate] = useReactState(targetDate);
   // State to track time left
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
+  const [timeLeft, setTimeLeft] = useReactState(calcTimeLeft(targetDate));
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const newTimeLeft = calculateTimeLeft(currentTargetDate);
+    const intervalId = setInterval(() => {
+      const newTimeLeft = calcTimeLeft(currentTargetDate);
 
       // Check if countdown finished
       const isFinished =
@@ -47,16 +53,44 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, repe
         }
 
         setCurrentTargetDate(nextDate.toISOString());
-        setTimeLeft(calculateTimeLeft(nextDate.toISOString()));
+        setTimeLeft(calcTimeLeft(nextDate.toISOString()));
       } else {
         setTimeLeft(newTimeLeft);
       }
     }, 1000); // Update every second
 
-    return () => clearInterval(timer);
+    return () => clearInterval(intervalId);
   }, [currentTargetDate, repeatInterval]);
 
-  // Styling for the countdown boxes
+  // Compact row display
+  if (compact) {
+    const compactStyle: React.CSSProperties = {
+      color: '#ffffff',
+      fontSize: '0.85rem',
+      fontWeight: theme.typography.weights.medium,
+      textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+      letterSpacing: '0.5px'
+    };
+
+    // Build the compact string
+    const parts: string[] = [];
+    if (timeLeft.days > 0) parts.push(`${timeLeft.days} days`);
+    if (timeLeft.hours > 0) parts.push(`${timeLeft.hours} hours`);
+    if (timeLeft.minutes > 0) parts.push(`${timeLeft.minutes} min`);
+    if (timeLeft.seconds > 0 && timeLeft.days === 0 && timeLeft.hours === 0) {
+      parts.push(`${timeLeft.seconds} sec`);
+    }
+
+    const timeString = parts.length > 0 ? parts.join(' ') : 'Starting soon';
+
+    return (
+      <div style={compactStyle}>
+        {timeString}
+      </div>
+    );
+  }
+
+  // Original box layout for non-compact display
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     gap: theme.spacing.md,
@@ -109,3 +143,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, repe
     </div>
   );
 };
+
+// Export the component with a clean name
+export const CountdownTimer = CountdownTimerComponent;
+export type { CountdownProps as CountdownTimerProps };

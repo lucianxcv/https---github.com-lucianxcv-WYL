@@ -109,88 +109,6 @@ export const Hero: React.FC = () => {
     transition: 'all 1s ease-out'
   };
 
-  const heroTitleStyle: React.CSSProperties = {
-    fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-    fontWeight: theme.typography.weights.bold,
-    marginBottom: theme.spacing.lg,
-    textShadow: '3px 3px 8px rgba(0,0,0,0.7)',
-    lineHeight: 1.1,
-    background: 'linear-gradient(45deg, #ffffff, #f0f8ff)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
-  };
-
-  const heroTaglineStyle: React.CSSProperties = {
-    fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
-    marginBottom: theme.spacing.xl,
-    opacity: 0.95,
-    fontWeight: theme.typography.weights.medium,
-    textShadow: '2px 2px 6px rgba(0,0,0,0.8)'
-  };
-
-  const heroDescriptionStyle: React.CSSProperties = {
-    fontSize: 'clamp(1rem, 2.5vw, 1.3rem)',
-    marginBottom: theme.spacing.xl,
-    opacity: 0.9,
-    maxWidth: '600px',
-    margin: `0 auto ${theme.spacing.xl} auto`,
-    lineHeight: 1.6,
-    textShadow: '1px 1px 4px rgba(0,0,0,0.7)'
-  };
-
-  const ctaContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: theme.spacing.md,
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginBottom: theme.spacing.xl
-  };
-
-  const primaryButtonStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
-    color: '#ffffff',
-    padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-    border: '2px solid rgba(255, 255, 255, 0.4)',
-    borderRadius: '50px',
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-    textDecoration: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: theme.spacing.sm
-  };
-
-  const secondaryButtonStyle: React.CSSProperties = {
-    backgroundColor: 'transparent',
-    color: '#ffffff',
-    padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-    border: '2px solid rgba(255, 255, 255, 0.6)',
-    borderRadius: '50px',
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.semibold,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    textDecoration: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: theme.spacing.sm
-  };
-
-  const countdownContainerStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(15px)',
-    borderRadius: '20px',
-    padding: theme.spacing.lg,
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    marginTop: theme.spacing.xl
-  };
-
   // Handle video load events
   const handleVideoLoad = () => {
     setVideoLoaded(true);
@@ -304,12 +222,11 @@ export const Hero: React.FC = () => {
             ⏰ Next Luncheon
           </div>
 
-          <div style={{ transform: 'scale(0.7)', transformOrigin: 'left center' }}>
-            <CountdownTimer
-              targetDate={sampleData.speakers[0]?.nextPresentationDate || "2025-08-27T12:00:00"}
-              repeatInterval="weekly"
-            />
-          </div>
+          <CountdownTimer
+            targetDate={sampleData.speakers[0]?.nextPresentationDate || "2025-08-27T12:00:00"}
+            repeatInterval="weekly"
+            compact={true}
+          />
         </div>
       </section>
     </>
