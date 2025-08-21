@@ -1,16 +1,33 @@
-// ==================== src/components/admin/UserManagement.tsx - DEBUG VERSION ====================
 /**
- * USER MANAGEMENT COMPONENT - DEBUG VERSION
+ * USER MANAGEMENT COMPONENT - BACKEND CONNECTED VERSION
  * 
- * Complete user management interface for admin dashboard
- * Features: View users, change roles, search, pagination, delete users
- * ADDED: Extensive debugging to find the user count issue
+ * This version connects to your real backend API instead of using mock data
  */
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { adminApi } from '../../utils/apiService';
-import { User, UserRole } from '../../data/types';
+
+// User types matching your backend
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    posts: number;
+    comments: number;
+  };
+}
+
+enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR'
+}
 
 interface UserManagementProps {
   onUserUpdate?: () => void;
@@ -26,11 +43,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null); // DEBUG
 
   const usersPerPage = 10;
 
-  // Styles (same as before)
+  // Styles
   const containerStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
     borderRadius: '16px',
@@ -133,160 +149,123 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
     borderRadius: '12px',
     fontSize: theme.typography.sizes.xs,
     fontWeight: theme.typography.weights.semibold,
-    backgroundColor: role === UserRole.ADMIN ? '#e74c3c' : 
+    backgroundColor: role === UserRole.ADMIN ? '#e74c3c' :
                      role === UserRole.MODERATOR ? '#f39c12' : '#27ae60',
     color: '#ffffff'
   });
 
-  // DEBUG: Test all user-fetching methods
-  const testAllUserMethods = async () => {
-    console.log('🧪 TESTING ALL USER FETCHING METHODS:');
-    
-    try {
-      // Method 1: With current params
-      console.log('1️⃣ Testing with current params...');
-      const currentParams = {
-        page: currentPage,
-        limit: usersPerPage,
-        ...(searchTerm && { search: searchTerm }),
-        ...(selectedRole !== 'all' && { role: selectedRole })
-      };
-      const method1 = await adminApi.users.getAll(currentParams);
-      console.log('Method 1 result:', method1);
-      
-      // Method 2: With no params (should get all)
-      console.log('2️⃣ Testing with NO params...');
-      const method2 = await adminApi.users.getAll({});
-      console.log('Method 2 result:', method2);
-      
-      // Method 3: With just a high limit
-      console.log('3️⃣ Testing with high limit...');
-      const method3 = await adminApi.users.getAll({ limit: 100 });
-      console.log('Method 3 result:', method3);
-      
-      // Method 4: Different page
-      console.log('4️⃣ Testing page 1 specifically...');
-      const method4 = await adminApi.users.getAll({ page: 1, limit: 50 });
-      console.log('Method 4 result:', method4);
-      
-      setDebugInfo({
-        method1Count: method1.data?.length || 0,
-        method2Count: method2.data?.length || 0,
-        method3Count: method3.data?.length || 0,
-        method4Count: method4.data?.length || 0,
-        method1Pagination: method1.pagination,
-        method2Pagination: method2.pagination,
-        currentParams,
-        timestamp: new Date().toISOString()
-      });
-      
-    } catch (error) {
-      console.error('🚨 Error in testing methods:', error);
-      setDebugInfo({ error: error instanceof Error ? error.message : String(error) });
-    }
-  };
-
-  // ENHANCED Load users with extensive debugging
+  // 🔥 FIXED: Load users from real backend API
   const loadUsers = async () => {
-    console.log('📥 LOADING USERS - START');
+    console.log('👥 LOADING USERS - START');
     console.log('Current state:', { currentPage, usersPerPage, searchTerm, selectedRole });
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const params = {
+      const params: any = {
         page: currentPage,
-        limit: usersPerPage,
-        ...(searchTerm && { search: searchTerm }),
-        ...(selectedRole !== 'all' && { role: selectedRole })
+        limit: usersPerPage
       };
+      
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
+      }
+      
+      if (selectedRole !== 'all') {
+        params.role = selectedRole;
+      }
 
       console.log('📤 API Request params:', params);
       const response = await adminApi.users.getAll(params);
       console.log('📨 API Response:', response);
-      
+
       if (response.success) {
         const userData = response.data || [];
         console.log('✅ Users loaded:', userData.length);
-        console.log('👥 User details:', userData.map(u => ({ id: u.id.slice(0,8), email: u.email, role: u.role })));
-        
+        console.log('👥 User details:', userData.map(u => ({ 
+          id: u.id.slice(0,8), 
+          email: u.email, 
+          role: u.role 
+        })));
+
         setUsers(userData);
-        
+
         if (response.pagination) {
           console.log('📊 Pagination info:', response.pagination);
           setTotalPages(response.pagination.totalPages);
         } else {
           console.log('⚠️ No pagination info received');
+          setTotalPages(1);
         }
       } else {
         console.error('❌ API returned success=false:', response);
         setError('Failed to load users');
+        setUsers([]);
       }
     } catch (err: any) {
       console.error('🚨 Error loading users:', err);
       setError(err.message || 'Failed to load users');
+      setUsers([]);
     } finally {
       setLoading(false);
-      console.log('📥 LOADING USERS - END');
+      console.log('👥 LOADING USERS - END');
     }
   };
 
-  // Update user role
+  // 🔥 FIXED: Update user role with real API call
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
       return;
     }
 
     setUpdatingUser(userId);
-    
+
     try {
+      console.log('🔄 Updating user role:', userId, 'to', newRole);
       const response = await adminApi.users.updateRole(userId, newRole);
-      
+
       if (response.success) {
-        // Update local state
-        setUsers(prev => prev.map(user => 
-          user.id === userId ? { ...user, role: newRole } : user
-        ));
-        
-        if (onUserUpdate) {
-          onUserUpdate();
-        }
+        console.log('✅ User role updated successfully');
+        // Reload users to get fresh data
+        loadUsers();
+        onUserUpdate?.();
       } else {
-        alert('Failed to update user role');
+        console.error('❌ Failed to update user role:', response);
+        setError('Failed to update user role');
       }
     } catch (err: any) {
-      console.error('Error updating user role:', err);
-      alert(err.message || 'Failed to update user role');
+      console.error('❌ Error updating user role:', err);
+      setError(err.message || 'Failed to update user role');
     } finally {
       setUpdatingUser(null);
     }
   };
 
-  // Delete user
+  // 🔥 FIXED: Delete user with real API call
   const deleteUser = async (userId: string, userEmail: string) => {
     if (!window.confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
       return;
     }
 
     setUpdatingUser(userId);
-    
+
     try {
+      console.log('🗑️ Deleting user:', userId);
       const response = await adminApi.users.delete(userId);
-      
+
       if (response.success) {
-        // Remove from local state
-        setUsers(prev => prev.filter(user => user.id !== userId));
-        
-        if (onUserUpdate) {
-          onUserUpdate();
-        }
+        console.log('✅ User deleted successfully');
+        // Reload users to get fresh data
+        loadUsers();
+        onUserUpdate?.();
       } else {
-        alert('Failed to delete user');
+        console.error('❌ Failed to delete user:', response);
+        setError('Failed to delete user');
       }
     } catch (err: any) {
-      console.error('Error deleting user:', err);
-      alert(err.message || 'Failed to delete user');
+      console.error('❌ Error deleting user:', err);
+      setError(err.message || 'Failed to delete user');
     } finally {
       setUpdatingUser(null);
     }
@@ -309,6 +288,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
     setCurrentPage(1); // Reset to first page
   };
 
+  // Clear filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedRole('all');
+    setCurrentPage(1);
+  };
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -320,11 +306,28 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
     });
   };
 
+  // Render error
+  const renderError = () => {
+    if (!error) return null;
+    return (
+      <div style={{
+        backgroundColor: '#fee2e2',
+        color: '#dc2626',
+        padding: theme.spacing.md,
+        borderRadius: '8px',
+        marginBottom: theme.spacing.md,
+        border: '1px solid #fecaca'
+      }}>
+        ⚠️ {error}
+      </div>
+    );
+  };
+
   return (
     <div style={containerStyle}>
       <h2 style={headerStyle}>👥 User Management</h2>
 
-      {/* DEBUG INFO SECTION */}
+      {/* Debug Information */}
       <div style={{
         backgroundColor: '#f8f9fa',
         border: '1px solid #dee2e6',
@@ -337,29 +340,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
         <p><strong>Users currently shown:</strong> {users.length}</p>
         <p><strong>Current page:</strong> {currentPage} of {totalPages}</p>
         <p><strong>Search term:</strong> "{searchTerm}" | <strong>Role filter:</strong> {selectedRole}</p>
-        
-        <button
-          style={{...primaryButtonStyle, marginBottom: theme.spacing.sm}}
-          onClick={testAllUserMethods}
-        >
-          🧪 Test All API Methods
-        </button>
-        
-        {debugInfo && (
-          <div style={{ 
-            backgroundColor: '#fff3cd', 
-            padding: theme.spacing.sm, 
-            borderRadius: '4px',
-            marginTop: theme.spacing.sm,
-            border: '1px solid #ffeaa7'
-          }}>
-            <h5>Test Results:</h5>
-            <pre style={{ fontSize: '10px', overflow: 'auto' }}>
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
-          </div>
-        )}
+        <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'} | <strong>Error:</strong> {error || 'None'}</p>
       </div>
+
+      {/* Error Display */}
+      {renderError()}
 
       {/* Filters */}
       <div style={filterContainerStyle}>
@@ -372,7 +357,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
           onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
           onBlur={(e) => e.target.style.borderColor = theme.colors.border}
         />
-        
+
         <select
           style={selectStyle}
           value={selectedRole}
@@ -392,6 +377,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
         >
           🔄 Refresh
         </button>
+
+        <button
+          style={{...primaryButtonStyle, backgroundColor: '#6c757d'}}
+          onClick={clearFilters}
+        >
+          🗑️ Clear Filters
+        </button>
       </div>
 
       {/* Loading State */}
@@ -401,21 +393,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
           padding: theme.spacing.xl,
           color: theme.colors.textSecondary
         }}>
-          Loading users...
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div style={{
-          padding: theme.spacing.md,
-          backgroundColor: 'rgba(231, 76, 60, 0.1)',
-          border: '1px solid rgba(231, 76, 60, 0.3)',
-          borderRadius: '8px',
-          color: '#e74c3c',
-          marginBottom: theme.spacing.lg
-        }}>
-          ❌ {error}
+          <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
+          <p>Loading users from backend...</p>
         </div>
       )}
 
@@ -429,6 +408,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                   <th style={thStyle}>User</th>
                   <th style={thStyle}>Email</th>
                   <th style={thStyle}>Role</th>
+                  <th style={thStyle}>Activity</th>
                   <th style={thStyle}>Joined</th>
                   <th style={thStyle}>Actions</th>
                 </tr>
@@ -438,7 +418,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                   <tr key={user.id}>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-                        {user.avatar && (
+                        {user.avatar ? (
                           <img
                             src={user.avatar}
                             alt={user.name || 'User'}
@@ -449,6 +429,21 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                               objectFit: 'cover'
                             }}
                           />
+                        ) : (
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor: theme.colors.primary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: theme.typography.sizes.sm,
+                            fontWeight: theme.typography.weights.bold
+                          }}>
+                            {(user.name || user.email).charAt(0).toUpperCase()}
+                          </div>
                         )}
                         <div>
                           <div style={{ fontWeight: theme.typography.weights.semibold }}>
@@ -467,7 +462,19 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                       </span>
                     </td>
                     <td style={tdStyle}>
-                      {formatDate(user.createdAt)}
+                      <div style={{ fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary }}>
+                        {user._count && (
+                          <>
+                            <div>📝 {user._count.posts} posts</div>
+                            <div>💬 {user._count.comments} comments</div>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    <td style={tdStyle}>
+                      <div style={{ fontSize: theme.typography.sizes.xs }}>
+                        {formatDate(user.createdAt)}
+                      </div>
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: theme.spacing.xs, flexWrap: 'wrap' }}>
@@ -477,34 +484,31 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                             style={primaryButtonStyle}
                             onClick={() => updateUserRole(user.id, UserRole.ADMIN)}
                             disabled={updatingUser === user.id}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.secondary}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.primary}
+                            title="Make Admin"
                           >
-                            Make Admin
+                            👑 Admin
                           </button>
                         )}
-                        
+
                         {user.role !== UserRole.MODERATOR && (
                           <button
                             style={{...primaryButtonStyle, backgroundColor: '#f39c12'}}
                             onClick={() => updateUserRole(user.id, UserRole.MODERATOR)}
                             disabled={updatingUser === user.id}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e67e22'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f39c12'}
+                            title="Make Moderator"
                           >
-                            Make Mod
+                            🛡️ Mod
                           </button>
                         )}
-                        
+
                         {user.role !== UserRole.USER && (
                           <button
                             style={{...primaryButtonStyle, backgroundColor: '#27ae60'}}
                             onClick={() => updateUserRole(user.id, UserRole.USER)}
                             disabled={updatingUser === user.id}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2ecc71'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#27ae60'}
+                            title="Make User"
                           >
-                            Make User
+                            👤 User
                           </button>
                         )}
 
@@ -513,20 +517,19 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
                           style={dangerButtonStyle}
                           onClick={() => deleteUser(user.id, user.email)}
                           disabled={updatingUser === user.id}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0392b'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e74c3c'}
+                          title="Delete User"
                         >
                           🗑️ Delete
                         </button>
                       </div>
-                      
+
                       {updatingUser === user.id && (
                         <div style={{
                           fontSize: theme.typography.sizes.xs,
                           color: theme.colors.textSecondary,
                           marginTop: theme.spacing.xs
                         }}>
-                          Updating...
+                          ⏳ Updating...
                         </div>
                       )}
                     </td>
@@ -546,11 +549,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
               >
                 ← Previous
               </button>
-              
+
               <span style={{ color: theme.colors.textSecondary }}>
                 Page {currentPage} of {totalPages}
               </span>
-              
+
               <button
                 style={{...buttonStyle, backgroundColor: theme.colors.surface, color: theme.colors.text}}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
@@ -570,7 +573,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
             }}>
               <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>👥</div>
               <h3>No users found</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <p>
+                {searchTerm || selectedRole !== 'all' 
+                  ? 'Try adjusting your search or filter criteria.' 
+                  : 'No users exist in the system yet.'}
+              </p>
             </div>
           )}
         </>

@@ -1,16 +1,37 @@
 /**
- * BLOG POST MANAGEMENT COMPONENT
+ * BLOG POST MANAGEMENT COMPONENT - BACKEND CONNECTED VERSION
  * 
- * Save this file as: src/components/admin/BlogPostManagement.tsx
+ * This version connects to your real backend API instead of using mock data
  */
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { Post, CreatePostData, UpdatePostData } from '../../data/types';
-import { adminApi } from '../../utils/apiService';
+import { postsApi } from '../../utils/apiService'; // Using postsApi instead of adminApi
 
-interface BlogPostManagementProps {
-  onPostUpdate?: () => void;
+// Post types matching your backend
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  published: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  views?: number;
+  author?: {
+    id: string;
+    name?: string;
+    email: string;
+    avatar?: string;
+  };
+  categories?: any[];
+  tags?: any[];
+  _count?: {
+    comments: number;
+  };
 }
 
 interface PostFormData {
@@ -19,6 +40,10 @@ interface PostFormData {
   excerpt: string;
   coverImage: string;
   published: boolean;
+}
+
+interface BlogPostManagementProps {
+  onPostUpdate?: () => void;
 }
 
 const initialFormData: PostFormData = {
@@ -91,28 +116,33 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
     fontFamily: 'monospace'
   };
 
-  // Load posts from API
+  // 🔥 FIXED: Load posts from real backend API
   const loadPosts = async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log('📝 Loading posts from backend...');
       const publishedFilter = filterPublished === 'all' ? undefined : filterPublished === 'published';
-      const response = await adminApi.posts.getAll({
+      
+      const response = await postsApi.getAll({
         page: currentPage,
         limit: 10,
         search: searchTerm || undefined,
         published: publishedFilter
       });
 
-      if (response.success && response.data) {
-        setPosts(response.data);
-        setTotalPages(response.pagination?.totalPages || 1);
-      } else {
-        setError('Failed to load posts');
-      }
+      console.log('✅ Posts loaded:', response);
+      
+      // Handle different response formats from your backend
+      const postsData = response.data || [];
+      const pagination = response.pagination;
+      
+      setPosts(postsData);
+      setTotalPages(pagination?.totalPages || 1);
     } catch (error) {
-      console.error('Failed to load posts:', error);
-      setError('Failed to load posts. Please try again.');
+      console.error('❌ Failed to load posts:', error);
+      setError(`Failed to load posts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -122,96 +152,93 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
     loadPosts();
   }, [currentPage, searchTerm, filterPublished]);
 
-  // Handle form submission
+  // 🔥 FIXED: Handle form submission with real API calls
   const handleSubmit = async () => {
     if (!formData.title.trim() || !formData.content.trim()) {
       setError('Title and content are required');
       return;
     }
-    
+
     setSubmitting(true);
     setError(null);
 
     try {
+      console.log(`🚀 ${editingPost ? 'Updating' : 'Creating'} post...`, formData);
+
       if (editingPost) {
-        // Update existing post - create proper UpdatePostData
-        const updateData: UpdatePostData = {
+        // Update existing post - create proper UpdatePostData with id
+        const updateData = {
           id: editingPost.id,
           ...formData
         };
-        const response = await adminApi.posts.update(editingPost.id, updateData);
-        if (response.success) {
-          setEditingPost(null);
-          setFormData(initialFormData);
-          loadPosts();
-          onPostUpdate?.();
-        } else {
-          setError(response.error || 'Failed to update post');
-        }
+        const response = await postsApi.update(editingPost.id, updateData);
+        console.log('✅ Post updated successfully');
+        
+        // Reload posts to get fresh data
+        loadPosts();
+        setEditingPost(null);
       } else {
-        // Create new post - use CreatePostData
-        const createData: CreatePostData = {
-          ...formData
-        };
-        const response = await adminApi.posts.create(createData);
-        if (response.success) {
-          setShowCreateForm(false);
-          setFormData(initialFormData);
-          loadPosts();
-          onPostUpdate?.();
-        } else {
-          setError(response.error || 'Failed to create post');
-        }
+        // Create new post - use formData directly for CreatePostData
+        const response = await postsApi.create(formData);
+        console.log('✅ Post created successfully');
+        
+        // Reload posts to get fresh data
+        loadPosts();
       }
+
+      setShowCreateForm(false);
+      setFormData(initialFormData);
+      onPostUpdate?.();
     } catch (error) {
-      console.error('Failed to save post:', error);
-      setError('Failed to save post. Please try again.');
+      console.error('❌ Failed to save post:', error);
+      setError(`Failed to save post: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Handle delete post
+  // 🔥 FIXED: Handle delete with real API call
   const handleDelete = async (postId: string) => {
     setShowDeleteConfirm(postId);
   };
 
-  // Confirm delete post
   const confirmDelete = async (postId: string) => {
     try {
-      const response = await adminApi.posts.delete(postId);
-      if (response.success) {
-        loadPosts();
-        onPostUpdate?.();
-      } else {
-        setError(response.error || 'Failed to delete post');
-      }
+      console.log('🗑️ Deleting post:', postId);
+      await postsApi.delete(postId);
+      
+      // Reload posts to get fresh data
+      loadPosts();
+      onPostUpdate?.();
+      console.log('✅ Post deleted successfully');
     } catch (error) {
-      console.error('Failed to delete post:', error);
-      setError('Failed to delete post. Please try again.');
+      console.error('❌ Failed to delete post:', error);
+      setError(`Failed to delete post: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setShowDeleteConfirm(null);
     }
   };
 
-  // Handle publish/unpublish
+  // 🔥 FIXED: Handle publish/unpublish with real API call
   const handleTogglePublish = async (post: Post) => {
     try {
+      console.log(`🔄 Toggling publish status for post:`, post.id);
+      
       // Create proper UpdatePostData with id
-      const updateData: UpdatePostData = {
+      const updateData = {
         id: post.id,
         published: !post.published
       };
-      const response = await adminApi.posts.update(post.id, updateData);
-      if (response.success) {
-        loadPosts();
-        onPostUpdate?.();
-      } else {
-        setError(response.error || 'Failed to update post status');
-      }
+      
+      const response = await postsApi.update(post.id, updateData);
+      
+      // Reload posts to get fresh data
+      loadPosts();
+      onPostUpdate?.();
+      console.log('✅ Publish status toggled successfully');
     } catch (error) {
-      console.error('Failed to toggle publish status:', error);
-      setError('Failed to update post status. Please try again.');
+      console.error('❌ Failed to toggle publish status:', error);
+      setError(`Failed to update post status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -247,7 +274,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
   // Render error message
   const renderError = () => {
     if (!error) return null;
-    
+
     return (
       <div style={{
         backgroundColor: '#fee2e2',
@@ -267,7 +294,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
     if (!showDeleteConfirm) return null;
 
     const postToDelete = posts.find(p => p.id === showDeleteConfirm);
-    
+
     return (
       <div style={{
         position: 'fixed',
@@ -297,7 +324,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
           }}>
             🗑️ Delete Post
           </h3>
-          
+
           <p style={{
             color: theme.colors.text,
             marginBottom: theme.spacing.md,
@@ -305,7 +332,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
           }}>
             Are you sure you want to delete <strong>"{postToDelete?.title}"</strong>?
           </p>
-          
+
           <p style={{
             color: '#dc2626',
             marginBottom: theme.spacing.lg,
@@ -449,8 +476,8 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
             color: theme.colors.textSecondary,
             marginTop: theme.spacing.xs
           }}>
-            💡 <strong>Formatting Tips:</strong> Use HTML tags like &lt;h2&gt;Heading&lt;/h2&gt;, &lt;p&gt;paragraph&lt;/p&gt;, 
-            &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt;, &lt;a href="url"&gt;link&lt;/a&gt;, 
+            💡 <strong>Formatting Tips:</strong> Use HTML tags like &lt;h2&gt;Heading&lt;/h2&gt;, &lt;p&gt;paragraph&lt;/p&gt;,
+            &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt;, &lt;a href="url"&gt;link&lt;/a&gt;,
             &lt;ul&gt;&lt;li&gt;list&lt;/li&gt;&lt;/ul&gt;
           </div>
         </div>
@@ -512,7 +539,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
     <>
       {/* Delete Confirmation Modal */}
       {renderDeleteConfirmation()}
-      
+
       <div>
         <div style={{
           display: 'flex',
@@ -606,7 +633,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
             {loading ? (
               <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
                 <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
-                <p>Loading posts...</p>
+                <p>Loading posts from backend...</p>
               </div>
             ) : posts.length === 0 ? (
               <div style={{
@@ -685,7 +712,7 @@ export const BlogPostManagement: React.FC<BlogPostManagementProps> = ({ onPostUp
                         }}>
                           <span>👁️ {post.views || 0} views</span>
                           <span>📅 {new Date(post.createdAt).toLocaleDateString()}</span>
-                          <span>👤 {post.author?.name || post.author?.email}</span>
+                          <span>👤 {post.author?.name || post.author?.email || 'Unknown'}</span>
                           {post.publishedAt && (
                             <span>📢 Published {new Date(post.publishedAt).toLocaleDateString()}</span>
                           )}
