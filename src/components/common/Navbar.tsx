@@ -1,12 +1,12 @@
 /**
- * CLASSIC ELEGANT NAVIGATION COMPONENT
+ * CLASSIC SIMPLE NAVIGATION COMPONENT
  * 
- * Sophisticated yacht club styling:
- * - Deep navy and maritime colors
- * - Classic typography and spacing
- * - Subtle animations and transitions
- * - Refined, timeless design
- * - Premium yacht club aesthetic
+ * Restored original design with:
+ * - Original emoji icons
+ * - Clean, simple structure
+ * - Elegant navy background
+ * - Original navigation items
+ * - Simple, readable layout
  */
 
 import React, { useState, useEffect } from 'react';
@@ -83,17 +83,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const logoStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
     textDecoration: 'none',
     color: '#f8fafc', // Slate 50 - elegant white
     fontWeight: 600,
-    fontSize: theme.typography.sizes.xl,
-    transition: 'all 0.3s ease',
-    fontFamily: 'serif' // Classic serif font for elegance
-  };
-
-  const logoIconStyle: React.CSSProperties = {
-    fontSize: '2.2rem',
+    fontSize: theme.typography.sizes.lg,
     transition: 'all 0.3s ease'
   };
 
@@ -212,13 +206,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     textDecoration: 'none'
   };
 
-  // Navigation items
+  // Original navigation items with emojis
   const navItems = [
-    { id: 'home', label: 'Home', href: '#home', icon: '⌂' },
-    { id: 'speakers', label: 'Speakers', href: '#upcoming', icon: '◉' },
-    { id: 'blog', label: 'Articles', href: '#blog', icon: '※' },
-    { id: 'weather', label: 'Conditions', href: '#weather', icon: '⚓' },
-    { id: 'about', label: 'About', href: '#owner', icon: '◈' }
+    { id: 'home', label: 'Home', href: '#home', icon: '🏠' },
+    { id: 'speakers', label: 'Upcoming Speakers', href: '#upcoming', icon: '🎤' },
+    { id: 'past-shows', label: 'Past Shows', href: '#past-shows', icon: '🎥' }
   ];
 
   const handleNavClick = (href: string) => {
@@ -273,13 +265,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            <span style={logoIconStyle}>⚓</span>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>WYL</span>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 400 }}>
-                EST. 1927
-              </span>
-            </div>
+            <span style={{ fontSize: '1.5rem' }}>🛥️</span>
+            <span>Wednesday Yachting Luncheon</span>
           </a>
 
           {/* Desktop Navigation */}
@@ -306,11 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }
                   }}
                 >
-                  <span style={{ 
-                    marginRight: theme.spacing.xs, 
-                    fontSize: '0.9rem',
-                    opacity: 0.8 
-                  }}>
+                  <span style={{ marginRight: theme.spacing.xs }}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -354,7 +337,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       e.currentTarget.style.backgroundColor = '#334155';
                     }}
                   >
-                    ◉
+                    👤
                   </div>
                 )}
 
@@ -380,7 +363,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       e.currentTarget.style.borderColor = '#64748b';
                     }}
                   >
-                    ⚙ Admin
+                    ⚙️ Admin
                   </a>
                 )}
 
@@ -403,7 +386,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     e.currentTarget.style.color = '#e2e8f0';
                   }}
                 >
-                  ◉ Sign Out
+                  🚪 Sign Out
                 </button>
               </div>
             ) : (
@@ -423,7 +406,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                ◉ Member Sign In
+                🔐 Login
               </a>
             )}
 
@@ -493,7 +476,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name || 'User'} style={userAvatarStyle} />
                     ) : (
-                      <div style={userPlaceholderStyle}>◉</div>
+                      <div style={userPlaceholderStyle}>👤</div>
                     )}
                     <div>
                       <div style={{ 
@@ -522,7 +505,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setIsMobileMenuOpen(false);
                       }}
                     >
-                      ⚙ Admin Dashboard
+                      ⚙️ Admin Dashboard
                     </a>
                   )}
 
@@ -535,7 +518,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                     onClick={handleSignOut}
                   >
-                    ◉ Sign Out
+                    🚪 Sign Out
                   </button>
                 </div>
               ) : (
@@ -548,7 +531,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  ◉ Member Sign In
+                  🔐 Login
                 </a>
               )}
             </div>
