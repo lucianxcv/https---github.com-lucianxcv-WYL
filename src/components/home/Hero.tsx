@@ -236,6 +236,14 @@ export const Hero: React.FC = () => {
       .hero-video {
         transform: translate(-50%, -50%) scale(1.5);
       }
+      
+      .countdown-corner {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        margin: 20px auto 0 auto !important;
+        max-width: 250px !important;
+      }
     }
   `;
 
@@ -267,100 +275,14 @@ export const Hero: React.FC = () => {
         
         {/* Main Content */}
         <div style={heroContentStyle} className="hero-content">
-          <h1 style={heroTitleStyle} className="float-animation">
-            ⛵ St. Francis Yacht Club
-          </h1>
-          
-          <p style={heroTaglineStyle}>
-            🌊 Where Maritime Excellence Meets Fine Dining
-          </p>
-          
-          <p style={heroDescriptionStyle}>
-            Join us every Wednesday at 12:00 PM for world-class maritime presentations, 
-            exceptional cuisine, and stunning San Francisco Bay views in our historic clubhouse.
-          </p>
-          
-          {/* Call to Action Buttons */}
-          <div style={ctaContainerStyle}>
-            <button
-              style={primaryButtonStyle}
-              className="hero-button"
-              onClick={() => window.location.hash = '#upcoming'}
-              aria-label="Learn about attending our luncheons"
-            >
-              🍽️ Join Our Luncheon
-            </button>
-            
-            <button
-              style={secondaryButtonStyle}
-              className="hero-secondary-button"
-              onClick={() => window.location.hash = '#past-shows'}
-              aria-label="View our presentation archive"
-            >
-              🎥 Watch Presentations
-            </button>
-          </div>
-          
-          {/* Enhanced countdown section */}
-          <div style={countdownContainerStyle}>
-            <h2 style={{
-              fontSize: theme.typography.sizes.xl,
-              marginBottom: theme.spacing.md,
-              color: '#ffffff',
-              fontWeight: theme.typography.weights.semibold,
-              textShadow: '2px 2px 6px rgba(0,0,0,0.8)'
-            }}>
-              ⏰ Next Luncheon In:
-            </h2>
-
-            <CountdownTimer
-              targetDate={sampleData.speakers[0]?.nextPresentationDate || "2025-08-27T12:00:00"}
-              repeatInterval="weekly"
-            />
-            
-            <p style={{
-              fontSize: theme.typography.sizes.sm,
-              marginTop: theme.spacing.md,
-              opacity: 0.8,
-              textShadow: '1px 1px 3px rgba(0,0,0,0.8)'
-            }}>
-              📍 Located at the prestigious St. Francis Yacht Club, San Francisco Bay
-            </p>
-          </div>
-
-          {/* Quick Info */}
+          {/* Quick Info Cards - Centered */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
             gap: theme.spacing.md,
-            marginTop: theme.spacing.xl,
-            maxWidth: '600px',
-            margin: `${theme.spacing.xl} auto 0`
+            maxWidth: '400px',
+            margin: '0 auto'
           }}>
-            <div style={{
-              textAlign: 'center',
-              padding: theme.spacing.md,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>📅</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Every Wednesday</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>12:00 PM Sharp</div>
-            </div>
-            
-            <div style={{
-              textAlign: 'center',
-              padding: theme.spacing.md,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🎤</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Expert Speakers</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Maritime Leaders</div>
-            </div>
-            
             <div style={{
               textAlign: 'center',
               padding: theme.spacing.md,
@@ -372,6 +294,52 @@ export const Hero: React.FC = () => {
               <div style={{ fontWeight: theme.typography.weights.semibold }}>Fine Dining</div>
               <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Premium Cuisine</div>
             </div>
+            
+            <div style={{
+              textAlign: 'center',
+              padding: theme.spacing.md,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌊</div>
+              <div style={{ fontWeight: theme.typography.weights.semibold }}>Bay Views</div>
+              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Stunning Location</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Countdown Timer - Right Corner */}
+        <div className="countdown-corner" style={{
+          position: 'absolute',
+          top: theme.spacing.xl,
+          right: theme.spacing.xl,
+          zIndex: 4,
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(15px)',
+          borderRadius: '12px',
+          padding: theme.spacing.md,
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          maxWidth: '280px',
+          textAlign: 'center'
+        }}>
+          <h3 style={{
+            fontSize: theme.typography.sizes.sm,
+            marginBottom: theme.spacing.xs,
+            color: '#ffffff',
+            fontWeight: theme.typography.weights.semibold,
+            textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+            margin: 0
+          }}>
+            ⏰ Next Luncheon
+          </h3>
+
+          <div style={{ transform: 'scale(0.8)', transformOrigin: 'center' }}>
+            <CountdownTimer
+              targetDate={sampleData.speakers[0]?.nextPresentationDate || "2025-08-27T12:00:00"}
+              repeatInterval="weekly"
+            />
           </div>
         </div>
       </section>
