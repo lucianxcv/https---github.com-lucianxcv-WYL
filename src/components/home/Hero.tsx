@@ -238,11 +238,10 @@ export const Hero: React.FC = () => {
       }
       
       .countdown-corner {
-        position: relative !important;
-        top: auto !important;
-        right: auto !important;
-        margin: 20px auto 0 auto !important;
-        max-width: 250px !important;
+        bottom: 10px !important;
+        left: 10px !important;
+        max-width: 160px !important;
+        font-size: 0.7rem !important;
       }
     }
   `;
@@ -275,67 +274,37 @@ export const Hero: React.FC = () => {
         
         {/* Main Content */}
         <div style={heroContentStyle} className="hero-content">
-          {/* Quick Info Cards - Centered */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: theme.spacing.md,
-            maxWidth: '400px',
-            margin: '0 auto'
-          }}>
-            <div style={{
-              textAlign: 'center',
-              padding: theme.spacing.md,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🍽️</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Fine Dining</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Premium Cuisine</div>
-            </div>
-            
-            <div style={{
-              textAlign: 'center',
-              padding: theme.spacing.md,
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.xs }}>🌊</div>
-              <div style={{ fontWeight: theme.typography.weights.semibold }}>Bay Views</div>
-              <div style={{ fontSize: theme.typography.sizes.sm, opacity: 0.8 }}>Stunning Location</div>
-            </div>
-          </div>
         </div>
 
-        {/* Countdown Timer - Right Corner */}
+        {/* Countdown Timer - Bottom Left Corner */}
         <div className="countdown-corner" style={{
           position: 'absolute',
-          top: theme.spacing.xl,
-          right: theme.spacing.xl,
+          bottom: theme.spacing.lg,
+          left: theme.spacing.lg,
           zIndex: 4,
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(15px)',
-          borderRadius: '12px',
-          padding: theme.spacing.md,
+          borderRadius: '8px',
+          padding: theme.spacing.sm,
           border: '1px solid rgba(255, 255, 255, 0.2)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-          maxWidth: '280px',
-          textAlign: 'center'
+          maxWidth: '200px',
+          fontSize: '0.8rem'
         }}>
-          <h3 style={{
-            fontSize: theme.typography.sizes.sm,
-            marginBottom: theme.spacing.xs,
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.xs,
             color: '#ffffff',
             fontWeight: theme.typography.weights.semibold,
             textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
-            margin: 0
+            marginBottom: theme.spacing.xs,
+            fontSize: '0.75rem'
           }}>
             ⏰ Next Luncheon
-          </h3>
+          </div>
 
-          <div style={{ transform: 'scale(0.8)', transformOrigin: 'center' }}>
+          <div style={{ transform: 'scale(0.7)', transformOrigin: 'left center' }}>
             <CountdownTimer
               targetDate={sampleData.speakers[0]?.nextPresentationDate || "2025-08-27T12:00:00"}
               repeatInterval="weekly"
