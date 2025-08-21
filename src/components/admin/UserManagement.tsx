@@ -1,9 +1,10 @@
-// ==================== src/components/admin/UserManagement.tsx ====================
+// ==================== src/components/admin/UserManagement.tsx - DEBUG VERSION ====================
 /**
- * USER MANAGEMENT COMPONENT
+ * USER MANAGEMENT COMPONENT - DEBUG VERSION
  * 
  * Complete user management interface for admin dashboard
  * Features: View users, change roles, search, pagination, delete users
+ * ADDED: Extensive debugging to find the user count issue
  */
 
 import React, { useState, useEffect } from 'react';
@@ -25,10 +26,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null); // DEBUG
 
   const usersPerPage = 10;
 
-  // Styles
+  // Styles (same as before)
   const containerStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
     borderRadius: '16px',
@@ -136,8 +138,59 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
     color: '#ffffff'
   });
 
-  // Load users
+  // DEBUG: Test all user-fetching methods
+  const testAllUserMethods = async () => {
+    console.log('🧪 TESTING ALL USER FETCHING METHODS:');
+    
+    try {
+      // Method 1: With current params
+      console.log('1️⃣ Testing with current params...');
+      const currentParams = {
+        page: currentPage,
+        limit: usersPerPage,
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedRole !== 'all' && { role: selectedRole })
+      };
+      const method1 = await adminApi.users.getAll(currentParams);
+      console.log('Method 1 result:', method1);
+      
+      // Method 2: With no params (should get all)
+      console.log('2️⃣ Testing with NO params...');
+      const method2 = await adminApi.users.getAll({});
+      console.log('Method 2 result:', method2);
+      
+      // Method 3: With just a high limit
+      console.log('3️⃣ Testing with high limit...');
+      const method3 = await adminApi.users.getAll({ limit: 100 });
+      console.log('Method 3 result:', method3);
+      
+      // Method 4: Different page
+      console.log('4️⃣ Testing page 1 specifically...');
+      const method4 = await adminApi.users.getAll({ page: 1, limit: 50 });
+      console.log('Method 4 result:', method4);
+      
+      setDebugInfo({
+        method1Count: method1.data?.length || 0,
+        method2Count: method2.data?.length || 0,
+        method3Count: method3.data?.length || 0,
+        method4Count: method4.data?.length || 0,
+        method1Pagination: method1.pagination,
+        method2Pagination: method2.pagination,
+        currentParams,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('🚨 Error in testing methods:', error);
+      setDebugInfo({ error: error instanceof Error ? error.message : String(error) });
+    }
+  };
+
+  // ENHANCED Load users with extensive debugging
   const loadUsers = async () => {
+    console.log('📥 LOADING USERS - START');
+    console.log('Current state:', { currentPage, usersPerPage, searchTerm, selectedRole });
+    
     setLoading(true);
     setError(null);
     
@@ -149,21 +202,33 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
         ...(selectedRole !== 'all' && { role: selectedRole })
       };
 
+      console.log('📤 API Request params:', params);
       const response = await adminApi.users.getAll(params);
+      console.log('📨 API Response:', response);
       
       if (response.success) {
-        setUsers(response.data || []);
+        const userData = response.data || [];
+        console.log('✅ Users loaded:', userData.length);
+        console.log('👥 User details:', userData.map(u => ({ id: u.id.slice(0,8), email: u.email, role: u.role })));
+        
+        setUsers(userData);
+        
         if (response.pagination) {
+          console.log('📊 Pagination info:', response.pagination);
           setTotalPages(response.pagination.totalPages);
+        } else {
+          console.log('⚠️ No pagination info received');
         }
       } else {
+        console.error('❌ API returned success=false:', response);
         setError('Failed to load users');
       }
     } catch (err: any) {
-      console.error('Error loading users:', err);
+      console.error('🚨 Error loading users:', err);
       setError(err.message || 'Failed to load users');
     } finally {
       setLoading(false);
+      console.log('📥 LOADING USERS - END');
     }
   };
 
@@ -258,6 +323,43 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onUserUpdate }) 
   return (
     <div style={containerStyle}>
       <h2 style={headerStyle}>👥 User Management</h2>
+
+      {/* DEBUG INFO SECTION */}
+      <div style={{
+        backgroundColor: '#f8f9fa',
+        border: '1px solid #dee2e6',
+        borderRadius: '8px',
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.lg,
+        fontSize: theme.typography.sizes.sm
+      }}>
+        <h4 style={{ margin: '0 0 8px 0', color: '#6c757d' }}>🐛 Debug Information:</h4>
+        <p><strong>Users currently shown:</strong> {users.length}</p>
+        <p><strong>Current page:</strong> {currentPage} of {totalPages}</p>
+        <p><strong>Search term:</strong> "{searchTerm}" | <strong>Role filter:</strong> {selectedRole}</p>
+        
+        <button
+          style={{...primaryButtonStyle, marginBottom: theme.spacing.sm}}
+          onClick={testAllUserMethods}
+        >
+          🧪 Test All API Methods
+        </button>
+        
+        {debugInfo && (
+          <div style={{ 
+            backgroundColor: '#fff3cd', 
+            padding: theme.spacing.sm, 
+            borderRadius: '4px',
+            marginTop: theme.spacing.sm,
+            border: '1px solid #ffeaa7'
+          }}>
+            <h5>Test Results:</h5>
+            <pre style={{ fontSize: '10px', overflow: 'auto' }}>
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
 
       {/* Filters */}
       <div style={filterContainerStyle}>
