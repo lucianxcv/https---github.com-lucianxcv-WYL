@@ -1,7 +1,7 @@
 /**
- * PAST SHOW MANAGEMENT COMPONENT - BACKEND CONNECTED VERSION
+ * PAST SHOW MANAGEMENT COMPONENT - WITH THUMBNAIL FIELD (STEP 3)
  * 
- * This version connects to your real backend API instead of using mock data
+ * This version includes the thumbnail URL field for custom thumbnails
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,6 +17,7 @@ interface PastShow {
   year: number;
   description?: string;
   videoId?: string;
+  thumbnailUrl?: string; // ← ADDED: Thumbnail URL field
   isPublished: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -29,6 +30,7 @@ interface PastShowFormData {
   date: string;
   description: string;
   videoId: string;
+  thumbnailUrl: string; // ← ADDED: Thumbnail URL field
 }
 
 interface PastShowManagementProps {
@@ -40,7 +42,8 @@ const initialFormData: PastShowFormData = {
   speakerName: '',
   date: '',
   description: '',
-  videoId: ''
+  videoId: '',
+  thumbnailUrl: '' // ← ADDED: Empty thumbnail field
 };
 
 export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUpdate }) => {
@@ -105,7 +108,7 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
     fontFamily: 'inherit'
   };
 
-  // 🔥 FIXED: Load past shows from real backend API
+  // Load past shows from real backend API
   const loadPastShows = async () => {
     setLoading(true);
     setError(null);
@@ -161,7 +164,7 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
     return matchesSearch && matchesStatus && matchesYear;
   });
 
-  // 🔥 FIXED: Handle form submission with real API calls
+  // Handle form submission with real API calls
   const handleSubmit = async () => {
     if (!formData.title.trim() || !formData.speakerName.trim() || !formData.date) {
       setError('Title, speaker name, and date are required');
@@ -202,7 +205,7 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
     }
   };
 
-  // 🔥 FIXED: Handle delete with real API call
+  // Handle delete with real API call
   const handleDelete = (showId: number) => setShowDeleteConfirm(showId);
 
   const confirmDelete = async (showId: number) => {
@@ -222,7 +225,7 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
     }
   };
 
-  // 🔥 FIXED: Toggle status with real API call
+  // Toggle status with real API call
   const handleToggleStatus = async (show: PastShow, field: 'isPublished') => {
     try {
       console.log(`🔄 Toggling ${field} for show:`, show.id);
@@ -251,7 +254,8 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
       speakerName: show.speakerName,
       date: show.date.split('T')[0], // Extract date part for input field
       description: show.description || '',
-      videoId: show.videoId || ''
+      videoId: show.videoId || '',
+      thumbnailUrl: show.thumbnailUrl || '' // ← ADDED: Include thumbnail in edit
     });
     setShowCreateForm(true);
     setError(null);
@@ -369,7 +373,7 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
     );
   };
 
-  // Render form
+  // 🔥 UPDATED: Render form with thumbnail field
   const renderShowForm = () => (
     <div style={cardStyle}>
       <h3 style={{
@@ -449,6 +453,38 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
             disabled={submitting}
           />
         </div>
+        <div>
+          <label style={{
+            display: 'block',
+            marginBottom: theme.spacing.xs,
+            fontWeight: theme.typography.weights.semibold,
+            color: theme.colors.text
+          }}>
+            Custom Thumbnail URL
+          </label>
+          <input
+            type="url"
+            style={inputStyle}
+            value={formData.thumbnailUrl}
+            onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
+            placeholder="https://example.com/thumbnail.jpg (optional)"
+            disabled={submitting}
+          />
+          <div style={{
+            fontSize: theme.typography.sizes.xs,
+            color: theme.colors.textSecondary
+          }}>
+            💡 Leave empty to auto-generate from YouTube video
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: theme.spacing.md,
+        marginBottom: theme.spacing.md
+      }}>
         <div>
           <label style={{
             display: 'block',
@@ -736,6 +772,23 @@ export const PastShowManagement: React.FC<PastShowManagementProps> = ({ onShowUp
                               }}
                             >
                               📺 Watch Video
+                            </a>
+                          )}
+                          {show.thumbnailUrl && (
+                            <a
+                              href={show.thumbnailUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: theme.colors.secondary,
+                                textDecoration: 'none',
+                                padding: '2px 6px',
+                                backgroundColor: theme.colors.surface,
+                                borderRadius: '4px',
+                                border: `1px solid ${theme.colors.border}`
+                              }}
+                            >
+                              🖼️ Custom Thumbnail
                             </a>
                           )}
                         </div>

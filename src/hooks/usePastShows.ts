@@ -1,5 +1,5 @@
 /**
- * PAST SHOWS HOOK - REAL API INTEGRATION
+ * PAST SHOWS HOOK - REAL API INTEGRATION (UPDATED FOR PROPER DATE SORTING)
  * 
  * Save this file as: src/hooks/usePastShows.ts
  */
@@ -162,24 +162,24 @@ export const usePastShows = (): UsePastShowsReturn => {
     fetchPastShows();
   }, []);
 
-  // Helper to get latest shows (most recent 4)
+  // 🔥 UPDATED: Helper to get latest shows (most recent by VIDEO DATE, not creation date)
   const getLatestShows = (): PastShow[] => {
     return shows
       .filter(show => show.isPublished)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 4);
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // ← Sort by video date
+      .slice(0, 4); // Keep top 4 for flexibility
   };
 
-  // Helper to get featured shows
+  // 🔥 UPDATED: Helper to get featured shows (also sorted by video date now)
   const getFeaturedShows = (): PastShow[] => {
     return shows
       .filter(show => show.isPublished && show.featured)
-      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // ← Also sort by video date
       .slice(0, 4);
   };
 
   return {
-    shows: shows.filter(show => show.isPublished), // Only return published shows
+    shows: shows.filter(show => show.isPublished).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), // ← Sort all shows by video date
     latestShows: getLatestShows(),
     featuredShows: getFeaturedShows(),
     loading,

@@ -25,7 +25,7 @@ export const PastShowsArchivePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
+  const [sortBy, setSortBy] = useState('date'); // ← Already correct: defaults to date sorting
   const [currentPage, setCurrentPage] = useState(1);
   const [showsPerPage] = useState(12);
 
@@ -34,7 +34,7 @@ export const PastShowsArchivePage: React.FC = () => {
   // Get unique years from actual data
   const availableYears = ['All', ...Array.from(new Set(shows.map(show => show.year))).sort((a, b) => b - a)];
 
-  // Filter and sort shows
+  // Filter and sort shows - UPDATED: Always sort by video date primarily
   const filteredShows = shows
     .filter(show => {
       const matchesSearch = show.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,15 +49,22 @@ export const PastShowsArchivePage: React.FC = () => {
     .sort((a, b) => {
       switch (sortBy) {
         case 'date':
+          // Primary sort: video date (newest first)
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         case 'popularity':
-          return (b.views || 0) - (a.views || 0);
+          // Secondary consideration: if same views, fall back to date
+          const viewDiff = (b.views || 0) - (a.views || 0);
+          return viewDiff !== 0 ? viewDiff : new Date(b.date).getTime() - new Date(a.date).getTime();
         case 'title':
-          return a.title.localeCompare(b.title);
+          // Alphabetical, but with date as tiebreaker
+          const titleCompare = a.title.localeCompare(b.title);
+          return titleCompare !== 0 ? titleCompare : new Date(b.date).getTime() - new Date(a.date).getTime();
         case 'duration':
-          return (a.duration || 45) - (b.duration || 45);
+          // Duration, but with date as tiebreaker
+          const durationDiff = (a.duration || 45) - (b.duration || 45);
+          return durationDiff !== 0 ? durationDiff : new Date(b.date).getTime() - new Date(a.date).getTime();
         default:
-          return 0;
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
     });
 
@@ -500,7 +507,7 @@ export const PastShowsArchivePage: React.FC = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
-              <option value="date">Latest First</option>
+              <option value="date">Latest First (by Video Date)</option>
               <option value="popularity">Most Popular</option>
               <option value="title">Title A-Z</option>
               <option value="duration">Duration</option>

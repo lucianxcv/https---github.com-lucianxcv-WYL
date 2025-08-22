@@ -28,7 +28,7 @@ export const HomePage: React.FC = () => {
   // Get dynamic data from our hooks
   const { thisWeekSpeaker, upcomingSpeakers, loading: speakersLoading } = useSpeakers();
   const { latestPosts, loading: postsLoading } = useBlogPosts();
-  const { featuredShows, loading: showsLoading } = usePastShows(); // ← Use real shows data
+  const { latestShows, loading: showsLoading } = usePastShows(); // ← Use latestShows instead of featuredShows
 
   // Global page styling with theme support
   const pageStyle: React.CSSProperties = {
@@ -325,33 +325,35 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* 🔥 UPDATED: Past Presentations - Better Compact Layout */}
+        {/* 🔥 UPDATED: Latest 2 Presentations - Simple Layout */}
         <section style={sectionStyle} id="past-shows">
-          <h2 style={sectionTitleStyle}>🎥 Featured Past Presentations</h2>
+          <h2 style={sectionTitleStyle}>🎥 Latest Presentations</h2>
           
           {showsLoading ? (
             <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
               <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
-              <p>Loading featured presentations...</p>
+              <p>Loading latest presentations...</p>
             </div>
-          ) : featuredShows.length > 0 ? (
+          ) : latestShows.length > 0 ? (
             <>
               <div 
                 className="past-shows-grid"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', // ← UPDATED: Smaller cards
-                  gap: theme.spacing.lg,
+                  gridTemplateColumns: latestShows.length === 1 
+                    ? '1fr' 
+                    : 'repeat(auto-fit, minmax(350px, 1fr))', // ← UPDATED: Better for 2 cards
+                  gap: theme.spacing.xl,
                   marginBottom: theme.spacing.lg,
-                  maxWidth: '800px', // ← NEW: Limit width so we get 2x2 on desktop
+                  maxWidth: '900px', // ← UPDATED: Wider for 2 side-by-side cards
                   margin: `0 auto ${theme.spacing.lg} auto`
                 }}
               >
-                {featuredShows.slice(0, 4).map((show) => (
+                {latestShows.slice(0, 2).map((show) => ( // ← UPDATED: Show latest 2 shows only
                   <PastShowVideo 
                     key={show.id} 
                     {...show} 
-                    compact={true} // ← NEW: Use compact mode for homepage
+                    compact={false} // ← UPDATED: Use normal size for better visibility
                     onClick={() => handlePastShowClick(show)}
                   />
                 ))}
