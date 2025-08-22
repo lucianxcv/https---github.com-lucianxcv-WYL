@@ -1,8 +1,8 @@
 /**
- * MAIN APPLICATION COMPONENT - ENHANCED ROUTING
+ * MAIN APPLICATION COMPONENT - ENHANCED ROUTING WITH SLUG SUPPORT
  *
  * This is the root component that sets up routing and provides global theme context.
- * Now includes routing for all pages: Home, Auth, Admin, Articles, Blog Posts, and Past Shows Archive.
+ * Now includes slug-based routing for blog posts: #posts/{slug}
  */
 
 import React, { useState, useEffect } from 'react';
@@ -25,7 +25,20 @@ const App: React.FC = () => {
     const route = hash.slice(1); // Remove the '#'
     
     // Handle different route patterns
+    if (route.startsWith('posts/')) {
+      // New slug-based routing: #posts/my-article-slug
+      const slug = route.replace('posts/', '');
+      return { page: 'blog-post', params: { slug } };
+    }
+    
+    if (route.startsWith('post/')) {
+      // Alternative slug format: #post/my-article-slug
+      const slug = route.replace('post/', '');
+      return { page: 'blog-post', params: { slug } };
+    }
+    
     if (route.startsWith('blog-post-')) {
+      // Legacy ID-based routing: #blog-post-123 (backward compatibility)
       const postId = route.replace('blog-post-', '');
       return { page: 'blog-post', params: { postId } };
     }
@@ -58,6 +71,7 @@ const App: React.FC = () => {
     const handleHashChange = () => {
       const hash = window.location.hash;
       const { page, params } = parseRoute(hash);
+      console.log('🧭 Route changed:', { hash, page, params });
       setCurrentPage(page);
       setRouteParams(params);
     };
@@ -132,9 +146,23 @@ const App: React.FC = () => {
         return <AllArticlesPage />;
 
       case 'blog-post':
-        // Extract post ID from route params
-        const postId = routeParams.postId || '1';
-        return <BlogPostPage postId={postId} />;
+        // Extract slug or fallback to ID from route params
+        const slug = routeParams.slug;
+        const postId = routeParams.postId;
+        
+        if (slug) {
+          // Use slug-based BlogPostPage
+          return <BlogPostPage slug={slug} />;
+        } else if (postId) {
+          // Legacy support: use ID to look up slug, then redirect
+          console.log('⚠️ Legacy ID-based route detected, should redirect to slug');
+          return <BlogPostPage postId={postId} />;
+        } else {
+          // No valid identifier, redirect to articles
+          console.log('❌ No valid post identifier found');
+          setTimeout(() => window.location.hash = '#articles', 0);
+          return <AllArticlesPage />;
+        }
 
       case 'past-shows':
         return <PastShowsArchivePage />;

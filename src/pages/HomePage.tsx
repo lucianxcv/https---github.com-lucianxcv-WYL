@@ -1,7 +1,7 @@
 /**
- * ENHANCED HOMEPAGE COMPONENT WITH PROPER NAVIGATION
+ * ENHANCED HOMEPAGE COMPONENT WITH SLUG-BASED NAVIGATION
  * 
- * Replace your existing src/pages/HomePage.tsx with this version
+ * Updated to use slug-based URLs and match actual data structure from useBlogPosts hook
  */
 
 import React, { useState } from 'react';
@@ -60,6 +60,42 @@ export const HomePage: React.FC = () => {
     fontWeight: theme.typography.weights.bold
   };
 
+  // Helper function to calculate read time from content
+  const calculateReadTime = (content: string): number => {
+    const wordsPerMinute = 200;
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  };
+
+  // Helper function to get author name from the actual data structure
+  const getAuthorName = (author: { id: string; name?: string; email: string }): string => {
+    return author.name || author.email;
+  };
+
+  // Helper function to get a default category
+  const getDefaultCategory = (title: string): string => {
+    // Simple logic to assign category based on title keywords
+    const titleLower = title.toLowerCase();
+    if (titleLower.includes('weather') || titleLower.includes('forecast')) return 'Weather';
+    if (titleLower.includes('navigation') || titleLower.includes('celestial')) return 'Navigation';
+    if (titleLower.includes('speaker') || titleLower.includes('spotlight')) return 'Events';
+    if (titleLower.includes('safety') || titleLower.includes('emergency')) return 'Safety';
+    if (titleLower.includes('technology') || titleLower.includes('tech')) return 'Technology';
+    return 'Maritime'; // Default fallback
+  };
+
+  // Helper function to extract tags from content/title
+  const getDefaultTags = (title: string, content: string): string[] => {
+    const text = (title + ' ' + content).toLowerCase();
+    const possibleTags = [
+      'sailing', 'navigation', 'weather', 'safety', 'technology', 
+      'maritime', 'ocean', 'bay', 'captain', 'yacht', 'boat',
+      'wind', 'tide', 'storm', 'forecast', 'GPS', 'celestial'
+    ];
+    
+    return possibleTags.filter(tag => text.includes(tag)).slice(0, 3);
+  };
+
   // Handle search result clicks
   const handleSearchResultClick = (result: any) => {
     // Navigate to the appropriate content
@@ -68,18 +104,28 @@ export const HomePage: React.FC = () => {
       const speakerSection = document.getElementById('upcoming');
       speakerSection?.scrollIntoView({ behavior: 'smooth' });
     } else if (result.type === 'blog') {
-      // Navigate to specific blog post
-      window.location.hash = `#blog-post-${result.id}`;
+      // Navigate to specific blog post using slug
+      if (result.slug) {
+        window.location.hash = `#posts/${result.slug}`;
+      } else {
+        window.location.hash = `#blog-post-${result.id}`;
+      }
     } else if (result.type === 'presentation') {
       // Navigate to past shows archive
       window.location.hash = '#past-shows';
     }
   };
 
-  // Handle blog post clicks
+  // Handle blog post clicks - UPDATED FOR SLUG NAVIGATION
   const handleBlogPostClick = (post: any) => {
-    // Navigate to individual blog post page
-    window.location.hash = `#blog-post-${post.id}`;
+    // Navigate to individual blog post page using slug
+    if (post.slug) {
+      window.location.hash = `#posts/${post.slug}`;
+    } else {
+      // Fallback to ID if no slug available
+      console.warn('⚠️ No slug available for post, using ID fallback:', post.id);
+      window.location.hash = `#blog-post-${post.id}`;
+    }
   };
 
   // Navigate to all articles page
@@ -209,7 +255,18 @@ export const HomePage: React.FC = () => {
                 {latestPosts.map((post) => (
                   <BlogPostCard
                     key={post.id}
-                    {...post}
+                    id={post.id}
+                    title={post.title}
+                    slug={post.slug}
+                    excerpt={post.excerpt}
+                    content={post.content}
+                    imageUrl={post.coverImage} // ← Direct mapping from your data
+                    author={getAuthorName(post.author)} // ← Extract name from author object
+                    authorAvatar={undefined} // ← Not available in your data structure
+                    publishedAt={post.publishedAt || post.createdAt} // ← Use publishedAt or fallback to createdAt
+                    category={getDefaultCategory(post.title)} // ← Generate category from title
+                    tags={getDefaultTags(post.title, post.content)} // ← Generate tags from content
+                    readTime={calculateReadTime(post.content)} // ← Calculate from content length
                     onClick={() => handleBlogPostClick(post)}
                   />
                 ))}
@@ -419,7 +476,6 @@ export const HomePage: React.FC = () => {
         {/* Call to Action Section */}
         <section style={sectionStyle}>
           <div style={{
-            backgroundColor: `linear-gradient(135deg, ${theme.colors.primary}ee, ${theme.colors.secondary}dd)`,
             background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
             borderRadius: '20px',
             padding: theme.spacing.xl,

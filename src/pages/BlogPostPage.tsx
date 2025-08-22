@@ -1,15 +1,13 @@
 /**
- * INDIVIDUAL BLOG POST PAGE
+ * INDIVIDUAL BLOG POST PAGE - REAL API INTEGRATION
  * 
  * Features:
- * - Full blog post display
- * - Author information
- * - Publication date
- * - Tags and categories
- * - Comments section
- * - Related articles
- * - Social sharing
- * - Navigation back to articles
+ * - Fetches real posts from backend using slug or ID
+ * - Full blog post display with rich content
+ * - Author information and metadata
+ * - Related articles from real data
+ * - Social sharing and navigation
+ * - SEO-friendly slug-based URLs
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,130 +15,134 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { CommentsSection } from '../components/home/CommentsSection';
+import { postsApi } from '../utils/apiService';
 
 interface BlogPostData {
   id: string;
   title: string;
+  slug: string;
   content: string;
-  excerpt: string;
-  author: string;
-  date: string;
-  category: string;
-  tags: string[];
-  readTime: number;
-  imageUrl?: string;
-  authorBio?: string;
-  authorAvatar?: string;
+  excerpt?: string;
+  author?: {
+    id: string;
+    name?: string;
+    email: string;
+    avatar?: string;
+  };
+  publishedAt?: string;
+  createdAt: string;
+  coverImage?: string;
+  categories?: any[];
+  tags?: any[];
+  readTime?: number;
+  views?: number;
 }
 
 interface BlogPostPageProps {
-  postId: string;
+  slug?: string;
+  postId?: string; // Legacy support
 }
 
-export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
+export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
   const theme = useTheme();
   const [post, setPost] = useState<BlogPostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBlogPost(postId);
-  }, [postId]);
+    if (slug) {
+      loadBlogPostBySlug(slug);
+    } else if (postId) {
+      loadBlogPostById(postId);
+    } else {
+      setError('No post identifier provided');
+      setLoading(false);
+    }
+  }, [slug, postId]);
 
-  const loadBlogPost = async (id: string) => {
+  const loadBlogPostBySlug = async (postSlug: string) => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('📖 Loading blog post by slug:', postSlug);
       
-      // Sample blog post data - replace with actual data fetching
-      const samplePost: BlogPostData = {
-        id: id,
-        title: 'The Future of Maritime Technology: AI and Autonomous Vessels',
-        content: `
-          <h2>Introduction to Maritime AI</h2>
-          <p>The maritime industry stands at the threshold of a technological revolution. As we navigate into the future, artificial intelligence and autonomous vessels are reshaping how we think about ocean transportation, safety, and efficiency.</p>
-          
-          <h3>Current State of Technology</h3>
-          <p>Today's maritime vessels are already incorporating sophisticated AI systems for navigation assistance, predictive maintenance, and route optimization. Companies like Maersk and MSC are investing heavily in digital transformation initiatives that promise to revolutionize global shipping.</p>
-          
-          <blockquote>
-            "The integration of AI in maritime operations isn't just about efficiency—it's about creating a safer, more sustainable future for ocean transportation." - Captain Sarah Johnson, Maritime Technology Institute
-          </blockquote>
-          
-          <h3>Autonomous Navigation Systems</h3>
-          <p>Autonomous vessels represent the next frontier in maritime technology. These ships use a combination of:</p>
-          <ul>
-            <li>Advanced radar and lidar systems</li>
-            <li>Computer vision and image recognition</li>
-            <li>Machine learning algorithms for decision making</li>
-            <li>Satellite connectivity for real-time data exchange</li>
-          </ul>
-          
-          <h3>Environmental Impact</h3>
-          <p>One of the most promising aspects of AI-driven maritime technology is its potential environmental benefits. Optimized routing can reduce fuel consumption by up to 15%, while predictive maintenance prevents unnecessary emissions from inefficient engines.</p>
-          
-          <h3>Challenges and Considerations</h3>
-          <p>Despite the exciting possibilities, several challenges remain:</p>
-          <ul>
-            <li>Regulatory frameworks need updating</li>
-            <li>Cybersecurity concerns must be addressed</li>
-            <li>Maritime workforce will require retraining</li>
-            <li>International cooperation is essential</li>
-          </ul>
-          
-          <h3>Looking Ahead</h3>
-          <p>The next decade will be crucial for maritime AI adoption. As technology matures and regulations evolve, we can expect to see the first fully autonomous commercial vessels entering service, marking the beginning of a new era in maritime history.</p>
-          
-          <p>The St. Francis Yacht Club has always been at the forefront of maritime innovation, and we're excited to continue hosting speakers who are shaping the future of our industry.</p>
-        `,
-        excerpt: 'Exploring how artificial intelligence and autonomous vessels are revolutionizing the maritime industry, from navigation to environmental sustainability.',
-        author: 'Dr. Michael Chen',
-        date: '2024-03-15',
-        category: 'Technology',
-        tags: ['AI', 'Autonomous Vessels', 'Maritime Technology', 'Innovation', 'Sustainability'],
-        readTime: 8,
-        imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
-        authorBio: 'Dr. Michael Chen is a maritime technology researcher and former naval engineer with over 20 years of experience in autonomous systems development.',
-        authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
-      };
+      const response = await postsApi.getBySlug(postSlug);
       
-      setPost(samplePost);
-      
-      // Load related posts
-      const related: BlogPostData[] = [
-        {
-          id: '2',
-          title: 'Sustainable Shipping: Green Technologies in Modern Vessels',
-          excerpt: 'How the maritime industry is adopting eco-friendly technologies...',
-          author: 'Captain Lisa Rodriguez',
-          date: '2024-03-10',
-          category: 'Sustainability',
-          tags: ['Green Technology', 'Sustainability'],
-          readTime: 6,
-          content: '',
-          imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400'
-        },
-        {
-          id: '3',
-          title: 'Navigation Safety: Lessons from Modern Maritime Accidents',
-          excerpt: 'Analyzing recent maritime incidents to improve safety protocols...',
-          author: 'Admiral James Wright',
-          date: '2024-03-08',
-          category: 'Safety',
-          tags: ['Safety', 'Navigation'],
-          readTime: 5,
-          content: '',
-          imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400'
-        }
-      ];
-      
-      setRelatedPosts(related);
+      if (response.success && response.data) {
+        setPost(response.data);
+        
+        // Load related posts
+        await loadRelatedPosts(response.data);
+      } else {
+        setError('Article not found');
+      }
     } catch (error) {
-      console.error('Failed to load blog post:', error);
+      console.error('❌ Failed to load blog post:', error);
+      setError(`Failed to load article: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadBlogPostById = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('📖 Loading blog post by ID:', id);
+      
+      const response = await postsApi.getById(id);
+      
+      if (response.success && response.data) {
+        const postData = response.data;
+        setPost(postData);
+        
+        // Redirect to slug-based URL for SEO
+        if (postData.slug) {
+          console.log('🔄 Redirecting to slug-based URL:', postData.slug);
+          window.location.hash = `#posts/${postData.slug}`;
+          return;
+        }
+        
+        // Load related posts
+        await loadRelatedPosts(postData);
+      } else {
+        setError('Article not found');
+      }
+    } catch (error) {
+      console.error('❌ Failed to load blog post:', error);
+      setError(`Failed to load article: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadRelatedPosts = async (currentPost: BlogPostData) => {
+    try {
+      // Get related posts (same category or recent posts)
+      const response = await postsApi.getAll({
+        limit: 4,
+        published: true
+      });
+
+      if (response.success && response.data) {
+        // Filter out current post and get up to 3 related posts
+        const related = response.data
+          .filter(p => p.id !== currentPost.id)
+          .slice(0, 3);
+        
+        setRelatedPosts(related);
+      }
+    } catch (error) {
+      console.error('Failed to load related posts:', error);
+      // Don't show error for related posts failure
+    }
+  };
+
+  const calculateReadTime = (content: string): number => {
+    const wordsPerMinute = 200;
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
   };
 
   const handleShare = (platform: string) => {
@@ -148,7 +150,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
     
     const url = encodeURIComponent(window.location.href);
     const title = encodeURIComponent(post.title);
-    const text = encodeURIComponent(post.excerpt);
+    const text = encodeURIComponent(post.excerpt || post.content.substring(0, 150) + '...');
     
     const shareUrls = {
       twitter: `https://twitter.com/intent/tweet?text=${title}&url=${url}`,
@@ -162,12 +164,17 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
     }
   };
 
+  const handleRelatedPostClick = (relatedPost: BlogPostData) => {
+    // Navigate to related post using slug
+    window.location.hash = `#posts/${relatedPost.slug}`;
+  };
+
   const pageStyle: React.CSSProperties = {
     fontFamily: theme.typography.fontFamily,
     minHeight: '100vh',
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
-    paddingTop: '80px' // Account for fixed navbar
+    paddingTop: '80px'
   };
 
   const containerStyle: React.CSSProperties = {
@@ -225,16 +232,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
     marginBottom: theme.spacing.xl
   };
 
-  const sidebarStyle: React.CSSProperties = {
-    position: 'sticky',
-    top: '100px',
-    backgroundColor: theme.colors.background,
-    borderRadius: '12px',
-    padding: theme.spacing.lg,
-    border: `1px solid ${theme.colors.border}`,
-    marginBottom: theme.spacing.xl
-  };
-
+  // Loading state
   if (loading) {
     return (
       <div style={pageStyle}>
@@ -249,7 +247,8 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
     );
   }
 
-  if (!post) {
+  // Error state
+  if (error || !post) {
     return (
       <div style={pageStyle}>
         <Navbar />
@@ -257,7 +256,9 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
           <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
             <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>❌</div>
             <h2>Article Not Found</h2>
-            <p>The requested article could not be found.</p>
+            <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+              {error || 'The requested article could not be found.'}
+            </p>
             <button
               style={{
                 backgroundColor: theme.colors.primary,
@@ -267,17 +268,37 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
                 borderRadius: '8px',
                 fontSize: theme.typography.sizes.base,
                 cursor: 'pointer',
-                marginTop: theme.spacing.md
+                marginRight: theme.spacing.sm
               }}
-              onClick={() => window.history.back()}
+              onClick={() => window.location.hash = '#articles'}
             >
-              ← Go Back
+              📚 Browse All Articles
+            </button>
+            <button
+              style={{
+                backgroundColor: theme.colors.secondary,
+                color: '#ffffff',
+                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: theme.typography.sizes.base,
+                cursor: 'pointer'
+              }}
+              onClick={() => window.location.hash = '#home'}
+            >
+              🏠 Go Home
             </button>
           </div>
         </div>
       </div>
     );
   }
+
+  const readTime = post.readTime || calculateReadTime(post.content);
+  const authorName = post.author?.name || post.author?.email || 'Maritime Editor';
+  const publishDate = post.publishedAt || post.createdAt;
+  const categoryName = post.categories?.[0]?.category?.name || 'General';
+  const tags = post.tags?.map(tag => tag.tag?.name || tag) || [];
 
   return (
     <div style={pageStyle}>
@@ -291,7 +312,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
             style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
             onClick={(e) => {
               e.preventDefault();
-              window.location.hash = 'home';
+              window.location.hash = '#home';
             }}
           >
             🏠 Home
@@ -302,7 +323,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
             style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
             onClick={(e) => {
               e.preventDefault();
-              window.location.hash = 'articles';
+              window.location.hash = '#articles';
             }}
           >
             📚 Articles
@@ -325,28 +346,33 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
             fontWeight: theme.typography.weights.semibold,
             marginBottom: theme.spacing.md
           }}>
-            📂 {post.category}
+            📂 {categoryName}
           </div>
           
           <h1 style={titleStyle}>{post.title}</h1>
           
           <div style={metaStyle}>
             <span style={{ color: theme.colors.textSecondary }}>
-              📅 {new Date(post.date).toLocaleDateString('en-US', { 
+              📅 {new Date(publishDate).toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               })}
             </span>
             <span style={{ color: theme.colors.textSecondary }}>
-              ⏱️ {post.readTime} min read
+              ⏱️ {readTime} min read
             </span>
+            {post.views && (
+              <span style={{ color: theme.colors.textSecondary }}>
+                👁️ {post.views} views
+              </span>
+            )}
           </div>
 
           {/* Featured Image */}
-          {post.imageUrl && (
+          {post.coverImage && (
             <img
-              src={post.imageUrl}
+              src={post.coverImage}
               alt={post.title}
               style={{
                 width: '100%',
@@ -360,39 +386,39 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
         </header>
 
         {/* Author Section */}
-        <div style={authorSectionStyle}>
-          {post.authorAvatar && (
-            <img
-              src={post.authorAvatar}
-              alt={post.author}
-              style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                objectFit: 'cover'
-              }}
-            />
-          )}
-          <div>
-            <h3 style={{
-              fontSize: theme.typography.sizes.lg,
-              fontWeight: theme.typography.weights.semibold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.xs
-            }}>
-              ✍️ {post.author}
-            </h3>
-            {post.authorBio && (
+        {post.author && (
+          <div style={authorSectionStyle}>
+            {post.author.avatar && (
+              <img
+                src={post.author.avatar}
+                alt={authorName}
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+            <div>
+              <h3 style={{
+                fontSize: theme.typography.sizes.lg,
+                fontWeight: theme.typography.weights.semibold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.xs
+              }}>
+                ✍️ {authorName}
+              </h3>
               <p style={{
                 fontSize: theme.typography.sizes.sm,
                 color: theme.colors.textSecondary,
                 margin: 0
               }}>
-                {post.authorBio}
+                Maritime content contributor
               </p>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Article Content */}
         <div 
@@ -401,35 +427,37 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
         />
 
         {/* Tags */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: theme.spacing.sm,
-          marginBottom: theme.spacing.xl
-        }}>
-          <span style={{ 
-            fontSize: theme.typography.sizes.sm,
-            color: theme.colors.textSecondary,
-            marginRight: theme.spacing.sm
+        {tags.length > 0 && (
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.xl
           }}>
-            🏷️ Tags:
-          </span>
-          {post.tags.map((tag, index) => (
-            <span
-              key={index}
-              style={{
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text,
-                padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                borderRadius: '20px',
-                fontSize: theme.typography.sizes.xs,
-                border: `1px solid ${theme.colors.border}`
-              }}
-            >
-              #{tag}
+            <span style={{ 
+              fontSize: theme.typography.sizes.sm,
+              color: theme.colors.textSecondary,
+              marginRight: theme.spacing.sm
+            }}>
+              🏷️ Tags:
             </span>
-          ))}
-        </div>
+            {tags.map((tag, index) => (
+              <span
+                key={index}
+                style={{
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text,
+                  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                  borderRadius: '20px',
+                  fontSize: theme.typography.sizes.xs,
+                  border: `1px solid ${theme.colors.border}`
+                }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Social Sharing */}
         <div style={{
@@ -531,10 +559,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
                     transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }}
-                  onClick={() => {
-                    // Navigate to related post
-                    window.location.hash = `blog-post-${relatedPost.id}`;
-                  }}
+                  onClick={() => handleRelatedPostClick(relatedPost)}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
                     e.currentTarget.style.boxShadow = theme.shadows.md;
@@ -544,9 +569,9 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  {relatedPost.imageUrl && (
+                  {relatedPost.coverImage && (
                     <img
-                      src={relatedPost.imageUrl}
+                      src={relatedPost.coverImage}
                       alt={relatedPost.title}
                       style={{
                         width: '100%',
@@ -571,7 +596,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
                       marginBottom: theme.spacing.sm,
                       lineHeight: 1.5
                     }}>
-                      {relatedPost.excerpt}
+                      {relatedPost.excerpt || relatedPost.content.substring(0, 100) + '...'}
                     </p>
                     <div style={{
                       display: 'flex',
@@ -580,8 +605,8 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
                       fontSize: theme.typography.sizes.xs,
                       color: theme.colors.textSecondary
                     }}>
-                      <span>👤 {relatedPost.author}</span>
-                      <span>⏱️ {relatedPost.readTime} min</span>
+                      <span>👤 {relatedPost.author?.name || relatedPost.author?.email}</span>
+                      <span>⏱️ {calculateReadTime(relatedPost.content)} min</span>
                     </div>
                   </div>
                 </div>
@@ -607,7 +632,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ postId }) => {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            onClick={() => window.location.hash = 'articles'}
+            onClick={() => window.location.hash = '#articles'}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = theme.shadows.md;

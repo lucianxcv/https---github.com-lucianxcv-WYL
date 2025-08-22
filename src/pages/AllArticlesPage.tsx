@@ -1,14 +1,7 @@
 /**
- * ALL ARTICLES PAGE
+ * ALL ARTICLES PAGE - BACKEND CONNECTED VERSION WITH SLUG NAVIGATION
  * 
- * Features:
- * - Grid layout of all blog posts
- * - Search and filter functionality
- * - Category filtering
- * - Pagination
- * - Sort by date, popularity, etc.
- * - Featured articles section
- * - Archive organization
+ * This version connects to your real backend API and uses slug-based navigation
  */
 
 import React, { useState, useEffect } from 'react';
@@ -16,19 +9,32 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { BlogPostCard } from '../components/home/BlogPostCard';
+import { postsApi } from '../utils/apiService';
 
+// Post types matching your backend
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
-  author: string;
-  date: string;
-  category: string;
-  tags: string[];
-  readTime: number;
-  imageUrl?: string;
-  featured?: boolean;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  published: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   views?: number;
+  author?: {
+    id: string;
+    name?: string;
+    email: string;
+    avatar?: string;
+  };
+  categories?: any[];
+  tags?: any[];
+  _count?: {
+    comments: number;
+  };
 }
 
 export const AllArticlesPage: React.FC = () => {
@@ -39,178 +45,96 @@ export const AllArticlesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [currentPage, setCurrentPage] = useState(1);
-  const [articlesPerPage] = useState(9);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const articlesPerPage = 9;
 
   const categories = ['All', 'Technology', 'Safety', 'Sustainability', 'Navigation', 'Industry News', 'Events'];
 
-  useEffect(() => {
-    loadArticles();
-  }, []);
-
+  // 🔥 FIXED: Load articles from real backend API
   const loadArticles = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      console.log('📚 Loading articles from backend...');
       
-      // Sample articles data - replace with actual data fetching
-      const sampleArticles: BlogPost[] = [
-        {
-          id: '1',
-          title: 'The Future of Maritime Technology: AI and Autonomous Vessels',
-          excerpt: 'Exploring how artificial intelligence and autonomous vessels are revolutionizing the maritime industry, from navigation to environmental sustainability.',
-          author: 'Dr. Michael Chen',
-          date: '2024-03-15',
-          category: 'Technology',
-          tags: ['AI', 'Autonomous Vessels', 'Innovation'],
-          readTime: 8,
-          featured: true,
-          views: 1247,
-          imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400'
-        },
-        {
-          id: '2',
-          title: 'Sustainable Shipping: Green Technologies in Modern Vessels',
-          excerpt: 'How the maritime industry is adopting eco-friendly technologies to reduce environmental impact and meet global sustainability goals.',
-          author: 'Captain Lisa Rodriguez',
-          date: '2024-03-10',
-          category: 'Sustainability',
-          tags: ['Green Technology', 'Environment', 'Sustainability'],
-          readTime: 6,
-          views: 892,
-          imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400'
-        },
-        {
-          id: '3',
-          title: 'Navigation Safety: Lessons from Modern Maritime Accidents',
-          excerpt: 'Analyzing recent maritime incidents to improve safety protocols and prevent future accidents in commercial shipping.',
-          author: 'Admiral James Wright',
-          date: '2024-03-08',
-          category: 'Safety',
-          tags: ['Safety', 'Navigation', 'Risk Management'],
-          readTime: 5,
-          featured: true,
-          views: 1156,
-          imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400'
-        },
-        {
-          id: '4',
-          title: 'Port Automation: The Digital Revolution in Cargo Handling',
-          excerpt: 'Examining how automated port systems are transforming global trade and improving efficiency in maritime logistics.',
-          author: 'Dr. Sarah Kim',
-          date: '2024-03-05',
-          category: 'Technology',
-          tags: ['Automation', 'Ports', 'Logistics'],
-          readTime: 7,
-          views: 734,
-          imageUrl: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400'
-        },
-        {
-          id: '5',
-          title: 'Ocean Conservation and Maritime Industry Collaboration',
-          excerpt: 'How shipping companies are partnering with environmental organizations to protect marine ecosystems.',
-          author: 'Marine Biologist Dr. Elena Vasquez',
-          date: '2024-03-02',
-          category: 'Sustainability',
-          tags: ['Conservation', 'Environment', 'Collaboration'],
-          readTime: 6,
-          views: 623,
-          imageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400'
-        },
-        {
-          id: '6',
-          title: 'Maritime Cybersecurity: Protecting Connected Vessels',
-          excerpt: 'Understanding the growing cybersecurity threats facing modern ships and how to defend against digital attacks.',
-          author: 'Cybersecurity Expert Tom Bradley',
-          date: '2024-02-28',
-          category: 'Technology',
-          tags: ['Cybersecurity', 'Digital Security', 'Technology'],
-          readTime: 9,
-          views: 1089,
-          imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400'
-        },
-        {
-          id: '7',
-          title: 'The Economics of Modern Shipping: Supply Chain Innovations',
-          excerpt: 'How digital technologies are optimizing global supply chains and reducing costs in maritime transportation.',
-          author: 'Economic Analyst Robert Chang',
-          date: '2024-02-25',
-          category: 'Industry News',
-          tags: ['Economics', 'Supply Chain', 'Innovation'],
-          readTime: 8,
-          views: 945,
-          imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400'
-        },
-        {
-          id: '8',
-          title: 'Weather Routing: Advanced Meteorology for Safer Voyages',
-          excerpt: 'Utilizing cutting-edge weather prediction technology to optimize ship routes and improve safety at sea.',
-          author: 'Meteorologist Dr. Patricia Wells',
-          date: '2024-02-22',
-          category: 'Navigation',
-          tags: ['Weather', 'Navigation', 'Safety'],
-          readTime: 5,
-          views: 567,
-          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'
-        },
-        {
-          id: '9',
-          title: 'St. Francis Yacht Club Annual Regatta Highlights',
-          excerpt: 'Celebrating another successful year of competitive sailing and maritime tradition at our historic club.',
-          author: 'Commodore William Harper',
-          date: '2024-02-20',
-          category: 'Events',
-          tags: ['Regatta', 'Sailing', 'Club Events'],
-          readTime: 4,
-          views: 1234,
-          imageUrl: 'https://images.unsplash.com/photo-1554629947-334ff61d85dc?w=400'
-        }
-      ];
+      const response = await postsApi.getAll({
+        page: currentPage,
+        limit: articlesPerPage,
+        search: searchTerm || undefined,
+        published: true // Only show published articles
+      });
+
+      console.log('✅ Articles loaded:', response);
       
-      setArticles(sampleArticles);
+      if (response.success && response.data) {
+        setArticles(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+      } else {
+        setError('Failed to load articles');
+        setArticles([]);
+      }
     } catch (error) {
-      console.error('Failed to load articles:', error);
+      console.error('❌ Failed to load articles:', error);
+      setError(`Failed to load articles: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter and sort articles
+  useEffect(() => {
+    loadArticles();
+  }, [currentPage, searchTerm]);
+
+  // Filter and sort articles (client-side for categories and sorting)
   const filteredArticles = articles
     .filter(article => {
-      const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           article.author.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || 
-                             article.category.toLowerCase() === selectedCategory.toLowerCase();
-      return matchesSearch && matchesCategory;
+                             (article.categories && article.categories.some(cat => 
+                               cat.category?.name?.toLowerCase() === selectedCategory.toLowerCase()
+                             ));
+      return matchesCategory;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'date':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime();
         case 'popularity':
           return (b.views || 0) - (a.views || 0);
         case 'title':
           return a.title.localeCompare(b.title);
-        case 'readTime':
-          return a.readTime - b.readTime;
         default:
           return 0;
       }
     });
 
-  // Pagination
-  const indexOfLastArticle = currentPage * articlesPerPage;
-  const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
-  const currentArticles = filteredArticles.slice(indexOfFirstArticle, indexOfLastArticle);
-  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-
-  const featuredArticles = articles.filter(article => article.featured);
-
+  // Handle article click - UPDATED FOR SLUG NAVIGATION
   const handleArticleClick = (article: BlogPost) => {
-    // Navigate to individual blog post
-    window.location.hash = `blog-post-${article.id}`;
+    // Navigate to individual blog post using slug
+    if (article.slug) {
+      window.location.hash = `#posts/${article.slug}`;
+    } else {
+      console.warn('⚠️ No slug available for article, using ID fallback:', article.id);
+      window.location.hash = `#blog-post-${article.id}`;
+    }
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSortBy('date');
+    setCurrentPage(1);
   };
 
   const pageStyle: React.CSSProperties = {
@@ -218,7 +142,7 @@ export const AllArticlesPage: React.FC = () => {
     minHeight: '100vh',
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
-    paddingTop: '80px' // Account for fixed navbar
+    paddingTop: '80px'
   };
 
   const containerStyle: React.CSSProperties = {
@@ -287,6 +211,24 @@ export const AllArticlesPage: React.FC = () => {
     fontWeight: theme.typography.weights.medium
   });
 
+  // Render error
+  const renderError = () => {
+    if (!error) return null;
+    return (
+      <div style={{
+        backgroundColor: '#fee2e2',
+        color: '#dc2626',
+        padding: theme.spacing.md,
+        borderRadius: '8px',
+        marginBottom: theme.spacing.md,
+        border: '1px solid #fecaca',
+        textAlign: 'center'
+      }}>
+        ⚠️ {error}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div style={pageStyle}>
@@ -294,7 +236,7 @@ export const AllArticlesPage: React.FC = () => {
         <div style={containerStyle}>
           <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
             <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>📚</div>
-            <p>Loading articles...</p>
+            <p>Loading articles from backend...</p>
           </div>
         </div>
       </div>
@@ -320,69 +262,8 @@ export const AllArticlesPage: React.FC = () => {
           </p>
         </header>
 
-        {/* Featured Articles */}
-        {featuredArticles.length > 0 && (
-          <section style={{ marginBottom: theme.spacing.xl }}>
-            <h2 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              fontWeight: theme.typography.weights.bold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.lg,
-              textAlign: 'center'
-            }}>
-              ⭐ Featured Articles
-            </h2>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-              gap: theme.spacing.lg,
-              marginBottom: theme.spacing.xl
-            }}>
-              {featuredArticles.slice(0, 3).map((article) => (
-                <div
-                  key={article.id}
-                  style={{
-                    position: 'relative',
-                    backgroundColor: theme.colors.background,
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    border: `2px solid ${theme.colors.primary}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={() => handleArticleClick(article)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = theme.shadows.lg;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute',
-                    top: theme.spacing.md,
-                    left: theme.spacing.md,
-                    backgroundColor: theme.colors.primary,
-                    color: '#ffffff',
-                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                    borderRadius: '20px',
-                    fontSize: theme.typography.sizes.xs,
-                    fontWeight: theme.typography.weights.semibold,
-                    zIndex: 2
-                  }}>
-                    ⭐ Featured
-                  </div>
-                  <BlogPostCard
-                    {...article}
-                    onClick={() => handleArticleClick(article)}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Error Display */}
+        {renderError()}
 
         {/* Search and Filters */}
         <div style={filtersStyle}>
@@ -401,7 +282,7 @@ export const AllArticlesPage: React.FC = () => {
               style={inputStyle}
               placeholder="Search by title, content, or author..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
 
@@ -418,7 +299,7 @@ export const AllArticlesPage: React.FC = () => {
             <select
               style={inputStyle}
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
             >
               {categories.map(category => (
                 <option key={category} value={category.toLowerCase()}>
@@ -446,7 +327,6 @@ export const AllArticlesPage: React.FC = () => {
               <option value="date">Latest First</option>
               <option value="popularity">Most Popular</option>
               <option value="title">Title A-Z</option>
-              <option value="readTime">Reading Time</option>
             </select>
           </div>
         </div>
@@ -464,10 +344,11 @@ export const AllArticlesPage: React.FC = () => {
             fontSize: theme.typography.sizes.base,
             color: theme.colors.textSecondary
           }}>
-            📄 Showing {indexOfFirstArticle + 1}-{Math.min(indexOfLastArticle, filteredArticles.length)} of {filteredArticles.length} articles
+            📄 Showing {filteredArticles.length} of {articles.length} articles
+            {totalPages > 1 && ` (page ${currentPage} of ${totalPages})`}
           </p>
           
-          {searchTerm && (
+          {(searchTerm || selectedCategory !== 'all') && (
             <button
               style={{
                 backgroundColor: 'transparent',
@@ -479,11 +360,7 @@ export const AllArticlesPage: React.FC = () => {
                 cursor: 'pointer',
                 transition: 'all 0.3s ease'
               }}
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('all');
-                setCurrentPage(1);
-              }}
+              onClick={clearFilters}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.background;
               }}
@@ -497,12 +374,23 @@ export const AllArticlesPage: React.FC = () => {
         </div>
 
         {/* Articles Grid */}
-        {currentArticles.length > 0 ? (
+        {filteredArticles.length > 0 ? (
           <div style={gridStyle}>
-            {currentArticles.map((article) => (
+            {filteredArticles.map((article) => (
               <BlogPostCard
                 key={article.id}
-                {...article}
+                id={article.id}
+                title={article.title}
+                slug={article.slug} // ← IMPORTANT: Pass slug for navigation
+                excerpt={article.excerpt}
+                content={article.content}
+                imageUrl={article.coverImage}
+                author={article.author?.name || article.author?.email}
+                authorAvatar={article.author?.avatar}
+                publishedAt={article.publishedAt}
+                category={article.categories?.[0]?.category?.name}
+                tags={article.tags?.map(tag => tag.tag?.name || tag)}
+                readTime={Math.ceil(article.content.length / 1000)}
                 onClick={() => handleArticleClick(article)}
               />
             ))}
@@ -515,15 +403,19 @@ export const AllArticlesPage: React.FC = () => {
             borderRadius: '12px',
             border: `1px solid ${theme.colors.border}`
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🔍</div>
+            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>
+              {articles.length === 0 ? '📝' : '🔍'}
+            </div>
             <h3 style={{ 
               color: theme.colors.textSecondary, 
               marginBottom: theme.spacing.sm 
             }}>
-              No Articles Found
+              {articles.length === 0 ? 'No Articles Published Yet' : 'No Articles Found'}
             </h3>
             <p style={{ color: theme.colors.textSecondary }}>
-              Try adjusting your search criteria or browse different categories.
+              {articles.length === 0 
+                ? 'Check back soon for new maritime articles and insights!'
+                : 'Try adjusting your search criteria or browse different categories.'}
             </p>
           </div>
         )}
@@ -682,7 +574,7 @@ export const AllArticlesPage: React.FC = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            onClick={() => window.location.hash = 'home'}
+            onClick={() => window.location.hash = '#home'}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = theme.shadows.md;

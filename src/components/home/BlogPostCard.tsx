@@ -1,15 +1,7 @@
 /**
- * ENHANCED BLOG POST CARD COMPONENT
+ * ENHANCED BLOG POST CARD COMPONENT - SLUG-BASED NAVIGATION
  * 
- * Major improvements:
- * - Modern card design with better visual hierarchy
- * - Enhanced image handling with fallbacks
- * - Better typography and content preview
- * - Interactive hover effects and animations
- * - Read time estimation
- * - Category tags and author info
- * - Responsive design
- * - Social sharing integration
+ * Updated to use slug-based URLs for SEO-friendly navigation
  */
 
 import React, { useState } from 'react';
@@ -18,6 +10,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 export interface BlogPostCardProps {
   id: string;
   title: string;
+  slug?: string; // Added slug support
   excerpt?: string;
   content?: string;
   imageUrl?: string;
@@ -38,6 +31,7 @@ export interface BlogPostCardProps {
 export const BlogPostCard: React.FC<BlogPostCardProps> = ({
   id,
   title,
+  slug,
   excerpt,
   content,
   imageUrl,
@@ -65,6 +59,21 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
   };
 
   const authorName = getAuthorName();
+
+  // Handle card click - use slug-based navigation
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      // Default navigation behavior using slug or fallback to ID
+      if (slug) {
+        window.location.hash = `#posts/${slug}`;
+      } else {
+        console.warn('⚠️ No slug available for post, using ID fallback:', id);
+        window.location.hash = `#blog-post-${id}`;
+      }
+    }
+  };
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
@@ -268,7 +277,7 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
       style={cardStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       {/* Featured Badge */}
       {featured && (
@@ -410,7 +419,7 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              onClick?.();
+              handleCardClick();
             }}
           >
             Read More →
