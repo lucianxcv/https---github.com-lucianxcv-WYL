@@ -1,8 +1,9 @@
 /**
- * MAIN APPLICATION COMPONENT - ENHANCED ROUTING WITH SLUG SUPPORT
+ * MAIN APPLICATION COMPONENT - ENHANCED ROUTING WITH SHOW SUPPORT
  *
- * This is the root component that sets up routing and provides global theme context.
- * Now includes slug-based routing for blog posts: #posts/{slug}
+ * Now includes both blog posts and show episodes with slug-based routing:
+ * - #posts/{slug} for blog articles
+ * - #shows/{slug} for past show episodes
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,6 +14,7 @@ import { Auth } from './pages/Auth';
 import { AllArticlesPage } from './pages/AllArticlesPage';
 import { BlogPostPage } from './pages/BlogPostPage';
 import { PastShowsArchivePage } from './pages/PastShowsArchivePage';
+import { PastShowPage } from './pages/PastShowPage'; // ← New import
 import { useAuth } from './utils/useAuth';
 
 const App: React.FC = () => {
@@ -26,21 +28,39 @@ const App: React.FC = () => {
     
     // Handle different route patterns
     if (route.startsWith('posts/')) {
-      // New slug-based routing: #posts/my-article-slug
+      // Blog post slug routing: #posts/my-article-slug
       const slug = route.replace('posts/', '');
       return { page: 'blog-post', params: { slug } };
     }
     
     if (route.startsWith('post/')) {
-      // Alternative slug format: #post/my-article-slug
+      // Alternative blog post format: #post/my-article-slug
       const slug = route.replace('post/', '');
       return { page: 'blog-post', params: { slug } };
     }
+
+    if (route.startsWith('shows/')) {
+      // Show episode slug routing: #shows/my-episode-slug
+      const slug = route.replace('shows/', '');
+      return { page: 'past-show', params: { slug } };
+    }
+
+    if (route.startsWith('show/')) {
+      // Alternative show format: #show/my-episode-slug  
+      const slug = route.replace('show/', '');
+      return { page: 'past-show', params: { slug } };
+    }
     
     if (route.startsWith('blog-post-')) {
-      // Legacy ID-based routing: #blog-post-123 (backward compatibility)
+      // Legacy blog post ID routing: #blog-post-123 (backward compatibility)
       const postId = route.replace('blog-post-', '');
       return { page: 'blog-post', params: { postId } };
+    }
+
+    if (route.startsWith('past-show-')) {
+      // Legacy show ID routing: #past-show-123 (backward compatibility)
+      const showId = route.replace('past-show-', '');
+      return { page: 'past-show', params: { showId } };
     }
     
     if (route.startsWith('articles')) {
@@ -155,13 +175,32 @@ const App: React.FC = () => {
           return <BlogPostPage slug={slug} />;
         } else if (postId) {
           // Legacy support: use ID to look up slug, then redirect
-          console.log('⚠️ Legacy ID-based route detected, should redirect to slug');
+          console.log('⚠️ Legacy blog post ID-based route detected, should redirect to slug');
           return <BlogPostPage postId={postId} />;
         } else {
           // No valid identifier, redirect to articles
-          console.log('❌ No valid post identifier found');
+          console.log('❌ No valid blog post identifier found');
           setTimeout(() => window.location.hash = '#articles', 0);
           return <AllArticlesPage />;
+        }
+
+      case 'past-show':
+        // Extract slug or fallback to ID from route params
+        const showSlug = routeParams.slug;
+        const showId = routeParams.showId;
+        
+        if (showSlug) {
+          // Use slug-based PastShowPage
+          return <PastShowPage slug={showSlug} />;
+        } else if (showId) {
+          // Legacy support: use ID to look up slug, then redirect
+          console.log('⚠️ Legacy show ID-based route detected, should redirect to slug');
+          return <PastShowPage showId={showId} />;
+        } else {
+          // No valid identifier, redirect to past shows
+          console.log('❌ No valid show identifier found');
+          setTimeout(() => window.location.hash = '#past-shows', 0);
+          return <PastShowsArchivePage />;
         }
 
       case 'past-shows':

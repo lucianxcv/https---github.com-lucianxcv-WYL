@@ -1,10 +1,10 @@
 /**
- * ENHANCED HOMEPAGE COMPONENT WITH SLUG-BASED NAVIGATION
+ * ENHANCED HOMEPAGE COMPONENT - REAL DATA INTEGRATION
  * 
- * Updated to use slug-based URLs and match actual data structure from useBlogPosts hook
+ * Updated to use real API data for both blog posts and past shows
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
@@ -17,18 +17,17 @@ import { PastShowVideo } from '../components/home/PastShowVideo';
 import { OwnerBio } from '../components/home/OwnerBio';
 import { CommentsSection } from '../components/home/CommentsSection';
 import { MultiLocationWeather } from '../components/home/MultiLocationWeather';
-import { sampleData } from '../data/sampleData';
-import { PastShow } from '../data/types';
 import { useSpeakers } from '../hooks/useSpeakers';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { usePastShows } from '../hooks/usePastShows'; // ← New import
 
 export const HomePage: React.FC = () => {
   const theme = useTheme();
-  const [filteredShows, setFilteredShows] = useState<PastShow[]>(sampleData.pastShows);
   
   // Get dynamic data from our hooks
   const { thisWeekSpeaker, upcomingSpeakers, loading: speakersLoading } = useSpeakers();
   const { latestPosts, loading: postsLoading } = useBlogPosts();
+  const { featuredShows, loading: showsLoading } = usePastShows(); // ← Use real shows data
 
   // Global page styling with theme support
   const pageStyle: React.CSSProperties = {
@@ -74,14 +73,13 @@ export const HomePage: React.FC = () => {
 
   // Helper function to get a default category
   const getDefaultCategory = (title: string): string => {
-    // Simple logic to assign category based on title keywords
     const titleLower = title.toLowerCase();
     if (titleLower.includes('weather') || titleLower.includes('forecast')) return 'Weather';
     if (titleLower.includes('navigation') || titleLower.includes('celestial')) return 'Navigation';
     if (titleLower.includes('speaker') || titleLower.includes('spotlight')) return 'Events';
     if (titleLower.includes('safety') || titleLower.includes('emergency')) return 'Safety';
     if (titleLower.includes('technology') || titleLower.includes('tech')) return 'Technology';
-    return 'Maritime'; // Default fallback
+    return 'Maritime';
   };
 
   // Helper function to extract tags from content/title
@@ -98,33 +96,37 @@ export const HomePage: React.FC = () => {
 
   // Handle search result clicks
   const handleSearchResultClick = (result: any) => {
-    // Navigate to the appropriate content
     if (result.type === 'speaker') {
-      // Scroll to speaker section or navigate to speaker details
       const speakerSection = document.getElementById('upcoming');
       speakerSection?.scrollIntoView({ behavior: 'smooth' });
     } else if (result.type === 'blog') {
-      // Navigate to specific blog post using slug
       if (result.slug) {
         window.location.hash = `#posts/${result.slug}`;
       } else {
         window.location.hash = `#blog-post-${result.id}`;
       }
     } else if (result.type === 'presentation') {
-      // Navigate to past shows archive
       window.location.hash = '#past-shows';
     }
   };
 
   // Handle blog post clicks - UPDATED FOR SLUG NAVIGATION
   const handleBlogPostClick = (post: any) => {
-    // Navigate to individual blog post page using slug
     if (post.slug) {
       window.location.hash = `#posts/${post.slug}`;
     } else {
-      // Fallback to ID if no slug available
       console.warn('⚠️ No slug available for post, using ID fallback:', post.id);
       window.location.hash = `#blog-post-${post.id}`;
+    }
+  };
+
+  // 🔥 NEW: Handle past show clicks with slug navigation
+  const handlePastShowClick = (show: any) => {
+    if (show.slug) {
+      window.location.hash = `#shows/${show.slug}`;
+    } else {
+      console.warn('⚠️ No slug available for show, using ID fallback:', show.id);
+      window.location.hash = `#past-show-${show.id}`;
     }
   };
 
@@ -260,19 +262,18 @@ export const HomePage: React.FC = () => {
                     slug={post.slug}
                     excerpt={post.excerpt}
                     content={post.content}
-                    imageUrl={post.coverImage} // ← Direct mapping from your data
-                    author={getAuthorName(post.author)} // ← Extract name from author object
-                    authorAvatar={undefined} // ← Not available in your data structure
-                    publishedAt={post.publishedAt || post.createdAt} // ← Use publishedAt or fallback to createdAt
-                    category={getDefaultCategory(post.title)} // ← Generate category from title
-                    tags={getDefaultTags(post.title, post.content)} // ← Generate tags from content
-                    readTime={calculateReadTime(post.content)} // ← Calculate from content length
+                    imageUrl={post.coverImage}
+                    author={getAuthorName(post.author)}
+                    authorAvatar={undefined}
+                    publishedAt={post.publishedAt || post.createdAt}
+                    category={getDefaultCategory(post.title)}
+                    tags={getDefaultTags(post.title, post.content)}
+                    readTime={calculateReadTime(post.content)}
                     onClick={() => handleBlogPostClick(post)}
                   />
                 ))}
               </div>
               
-              {/* View All Blog Posts Button */}
               <div style={{ textAlign: 'center' }}>
                 <button
                   style={{
@@ -320,49 +321,77 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* Past Presentations - Featured 4 */}
+        {/* 🔥 UPDATED: Past Presentations - Real Data */}
         <section style={sectionStyle} id="past-shows">
           <h2 style={sectionTitleStyle}>🎥 Featured Past Presentations</h2>
           
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-            gap: theme.spacing.xl,
-            marginBottom: theme.spacing.lg
-          }}>
-            {filteredShows.slice(0, 4).map((show) => (
-              <PastShowVideo key={show.id} {...show} />
-            ))}
-          </div>
-          
-          {/* View All Presentations Button */}
-          <div style={{ textAlign: 'center' }}>
-            <button
-              style={{
-                backgroundColor: theme.colors.secondary,
-                color: '#ffffff',
-                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                border: 'none',
-                borderRadius: '25px',
-                fontSize: theme.typography.sizes.md,
-                fontWeight: theme.typography.weights.semibold,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: theme.shadows.sm
-              }}
-              onClick={handleViewAllPresentations}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = theme.shadows.md;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = theme.shadows.sm;
-              }}
-            >
-              🎬 View Full Archive
-            </button>
-          </div>
+          {showsLoading ? (
+            <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
+              <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
+              <p>Loading featured presentations...</p>
+            </div>
+          ) : featuredShows.length > 0 ? (
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                gap: theme.spacing.xl,
+                marginBottom: theme.spacing.lg
+              }}>
+                {featuredShows.slice(0, 4).map((show) => (
+                  <PastShowVideo 
+                    key={show.id} 
+                    {...show} 
+                    onClick={() => handlePastShowClick(show)} // ← Pass click handler
+                  />
+                ))}
+              </div>
+              
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  style={{
+                    backgroundColor: theme.colors.secondary,
+                    color: '#ffffff',
+                    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                    border: 'none',
+                    borderRadius: '25px',
+                    fontSize: theme.typography.sizes.md,
+                    fontWeight: theme.typography.weights.semibold,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: theme.shadows.sm
+                  }}
+                  onClick={handleViewAllPresentations}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = theme.shadows.md;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = theme.shadows.sm;
+                  }}
+                >
+                  🎬 View Full Archive
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{
+              textAlign: 'center',
+              padding: theme.spacing.xl,
+              backgroundColor: theme.colors.background,
+              borderRadius: '16px',
+              border: `1px solid ${theme.colors.border}`
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🎬</div>
+              <h3 style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.sm }}>
+                Presentations Coming Soon
+              </h3>
+              <p style={{ color: theme.colors.textSecondary }}>
+                We're preparing exciting maritime presentations. Check back soon!
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Upcoming Speakers - Next Few Weeks */}

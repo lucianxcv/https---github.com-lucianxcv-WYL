@@ -1,10 +1,10 @@
 /**
- * PAST SHOWS ARCHIVE PAGE - COMPLETE VERSION
+ * PAST SHOWS ARCHIVE PAGE - REAL API INTEGRATION (COMPLETE)
  * 
  * Features:
- * - Grid layout of all past presentations
+ * - Real backend API integration via usePastShows hook
+ * - Slug-based navigation to individual episodes
  * - Search and filter functionality
- * - YouTube video integration
  * - Pagination and sorting
  * - Professional archive layout
  */
@@ -14,12 +14,14 @@ import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
 import { PastShowVideo } from '../components/home/PastShowVideo';
-import { PastShow } from '../data/types'; // Import from types file
+import { usePastShows } from '../hooks/usePastShows'; // ← Using our new hook
 
 export const PastShowsArchivePage: React.FC = () => {
   const theme = useTheme();
-  const [shows, setShows] = useState<PastShow[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // 🔥 FIXED: Use real API data instead of mock data
+  const { shows, loading, error, refetch } = usePastShows();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
@@ -27,161 +29,19 @@ export const PastShowsArchivePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showsPerPage] = useState(12);
 
-  const topics = ['All', 'Technology', 'Navigation', 'Safety', 'History', 'Environment', 'Business', 'Innovation'];
-  const years = ['All', '2024', '2023', '2022', '2021', '2020'];
-
-  useEffect(() => {
-    loadPastShows();
-  }, []);
-
-  const loadPastShows = async () => {
-    setLoading(true);
-    try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Sample past shows data with all required fields - replace with actual data fetching
-      const sampleShows: PastShow[] = [
-        {
-          id: '1',
-          title: 'The Future of Autonomous Shipping',
-          speakerName: 'Captain Sarah Johnson',
-          date: '2024-03-13',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-03-13T10:00:00Z',
-          updatedAt: '2024-03-13T10:00:00Z',
-          description: 'Exploring the latest developments in autonomous vessel technology and their impact on maritime safety and efficiency.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
-          duration: 45,
-          topic: 'Technology',
-          views: 1247,
-          downloadUrl: '/presentations/autonomous-shipping-2024.pdf',
-          speakerBio: 'Captain Johnson is a maritime technology expert with 20 years of experience in commercial shipping.',
-          speakerCompany: 'Maritime Innovation Institute',
-          featured: true,
-          tags: ['Autonomous Vessels', 'AI', 'Innovation']
-        },
-        {
-          id: '2',
-          title: 'Sustainable Maritime Practices: Green Shipping Revolution',
-          speakerName: 'Dr. Michael Chen',
-          date: '2024-03-06',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-03-06T10:00:00Z',
-          updatedAt: '2024-03-06T10:00:00Z',
-          description: 'How the shipping industry is adopting environmentally friendly technologies to reduce carbon footprint.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-          duration: 38,
-          topic: 'Environment',
-          views: 892,
-          downloadUrl: '/presentations/green-shipping-2024.pdf',
-          speakerBio: 'Dr. Chen is an environmental engineer specializing in maritime sustainability.',
-          speakerCompany: 'Green Marine Solutions',
-          tags: ['Sustainability', 'Environment', 'Green Technology']
-        },
-        {
-          id: '3',
-          title: 'Navigation Safety in the Digital Age',
-          speakerName: 'Admiral James Wright',
-          date: '2024-02-28',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-02-28T10:00:00Z',
-          updatedAt: '2024-02-28T10:00:00Z',
-          description: 'Modern navigation systems and safety protocols that are revolutionizing maritime operations.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-          duration: 42,
-          topic: 'Safety',
-          views: 1156,
-          downloadUrl: '/presentations/navigation-safety-2024.pdf',
-          speakerBio: 'Admiral Wright brings 30 years of naval experience to civilian maritime safety.',
-          speakerCompany: 'Maritime Safety Council',
-          featured: true,
-          tags: ['Safety', 'Navigation', 'Digital Systems']
-        },
-        {
-          id: '4',
-          title: 'The History of San Francisco Bay Maritime Trade',
-          speakerName: 'Dr. Patricia Martinez',
-          date: '2024-02-21',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-02-21T10:00:00Z',
-          updatedAt: '2024-02-21T10:00:00Z',
-          description: 'A fascinating journey through the maritime history that shaped San Francisco and the West Coast.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-          duration: 35,
-          topic: 'History',
-          views: 734,
-          downloadUrl: '/presentations/sf-bay-history-2024.pdf',
-          speakerBio: 'Dr. Martinez is a maritime historian and author of several books on Pacific Coast shipping.',
-          speakerCompany: 'UC San Francisco Maritime Studies',
-          tags: ['History', 'San Francisco Bay', 'Trade']
-        },
-        {
-          id: '5',
-          title: 'Port Automation and Digital Logistics',
-          speakerName: 'Roberto Silva',
-          date: '2024-02-14',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-02-14T10:00:00Z',
-          updatedAt: '2024-02-14T10:00:00Z',
-          description: 'How automated port systems are transforming global trade and improving efficiency.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400',
-          duration: 40,
-          topic: 'Technology',
-          views: 623,
-          downloadUrl: '/presentations/port-automation-2024.pdf',
-          speakerBio: 'Roberto Silva is the CTO of West Coast Port Systems.',
-          speakerCompany: 'Port Tech Solutions',
-          tags: ['Automation', 'Logistics', 'Ports']
-        },
-        {
-          id: '6',
-          title: 'Maritime Cybersecurity: Protecting Connected Fleets',
-          speakerName: 'Lisa Chang',
-          date: '2024-02-07',
-          year: 2024,
-          isPublished: true,
-          createdAt: '2024-02-07T10:00:00Z',
-          updatedAt: '2024-02-07T10:00:00Z',
-          description: 'Understanding and defending against cyber threats in modern maritime operations.',
-          videoId: 'dQw4w9WgXcQ', // Replace with actual YouTube video ID
-          thumbnailUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400',
-          duration: 47,
-          topic: 'Technology',
-          views: 1089,
-          downloadUrl: '/presentations/maritime-cybersecurity-2024.pdf',
-          speakerBio: 'Lisa Chang is a cybersecurity expert specializing in maritime systems.',
-          speakerCompany: 'SecureMarine Technologies',
-          tags: ['Cybersecurity', 'Technology', 'Risk Management']
-        }
-      ];
-      
-      setShows(sampleShows);
-    } catch (error) {
-      console.error('Failed to load past shows:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const topics = ['All', 'Technology', 'Navigation', 'Safety', 'History', 'Environment', 'Business', 'Innovation', 'Maritime'];
+  
+  // Get unique years from actual data
+  const availableYears = ['All', ...Array.from(new Set(shows.map(show => show.year))).sort((a, b) => b - a)];
 
   // Filter and sort shows
   const filteredShows = shows
     .filter(show => {
       const matchesSearch = show.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            show.speakerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           show.description.toLowerCase().includes(searchTerm.toLowerCase());
+                           (show.description && show.description.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesTopic = selectedTopic === 'all' || 
-                          show.topic.toLowerCase() === selectedTopic.toLowerCase();
+                          (show.topic && show.topic.toLowerCase() === selectedTopic.toLowerCase());
       const matchesYear = selectedYear === 'all' || 
                          show.year.toString() === selectedYear;
       return matchesSearch && matchesTopic && matchesYear && show.isPublished;
@@ -195,7 +55,7 @@ export const PastShowsArchivePage: React.FC = () => {
         case 'title':
           return a.title.localeCompare(b.title);
         case 'duration':
-          return a.duration - b.duration;
+          return (a.duration || 45) - (b.duration || 45);
         default:
           return 0;
       }
@@ -209,10 +69,15 @@ export const PastShowsArchivePage: React.FC = () => {
 
   const featuredShows = shows.filter(show => show.featured);
 
-  const handleShowClick = (show: PastShow) => {
-    // Open YouTube video in a modal or new tab
-    if (show.videoId) {
-      window.open(`https://www.youtube.com/watch?v=${show.videoId}`, '_blank');
+  // 🔥 FIXED: Handle show click with slug-based navigation
+  const handleShowClick = (show: any) => {
+    // Navigate to individual episode page using slug
+    if (show.slug) {
+      window.location.hash = `#shows/${show.slug}`;
+    } else {
+      // Fallback to ID if no slug available
+      console.warn('⚠️ No slug available for show, using ID fallback:', show.id);
+      window.location.hash = `#past-show-${show.id}`;
     }
   };
 
@@ -221,7 +86,7 @@ export const PastShowsArchivePage: React.FC = () => {
     minHeight: '100vh',
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
-    paddingTop: '80px' // Account for fixed navbar
+    paddingTop: '80px'
   };
 
   const containerStyle: React.CSSProperties = {
@@ -290,6 +155,168 @@ export const PastShowsArchivePage: React.FC = () => {
     fontWeight: theme.typography.weights.medium
   });
 
+  // Clear filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedTopic('all');
+    setSelectedYear('all');
+    setCurrentPage(1);
+  };
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedTopic, selectedYear, sortBy]);
+
+  // Render error
+  const renderError = () => {
+    if (!error) return null;
+    return (
+      <div style={{
+        backgroundColor: '#fee2e2',
+        color: '#dc2626',
+        padding: theme.spacing.md,
+        borderRadius: '8px',
+        marginBottom: theme.spacing.md,
+        border: '1px solid #fecaca',
+        textAlign: 'center'
+      }}>
+        ⚠️ {error}
+        <button
+          style={{
+            marginLeft: theme.spacing.sm,
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            fontSize: theme.typography.sizes.sm,
+            cursor: 'pointer'
+          }}
+          onClick={refetch}
+        >
+          🔄 Retry
+        </button>
+      </div>
+    );
+  };
+
+  // Render pagination controls
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div style={paginationStyle}>
+        {/* Previous button */}
+        <button
+          style={pageButtonStyle(false)}
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          onMouseEnter={(e) => {
+            if (currentPage > 1) {
+              e.currentTarget.style.backgroundColor = theme.colors.background;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.surface;
+          }}
+        >
+          ← Previous
+        </button>
+
+        {/* First page if not visible */}
+        {startPage > 1 && (
+          <>
+            <button
+              style={pageButtonStyle(false)}
+              onClick={() => setCurrentPage(1)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.background;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }}
+            >
+              1
+            </button>
+            {startPage > 2 && <span style={{ color: theme.colors.textSecondary }}>...</span>}
+          </>
+        )}
+
+        {/* Page numbers */}
+        {pageNumbers.map(pageNum => (
+          <button
+            key={pageNum}
+            style={pageButtonStyle(pageNum === currentPage)}
+            onClick={() => setCurrentPage(pageNum)}
+            onMouseEnter={(e) => {
+              if (pageNum !== currentPage) {
+                e.currentTarget.style.backgroundColor = theme.colors.background;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (pageNum !== currentPage) {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }
+            }}
+          >
+            {pageNum}
+          </button>
+        ))}
+
+        {/* Last page if not visible */}
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span style={{ color: theme.colors.textSecondary }}>...</span>}
+            <button
+              style={pageButtonStyle(false)}
+              onClick={() => setCurrentPage(totalPages)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.background;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+              }}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Next button */}
+        <button
+          style={pageButtonStyle(false)}
+          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          onMouseEnter={(e) => {
+            if (currentPage < totalPages) {
+              e.currentTarget.style.backgroundColor = theme.colors.background;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.surface;
+          }}
+        >
+          Next →
+        </button>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div style={pageStyle}>
@@ -297,15 +324,16 @@ export const PastShowsArchivePage: React.FC = () => {
         <div style={containerStyle}>
           <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
             <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🎬</div>
-            <p>Loading presentation archive...</p>
+            <p>Loading presentation archive from backend...</p>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   const totalViews = shows.reduce((sum, show) => sum + (show.views || 0), 0);
-  const totalHours = Math.round(shows.reduce((sum, show) => sum + show.duration, 0) / 60);
+  const totalHours = Math.round(shows.reduce((sum, show) => sum + (show.duration || 45), 0) / 60);
 
   return (
     <div style={pageStyle}>
@@ -324,7 +352,71 @@ export const PastShowsArchivePage: React.FC = () => {
           }}>
             Explore our extensive collection of maritime presentations from industry leaders, experts, and innovators.
           </p>
+          
+          {/* Archive Stats */}
+          {shows.length > 0 && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: theme.spacing.md,
+              maxWidth: '600px',
+              margin: `${theme.spacing.lg} auto 0`,
+              padding: theme.spacing.md,
+              backgroundColor: theme.colors.background,
+              borderRadius: '12px',
+              border: `1px solid ${theme.colors.border}`
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.xl, 
+                  fontWeight: theme.typography.weights.bold,
+                  color: theme.colors.primary 
+                }}>
+                  {shows.length}
+                </div>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.sm,
+                  color: theme.colors.textSecondary 
+                }}>
+                  Episodes
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.xl, 
+                  fontWeight: theme.typography.weights.bold,
+                  color: theme.colors.primary 
+                }}>
+                  {totalHours}
+                </div>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.sm,
+                  color: theme.colors.textSecondary 
+                }}>
+                  Hours
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.xl, 
+                  fontWeight: theme.typography.weights.bold,
+                  color: theme.colors.primary 
+                }}>
+                  {totalViews.toLocaleString()}
+                </div>
+                <div style={{ 
+                  fontSize: theme.typography.sizes.sm,
+                  color: theme.colors.textSecondary 
+                }}>
+                  Views
+                </div>
+              </div>
+            </div>
+          )}
         </header>
+
+        {/* Error Display */}
+        {renderError()}
 
         {/* Search and Filters */}
         <div style={filtersStyle}>
@@ -385,8 +477,8 @@ export const PastShowsArchivePage: React.FC = () => {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
             >
-              {years.map(year => (
-                <option key={year} value={year.toLowerCase()}>
+              {availableYears.map(year => (
+                <option key={year} value={year.toString().toLowerCase()}>
                   {year}
                 </option>
               ))}
@@ -444,12 +536,7 @@ export const PastShowsArchivePage: React.FC = () => {
                 cursor: 'pointer',
                 transition: 'all 0.3s ease'
               }}
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedTopic('all');
-                setSelectedYear('all');
-                setCurrentPage(1);
-              }}
+              onClick={clearFilters}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.background;
               }}
@@ -462,105 +549,192 @@ export const PastShowsArchivePage: React.FC = () => {
           )}
         </div>
 
-        {/* Shows Grid */}
-        {currentShows.length > 0 ? (
-          <div style={gridStyle}>
-            {currentShows.map((show) => (
-              <PastShowVideo
-                key={show.id}
-                {...show}
-              />
-            ))}
-          </div>
-        ) : (
+        {/* Featured Shows Section */}
+        {featuredShows.length > 0 && searchTerm === '' && selectedTopic === 'all' && selectedYear === 'all' && (
+          <section style={{ marginBottom: theme.spacing.xl }}>
+            <h2 style={{
+              fontSize: theme.typography.sizes['2xl'],
+              fontWeight: theme.typography.weights.bold,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.lg,
+              textAlign: 'center'
+            }}>
+              ⭐ Featured Presentations
+            </h2>
+            <div style={gridStyle}>
+              {featuredShows.slice(0, 4).map((show) => (
+                <PastShowVideo 
+                  key={show.id} 
+                  {...show} 
+                  onClick={() => handleShowClick(show)}
+                />
+              ))}
+            </div>
+            <div style={{
+              height: '2px',
+              background: `linear-gradient(90deg, transparent, ${theme.colors.border}, transparent)`,
+              margin: `${theme.spacing.xl} 0`
+            }} />
+          </section>
+        )}
+
+        {/* Main Shows Grid */}
+        {currentShows.length === 0 ? (
           <div style={{
-            textAlign: 'center',
-            padding: theme.spacing.xl,
             backgroundColor: theme.colors.background,
-            borderRadius: '12px',
+            borderRadius: '16px',
+            padding: theme.spacing.xl,
+            textAlign: 'center',
             border: `1px solid ${theme.colors.border}`
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🔍</div>
-            <h3 style={{ 
-              color: theme.colors.textSecondary, 
-              marginBottom: theme.spacing.sm 
+            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🎬</div>
+            <h3 style={{
+              color: theme.colors.textSecondary,
+              marginBottom: theme.spacing.sm,
+              fontSize: theme.typography.sizes.lg
             }}>
-              No Presentations Found
+              No presentations found
             </h3>
-            <p style={{ color: theme.colors.textSecondary }}>
-              Try adjusting your search criteria or browse different topics and years.
+            <p style={{
+              color: theme.colors.textSecondary,
+              marginBottom: theme.spacing.lg,
+              fontSize: theme.typography.sizes.base
+            }}>
+              {searchTerm || selectedTopic !== 'all' || selectedYear !== 'all'
+                ? 'Try adjusting your search criteria or clearing filters to see more results.'
+                : 'Check back soon for new maritime presentations!'}
             </p>
+            {(searchTerm || selectedTopic !== 'all' || selectedYear !== 'all') && (
+              <button
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  color: '#ffffff',
+                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                  border: 'none',
+                  borderRadius: '25px',
+                  fontSize: theme.typography.sizes.base,
+                  fontWeight: theme.typography.weights.semibold,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={clearFilters}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = theme.shadows.md;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                🗑️ Clear All Filters
+              </button>
+            )}
           </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div style={paginationStyle}>
-            <button
-              style={pageButtonStyle(false)}
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              ← Previous
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(page => 
-                page === 1 || 
-                page === totalPages || 
-                Math.abs(page - currentPage) <= 2
-              )
-              .map((page, index, array) => (
-                <React.Fragment key={page}>
-                  {index > 0 && array[index - 1] < page - 1 && (
-                    <span style={{ color: theme.colors.textSecondary }}>...</span>
-                  )}
-                  <button
-                    style={pageButtonStyle(page === currentPage)}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                </React.Fragment>
+        ) : (
+          <>
+            <div style={gridStyle}>
+              {currentShows.map((show) => (
+                <PastShowVideo 
+                  key={show.id} 
+                  {...show} 
+                  onClick={() => handleShowClick(show)}
+                />
               ))}
+            </div>
 
-            <button
-              style={pageButtonStyle(false)}
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next →
-            </button>
-          </div>
+            {/* Pagination */}
+            {renderPagination()}
+          </>
         )}
 
-        {/* Back to Home */}
-        <div style={{ textAlign: 'center', marginTop: theme.spacing.xl }}>
-          <button
-            style={{
-              backgroundColor: theme.colors.secondary,
-              color: '#ffffff',
-              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-              border: 'none',
-              borderRadius: '25px',
+        {/* Call to Action */}
+        {shows.length > 0 && (
+          <section style={{
+            backgroundColor: theme.colors.background,
+            borderRadius: '16px',
+            padding: theme.spacing.xl,
+            marginTop: theme.spacing.xl,
+            textAlign: 'center',
+            border: `1px solid ${theme.colors.border}`
+          }}>
+            <h3 style={{
+              fontSize: theme.typography.sizes.xl,
+              fontWeight: theme.typography.weights.bold,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.md
+            }}>
+              📺 Enjoying Our Presentations?
+            </h3>
+            <p style={{
               fontSize: theme.typography.sizes.base,
-              fontWeight: theme.typography.weights.semibold,
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            onClick={() => window.location.hash = 'home'}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = theme.shadows.md;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            🏠 Back to Home
-          </button>
-        </div>
+              color: theme.colors.textSecondary,
+              marginBottom: theme.spacing.lg,
+              maxWidth: '500px',
+              margin: `0 auto ${theme.spacing.lg} auto`
+            }}>
+              Join us every Wednesday at the St. Francis Yacht Club for live presentations, 
+              networking, and fine dining with stunning bay views.
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: theme.spacing.md,
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  color: '#ffffff',
+                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                  border: 'none',
+                  borderRadius: '25px',
+                  fontSize: theme.typography.sizes.base,
+                  fontWeight: theme.typography.weights.semibold,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => window.location.hash = '#home'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = theme.shadows.md;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                🏠 Back to Home
+              </button>
+              <button
+                style={{
+                  backgroundColor: 'transparent',
+                  color: theme.colors.primary,
+                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                  border: `2px solid ${theme.colors.primary}`,
+                  borderRadius: '25px',
+                  fontSize: theme.typography.sizes.base,
+                  fontWeight: theme.typography.weights.semibold,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => window.location.hash = '#articles'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.primary;
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.colors.primary;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                📚 Read Articles
+              </button>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

@@ -1,141 +1,294 @@
-// ==================== src/components/home/PastShowVideo.tsx ====================
 /**
- * PAST SHOW VIDEO COMPONENT
+ * PAST SHOW VIDEO COMPONENT - UPDATED WITH ONCLICK SUPPORT
  * 
- * Displays a YouTube video embed for past luncheon presentations.
- * Includes show metadata and responsive video player.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change video player styling or aspect ratio
- * - Add video thumbnail images
- * - Modify the metadata display (speaker, date, description)
- * - Add video duration or view count
- * - Change the loading animation or placeholder
+ * Save this as: src/components/home/PastShowVideo.tsx
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { PastShow } from '../../data/types';
 
-export const PastShowVideo: React.FC<PastShow> = ({ 
-  title, 
-  speakerName, 
-  videoId, 
-  description, 
-  date 
+interface PastShow {
+  id: number;
+  title: string;
+  speakerName: string;
+  date: string;
+  year: number;
+  description?: string;
+  videoId?: string;
+  isPublished?: boolean;
+  slug?: string;
+  duration?: number;
+  topic?: string;
+  views?: number;
+  thumbnailUrl?: string;
+  speakerBio?: string;
+  speakerCompany?: string;
+  featured?: boolean;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  onClick?: () => void; // ← NEW: Added onClick prop
+}
+
+export const PastShowVideo: React.FC<PastShow> = ({
+  id,
+  title,
+  speakerName,
+  date,
+  year,
+  description,
+  videoId,
+  slug,
+  duration,
+  topic,
+  views,
+  thumbnailUrl,
+  tags,
+  onClick // ← NEW: Destructure onClick prop
 }) => {
   const theme = useTheme();
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  const cardStyle: React.CSSProperties = {
+  // Generate thumbnail URL if not provided
+  const thumbnail = thumbnailUrl || (videoId 
+    ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+    : '/api/placeholder/400/225');
+
+  // Handle click - use onClick prop if provided, otherwise default navigation
+  const handleClick = () => {
+    if (onClick) {
+      onClick(); // ← NEW: Use provided onClick handler
+    } else {
+      // Fallback navigation (for backward compatibility)
+      if (slug) {
+        window.location.hash = `#shows/${slug}`;
+      } else {
+        window.location.hash = `#past-show-${id}`;
+      }
+    }
+  };
+
+  const containerStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
-    border: `2px solid ${theme.colors.primary}`,
-    borderRadius: '16px',
-    padding: theme.spacing.xl,
-    margin: `${theme.spacing.lg} 0`,
-    boxShadow: theme.shadows.md,
+    borderRadius: '12px',
+    overflow: 'hidden',
+    border: `1px solid ${theme.colors.border}`,
     transition: 'all 0.3s ease',
-    fontFamily: theme.typography.fontFamily
-  };
-
-  const headerStyle: React.CSSProperties = {
-    marginBottom: theme.spacing.lg
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
-    margin: `0 0 ${theme.spacing.sm} 0`,
-    lineHeight: 1.3
-  };
-
-  const metaStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    height: '100%',
     display: 'flex',
-    gap: theme.spacing.lg,
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm
+    flexDirection: 'column'
   };
 
-  const speakerStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.secondary,
-    fontWeight: theme.typography.weights.semibold,
-    margin: 0
-  };
-
-  const dateStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textSecondary,
-    margin: 0
-  };
-
-  // Responsive video container - maintains 16:9 aspect ratio
-  const videoContainerStyle: React.CSSProperties = {
+  const thumbnailContainerStyle: React.CSSProperties = {
     position: 'relative',
     paddingBottom: '56.25%', // 16:9 aspect ratio
     height: 0,
     overflow: 'hidden',
-    borderRadius: '12px',
-    backgroundColor: theme.colors.surface,
-    boxShadow: theme.shadows.sm
+    backgroundColor: theme.colors.surface
   };
 
-  const iframeStyle: React.CSSProperties = {
+  const thumbnailStyle: React.CSSProperties = {
     position: 'absolute',
     top: 0,
     left: 0,
     width: '100%',
     height: '100%',
-    border: 'none',
-    opacity: isLoaded ? 1 : 0, // Fade in when loaded
-    transition: 'opacity 0.3s ease'
+    objectFit: 'cover',
+    transition: 'transform 0.3s ease'
+  };
+
+  const playButtonStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: '50%',
+    width: '60px',
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#ffffff',
+    fontSize: '24px',
+    transition: 'all 0.3s ease',
+    border: '3px solid rgba(255, 255, 255, 0.9)'
+  };
+
+  const contentStyle: React.CSSProperties = {
+    padding: theme.spacing.md,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column'
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.semibold,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    lineHeight: 1.3,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden'
+  };
+
+  const speakerStyle: React.CSSProperties = {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.weights.semibold,
+    marginBottom: theme.spacing.sm
+  };
+
+  const descriptionStyle: React.CSSProperties = {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
+    lineHeight: 1.5,
+    marginBottom: theme.spacing.sm,
+    flex: 1,
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden'
+  };
+
+  const metaStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: theme.typography.sizes.xs,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sm
+  };
+
+  const tagsStyle: React.CSSProperties = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
+    marginTop: 'auto'
+  };
+
+  const tagStyle: React.CSSProperties = {
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+    padding: `2px 6px`,
+    borderRadius: '10px',
+    fontSize: theme.typography.sizes.xs,
+    border: `1px solid ${theme.colors.border}`
   };
 
   return (
-    <article style={cardStyle} role="article" aria-label={`Video: ${title}`}>
-      {/* Video metadata header */}
-      <header style={headerStyle}>
-        <h3 style={titleStyle}>{title}</h3>
-        <div style={metaStyle}>
-          <p style={speakerStyle}>🎤 {speakerName}</p>
-          <p style={dateStyle}>📅 {new Date(date).toLocaleDateString()}</p>
+    <div
+      style={containerStyle}
+      onClick={handleClick} // ← NEW: Use our click handler
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = theme.shadows.md;
+        const img = e.currentTarget.querySelector('img') as HTMLElement;
+        const playButton = e.currentTarget.querySelector('[data-play-button]') as HTMLElement;
+        if (img) img.style.transform = 'scale(1.05)';
+        if (playButton) {
+          playButton.style.transform = 'translate(-50%, -50%) scale(1.1)';
+          playButton.style.backgroundColor = theme.colors.primary;
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+        const img = e.currentTarget.querySelector('img') as HTMLElement;
+        const playButton = e.currentTarget.querySelector('[data-play-button]') as HTMLElement;
+        if (img) img.style.transform = 'scale(1)';
+        if (playButton) {
+          playButton.style.transform = 'translate(-50%, -50%) scale(1)';
+          playButton.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        }
+      }}
+    >
+      {/* Video Thumbnail */}
+      <div style={thumbnailContainerStyle}>
+        <img
+          src={thumbnail}
+          alt={title}
+          style={thumbnailStyle}
+          onError={(e) => {
+            // Fallback if thumbnail fails to load
+            e.currentTarget.src = '/api/placeholder/400/225';
+          }}
+        />
+        
+        {/* Play Button Overlay */}
+        <div style={playButtonStyle} data-play-button>
+          ▶
         </div>
-        {description && (
-          <p style={{ color: theme.colors.textSecondary, lineHeight: 1.6 }}>
-            {description}
-          </p>
-        )}
-      </header>
 
-      {/* Responsive video player */}
-      <div style={videoContainerStyle}>
-        {/* Loading placeholder */}
-        {!isLoaded && (
+        {/* Topic Badge */}
+        {topic && (
           <div style={{
             position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: theme.colors.textSecondary,
-            fontSize: theme.typography.sizes.lg
+            top: theme.spacing.sm,
+            left: theme.spacing.sm,
+            backgroundColor: theme.colors.primary,
+            color: '#ffffff',
+            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            borderRadius: '12px',
+            fontSize: theme.typography.sizes.xs,
+            fontWeight: theme.typography.weights.semibold
           }}>
-            🎥 Loading video...
+            📂 {topic}
           </div>
         )}
-        {/* YouTube embed */}
-        <iframe
-          style={iframeStyle}
-          src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-          title={title}
-          allowFullScreen
-          loading="lazy" // Only load when visible
-          onLoad={() => setIsLoaded(true)}
-          aria-label={`Video player for ${title} by ${speakerName}`}
-        />
+
+        {/* Duration Badge */}
+        {duration && (
+          <div style={{
+            position: 'absolute',
+            bottom: theme.spacing.sm,
+            right: theme.spacing.sm,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: '#ffffff',
+            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            borderRadius: '8px',
+            fontSize: theme.typography.sizes.xs,
+            fontWeight: theme.typography.weights.semibold
+          }}>
+            ⏱️ {duration}m
+          </div>
+        )}
       </div>
-    </article>
+
+      {/* Content */}
+      <div style={contentStyle}>
+        <h3 style={titleStyle}>{title}</h3>
+        
+        <p style={speakerStyle}>🎤 {speakerName}</p>
+        
+        {description && (
+          <p style={descriptionStyle}>{description}</p>
+        )}
+        
+        <div style={metaStyle}>
+          <span>📅 {new Date(date).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+          })}</span>
+          {views && (
+            <span>👁️ {views.toLocaleString()} views</span>
+          )}
+        </div>
+
+        {/* Tags */}
+        {tags && tags.length > 0 && (
+          <div style={tagsStyle}>
+            {tags.slice(0, 3).map((tag, index) => (
+              <span key={index} style={tagStyle}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
-
