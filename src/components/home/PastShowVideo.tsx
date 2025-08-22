@@ -1,5 +1,8 @@
 /**
- * PAST SHOW VIDEO COMPONENT - UPDATED WITH ONCLICK SUPPORT
+ * PAST SHOW VIDEO COMPONENT - THUMBNAIL CARD VERSION
+ * 
+ * Now shows as a compact thumbnail card instead of full video embed
+ * Perfect for homepage and archive layouts
  * 
  * Save this as: src/components/home/PastShowVideo.tsx
  */
@@ -27,7 +30,8 @@ interface PastShow {
   tags?: string[];
   createdAt?: string;
   updatedAt?: string;
-  onClick?: () => void; // ← NEW: Added onClick prop
+  onClick?: () => void; // ← Added onClick prop for navigation
+  compact?: boolean; // ← NEW: Optional prop for even more compact display
 }
 
 export const PastShowVideo: React.FC<PastShow> = ({
@@ -44,7 +48,8 @@ export const PastShowVideo: React.FC<PastShow> = ({
   views,
   thumbnailUrl,
   tags,
-  onClick // ← NEW: Destructure onClick prop
+  onClick,
+  compact = false // ← NEW: Default to false for normal size
 }) => {
   const theme = useTheme();
 
@@ -56,7 +61,7 @@ export const PastShowVideo: React.FC<PastShow> = ({
   // Handle click - use onClick prop if provided, otherwise default navigation
   const handleClick = () => {
     if (onClick) {
-      onClick(); // ← NEW: Use provided onClick handler
+      onClick();
     } else {
       // Fallback navigation (for backward compatibility)
       if (slug) {
@@ -76,7 +81,9 @@ export const PastShowVideo: React.FC<PastShow> = ({
     cursor: 'pointer',
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    maxWidth: compact ? '280px' : '400px', // ← NEW: Smaller for homepage
+    boxShadow: theme.shadows.sm
   };
 
   const thumbnailContainerStyle: React.CSSProperties = {
@@ -104,32 +111,32 @@ export const PastShowVideo: React.FC<PastShow> = ({
     transform: 'translate(-50%, -50%)',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: '50%',
-    width: '60px',
-    height: '60px',
+    width: compact ? '40px' : '60px', // ← NEW: Smaller play button for compact
+    height: compact ? '40px' : '60px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: '#ffffff',
-    fontSize: '24px',
+    fontSize: compact ? '16px' : '24px',
     transition: 'all 0.3s ease',
     border: '3px solid rgba(255, 255, 255, 0.9)'
   };
 
   const contentStyle: React.CSSProperties = {
-    padding: theme.spacing.md,
+    padding: compact ? theme.spacing.sm : theme.spacing.md, // ← NEW: Less padding for compact
     flex: 1,
     display: 'flex',
     flexDirection: 'column'
   };
 
   const titleStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: compact ? theme.typography.sizes.base : theme.typography.sizes.lg, // ← NEW: Smaller title
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
     lineHeight: 1.3,
     display: '-webkit-box',
-    WebkitLineClamp: 2,
+    WebkitLineClamp: compact ? 2 : 2, // ← NEW: 2 lines max for compact
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden'
   };
@@ -138,17 +145,17 @@ export const PastShowVideo: React.FC<PastShow> = ({
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.primary,
     fontWeight: theme.typography.weights.semibold,
-    marginBottom: theme.spacing.sm
+    marginBottom: theme.spacing.xs
   };
 
   const descriptionStyle: React.CSSProperties = {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.textSecondary,
-    lineHeight: 1.5,
-    marginBottom: theme.spacing.sm,
+    lineHeight: 1.4,
+    marginBottom: theme.spacing.xs,
     flex: 1,
     display: '-webkit-box',
-    WebkitLineClamp: 3,
+    WebkitLineClamp: compact ? 2 : 3, // ← NEW: Fewer lines for compact
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden'
   };
@@ -159,7 +166,7 @@ export const PastShowVideo: React.FC<PastShow> = ({
     alignItems: 'center',
     fontSize: theme.typography.sizes.xs,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm
+    marginBottom: compact ? theme.spacing.xs : theme.spacing.sm
   };
 
   const tagsStyle: React.CSSProperties = {

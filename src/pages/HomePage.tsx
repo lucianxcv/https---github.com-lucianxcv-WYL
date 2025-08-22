@@ -1,7 +1,8 @@
 /**
- * ENHANCED HOMEPAGE COMPONENT - REAL DATA INTEGRATION
+ * ENHANCED HOMEPAGE COMPONENT - REAL DATA INTEGRATION (COMPLETE)
  * 
  * Updated to use real API data for both blog posts and past shows
+ * with improved compact layout for video cards
  */
 
 import React from 'react';
@@ -158,6 +159,9 @@ export const HomePage: React.FC = () => {
               grid-template-columns: 1fr !important;
             }
             .upcoming-speakers-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .past-shows-grid {
               grid-template-columns: 1fr !important;
             }
           }
@@ -321,7 +325,7 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* 🔥 UPDATED: Past Presentations - Real Data */}
+        {/* 🔥 UPDATED: Past Presentations - Better Compact Layout */}
         <section style={sectionStyle} id="past-shows">
           <h2 style={sectionTitleStyle}>🎥 Featured Past Presentations</h2>
           
@@ -332,17 +336,23 @@ export const HomePage: React.FC = () => {
             </div>
           ) : featuredShows.length > 0 ? (
             <>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                gap: theme.spacing.xl,
-                marginBottom: theme.spacing.lg
-              }}>
+              <div 
+                className="past-shows-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', // ← UPDATED: Smaller cards
+                  gap: theme.spacing.lg,
+                  marginBottom: theme.spacing.lg,
+                  maxWidth: '800px', // ← NEW: Limit width so we get 2x2 on desktop
+                  margin: `0 auto ${theme.spacing.lg} auto`
+                }}
+              >
                 {featuredShows.slice(0, 4).map((show) => (
                   <PastShowVideo 
                     key={show.id} 
                     {...show} 
-                    onClick={() => handlePastShowClick(show)} // ← Pass click handler
+                    compact={true} // ← NEW: Use compact mode for homepage
+                    onClick={() => handlePastShowClick(show)}
                   />
                 ))}
               </div>
