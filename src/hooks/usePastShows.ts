@@ -118,7 +118,7 @@ export const usePastShows = (): UsePastShowsReturn => {
         duration: show.duration || estimateDuration(show.description),
         tags: show.tags || generateTags(show.title, show.description),
         views: show.views || Math.floor(Math.random() * 1000) + 100, // Random views for demo
-        thumbnailUrl: show.thumbnailUrl || `https://img.youtube.com/vi/${show.videoId || 'dQw4w9WgXcQ'}/maxresdefault.jpg`,
+        thumbnailUrl: show.thumbnailUrl && show.thumbnailUrl.trim() !== '' ? show.thumbnailUrl : `https://img.youtube.com/vi/${show.videoId}/maxresdefault.jpg`,
         featured: show.featured || Math.random() > 0.7 // Random featured status
       }));
 
