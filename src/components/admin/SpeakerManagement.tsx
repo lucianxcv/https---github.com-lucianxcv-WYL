@@ -1,12 +1,12 @@
 /**
- * SPEAKER MANAGEMENT COMPONENT - COMPLETE VERSION
+ * SPEAKER MANAGEMENT COMPONENT - REAL API INTEGRATION
  * 
  * Save this file as: src/components/admin/SpeakerManagement.tsx
  */
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { adminApi } from '../../utils/apiService';
+import { speakersApi } from '../../utils/apiService'; // ← Using real API
 
 // Speaker types (matching your database schema)
 interface Speaker {
@@ -124,52 +124,35 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
     fontFamily: 'inherit'
   };
 
-  // Load speakers - using mock data for now
+  // 🔥 FIXED: Load speakers from real backend API
   const loadSpeakers = async () => {
     setLoading(true);
     setError(null);
-    try {
-      // Mock data for demonstration
-      const mockSpeakers: Speaker[] = [
-        {
-          id: '1',
-          name: 'Captain Sarah Johnson',
-          title: 'Master Sailor & Weather Expert',
-          bio: 'With over 20 years of sailing experience around San Francisco Bay, Captain Sarah specializes in weather pattern analysis and safe sailing practices.',
-          photoUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=400',
-          email: 'sarah@sailing.com',
-          website: 'https://sarahjohnson-sailing.com',
-          linkedin: 'sarah-johnson-sailing',
-          twitter: 'sarahsails',
-          nextPresentationDate: '2024-02-15',
-          topic: 'Reading Wind Patterns',
-          presentationTitle: 'Mastering Bay Area Wind Patterns for Optimal Sailing',
-          isActive: true,
-          isFeatured: true,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-15T00:00:00Z'
-        },
-        {
-          id: '2',
-          name: 'Admiral Mike Chen',
-          title: 'Racing Champion & Instructor',
-          bio: 'Three-time regatta champion and certified sailing instructor. Mike teaches advanced racing techniques and competitive sailing strategies.',
-          photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-          email: 'mike@racingsails.com',
-          nextPresentationDate: '2024-03-01',
-          topic: 'Racing Strategies',
-          presentationTitle: 'Winning Tactics for Competitive Sailing',
-          isActive: true,
-          isFeatured: false,
-          createdAt: '2024-01-10T00:00:00Z',
-          updatedAt: '2024-01-20T00:00:00Z'
-        }
-      ];
 
-      setSpeakers(mockSpeakers);
+    try {
+      console.log('🎤 Loading speakers from backend...');
+      
+      const response = await speakersApi.getAll();
+      console.log('✅ Speakers loaded:', response);
+
+      // Handle response format - similar to shows API
+      let speakersData: Speaker[] = [];
+      
+      if (response && typeof response === 'object') {
+        if ('success' in response && response.success && 'data' in response) {
+          speakersData = Array.isArray(response.data) ? response.data as Speaker[] : [];
+        } else if (Array.isArray(response)) {
+          speakersData = response as Speaker[];
+        }
+      }
+      
+      setSpeakers(speakersData);
     } catch (error) {
-      console.error('Failed to load speakers:', error);
-      setError('Failed to load speakers. Please try again.');
+      console.error('❌ Failed to load speakers:', error);
+      setError(`Failed to load speakers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Fallback to empty array instead of mock data
+      setSpeakers([]);
     } finally {
       setLoading(false);
     }
@@ -194,7 +177,7 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
     return matchesSearch && matchesFilter;
   });
 
-  // Handle form submission
+  // 🔥 FIXED: Handle form submission with real API calls
   const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.title.trim() || !formData.bio.trim()) {
       setError('Name, title, and bio are required');
@@ -205,57 +188,73 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
     setError(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`🚀 ${editingSpeaker ? 'Updating' : 'Creating'} speaker...`, formData);
 
       if (editingSpeaker) {
-        setSpeakers(prevSpeakers => 
-          prevSpeakers.map(speaker => 
-            speaker.id === editingSpeaker.id 
-              ? { ...speaker, ...formData, updatedAt: new Date().toISOString() }
-              : speaker
-          )
-        );
+        // Update existing speaker
+        const response = await speakersApi.update(editingSpeaker.id, formData);
+        console.log('✅ Speaker updated successfully');
+        
+        // Reload speakers to get fresh data
+        loadSpeakers();
         setEditingSpeaker(null);
       } else {
-        const newSpeaker: Speaker = {
-          id: Date.now().toString(),
-          ...formData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setSpeakers(prevSpeakers => [newSpeaker, ...prevSpeakers]);
+        // Create new speaker
+        const response = await speakersApi.create(formData);
+        console.log('✅ Speaker created successfully');
+        
+        // Reload speakers to get fresh data
+        loadSpeakers();
       }
 
       setShowCreateForm(false);
       setFormData(initialFormData);
       onSpeakerUpdate?.();
     } catch (error) {
-      console.error('Failed to save speaker:', error);
-      setError('Failed to save speaker. Please try again.');
+      console.error('❌ Failed to save speaker:', error);
+      setError(`Failed to save speaker: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Handle delete
+  // 🔥 FIXED: Handle delete with real API call
   const handleDelete = (speakerId: string) => setShowDeleteConfirm(speakerId);
 
-  const confirmDelete = (speakerId: string) => {
-    setSpeakers(prevSpeakers => prevSpeakers.filter(speaker => speaker.id !== speakerId));
-    setShowDeleteConfirm(null);
-    onSpeakerUpdate?.();
+  const confirmDelete = async (speakerId: string) => {
+    try {
+      console.log('🗑️ Deleting speaker:', speakerId);
+      await speakersApi.delete(speakerId);
+      
+      // Reload speakers to get fresh data
+      loadSpeakers();
+      onSpeakerUpdate?.();
+      console.log('✅ Speaker deleted successfully');
+    } catch (error) {
+      console.error('❌ Failed to delete speaker:', error);
+      setError(`Failed to delete speaker: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setShowDeleteConfirm(null);
+    }
   };
 
-  // Toggle status
-  const handleToggleStatus = (speaker: Speaker, field: 'isActive' | 'isFeatured') => {
-    setSpeakers(prevSpeakers =>
-      prevSpeakers.map(s =>
-        s.id === speaker.id
-          ? { ...s, [field]: !s[field], updatedAt: new Date().toISOString() }
-          : s
-      )
-    );
-    onSpeakerUpdate?.();
+  // 🔥 FIXED: Toggle status with real API call
+  const handleToggleStatus = async (speaker: Speaker, field: 'isActive' | 'isFeatured') => {
+    try {
+      console.log(`🔄 Toggling ${field} for speaker:`, speaker.id);
+      
+      const updateData = { ...speaker, [field]: !speaker[field] };
+      
+      const response = await speakersApi.update(speaker.id, updateData);
+      
+      // Reload speakers to get fresh data
+      loadSpeakers();
+      onSpeakerUpdate?.();
+      console.log(`✅ ${field} toggled successfully`);
+    } catch (error) {
+      console.error(`❌ Failed to toggle ${field}:`, error);
+      setError(`Failed to update speaker: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   // Start editing
@@ -270,7 +269,7 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
       website: speaker.website || '',
       linkedin: speaker.linkedin || '',
       twitter: speaker.twitter || '',
-      nextPresentationDate: speaker.nextPresentationDate || '',
+      nextPresentationDate: speaker.nextPresentationDate ? speaker.nextPresentationDate.split('T')[0] : '',
       topic: speaker.topic || '',
       presentationTitle: speaker.presentationTitle || '',
       isActive: speaker.isActive,
@@ -307,6 +306,21 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
         border: '1px solid #fecaca'
       }}>
         ⚠️ {error}
+        <button
+          style={{
+            marginLeft: theme.spacing.sm,
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            fontSize: theme.typography.sizes.sm,
+            cursor: 'pointer'
+          }}
+          onClick={loadSpeakers}
+        >
+          🔄 Retry
+        </button>
       </div>
     );
   };
@@ -473,7 +487,7 @@ export const SpeakerManagement: React.FC<SpeakerManagementProps> = ({ onSpeakerU
             {loading ? (
               <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
                 <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
-                <p>Loading speakers...</p>
+                <p>Loading speakers from backend...</p>
               </div>
             ) : filteredSpeakers.length === 0 ? (
               <div style={{ ...cardStyle, textAlign: 'center', padding: theme.spacing.xl }}>
