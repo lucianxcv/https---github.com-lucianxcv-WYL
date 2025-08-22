@@ -21,31 +21,33 @@ export const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-0 w-full z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-slate-900/90 shadow-md backdrop-blur-md"
-          : "bg-slate-900/70 backdrop-blur-sm"
+          ? "bg-slate-900/80 shadow-lg backdrop-blur-xl"
+          : "bg-slate-900/60 backdrop-blur-md"
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <a
           href="#home"
-          className="flex items-center gap-2 text-slate-100 font-semibold text-lg hover:scale-105 transition"
+          className="flex items-center gap-2 text-slate-100 font-semibold text-lg hover:scale-105 transition-transform"
         >
-          🛥️ <span>Wednesday Yachting Luncheon</span>
+          🛥️ <span className="hidden sm:inline">Wednesday Yachting Luncheon</span>
         </a>
 
         {/* Desktop Nav */}
-        <ul className="hidden md:flex items-center gap-6">
+        <ul className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
-            <li key={item.id}>
+            <li key={item.id} className="relative group">
               <a
                 href={item.href}
-                className="flex items-center gap-1 text-slate-300 hover:text-white hover:underline underline-offset-4 transition"
+                className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
               >
                 {item.icon} {item.label}
               </a>
+              {/* Animated underline */}
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-500 transition-all group-hover:w-full" />
             </li>
           ))}
         </ul>
@@ -57,16 +59,13 @@ export const Navbar: React.FC = () => {
           {isAuthenticated ? (
             <>
               {isAdmin && (
-                <a
-                  href="#admin"
-                  className="px-3 py-1 text-sm border border-slate-500 rounded-md text-slate-200 hover:bg-slate-700 transition"
-                >
+                <a className="px-3 py-1.5 text-sm border border-slate-500 rounded-md text-slate-200 hover:bg-slate-800 transition">
                   ⚙️ Admin
                 </a>
               )}
               <button
                 onClick={signOut}
-                className="px-3 py-1 text-sm border border-slate-500 rounded-md text-slate-200 hover:bg-red-600 hover:border-red-600 transition"
+                className="px-3 py-1.5 text-sm border border-slate-500 rounded-md text-slate-200 hover:bg-red-600 hover:border-red-600 transition"
               >
                 🚪 Sign Out
               </button>
@@ -74,7 +73,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <a
               href="#auth"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg shadow hover:scale-105 transition-transform"
             >
               🔐 Login
             </a>
@@ -92,37 +91,45 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-slate-800 border-t border-slate-700">
-          <ul className="flex flex-col p-4 gap-3">
-            {navItems.map((item) => (
-              <li key={item.id}>
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          {/* Panel */}
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-slate-800/95 border-t border-slate-700 animate-slideDown">
+            <ul className="flex flex-col p-4 gap-4">
+              {navItems.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={item.href}
+                    className="block px-3 py-2 rounded-md text-slate-200 hover:bg-slate-700 transition"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.icon} {item.label}
+                  </a>
+                </li>
+              ))}
+              {isAuthenticated ? (
+                <button
+                  onClick={signOut}
+                  className="w-full mt-3 px-4 py-2 border border-slate-500 rounded-md text-slate-200 hover:bg-red-600 hover:border-red-600 transition"
+                >
+                  🚪 Sign Out
+                </button>
+              ) : (
                 <a
-                  href={item.href}
-                  className="block px-3 py-2 rounded-md text-slate-200 hover:bg-slate-700 transition"
+                  href="#auth"
+                  className="w-full mt-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-md text-center shadow hover:scale-105 transition-transform"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {item.icon} {item.label}
+                  🔐 Login
                 </a>
-              </li>
-            ))}
-            {isAuthenticated ? (
-              <button
-                onClick={signOut}
-                className="w-full mt-3 px-4 py-2 border border-slate-500 rounded-md text-slate-200 hover:bg-red-600 hover:border-red-600 transition"
-              >
-                🚪 Sign Out
-              </button>
-            ) : (
-              <a
-                href="#auth"
-                className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-center hover:bg-blue-500 transition"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                🔐 Login
-              </a>
-            )}
-          </ul>
-        </div>
+              )}
+            </ul>
+          </div>
+        </>
       )}
     </nav>
   );
