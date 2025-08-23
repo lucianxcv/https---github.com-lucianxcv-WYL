@@ -67,25 +67,45 @@ const performSearch = async (searchQuery: string) => {
     console.log('🔍 Searching for:', searchQuery);
 
     // Search both shows and posts
-    const [allShows, postsResponse] = await Promise.all([
-      showsApi.getAll(), // Returns any[] directly
-      postsApi.getAll({ search: searchQuery, limit: 3, published: true }) // Returns PaginatedResponse<Post>
+    const [showsResponse, postsResponse] = await Promise.all([
+      showsApi.getAll() as any, // Cast to any to handle the type mismatch
+      postsApi.getAll({ search: searchQuery, limit: 3, published: true })
     ]);
 
-    console.log('📊 Raw API results:', { 
-      shows: allShows?.length || 0, 
-      posts: postsResponse.data?.length || 0 
+    console.log('📊 Raw API responses:', { 
+      showsResponse, 
+      postsResponse 
+    });
+
+    // Extract arrays from response objects - handle multiple possible formats
+    let allShows: any[] = [];
+    if (Array.isArray(showsResponse)) {
+      // If it's already an array
+      allShows = showsResponse;
+    } else if (showsResponse && Array.isArray(showsResponse.data)) {
+      // If it's wrapped in {data: [...]}
+      allShows = showsResponse.data;
+    } else if (showsResponse) {
+      // Log what we actually got to debug
+      console.log('🤔 Unexpected shows response format:', showsResponse);
+    }
+
+    const allPosts = postsResponse?.data || [];
+
+    console.log('📊 Extracted arrays:', { 
+      shows: allShows.length,
+      posts: allPosts.length
     });
 
     // Filter shows client-side (since showsApi doesn't support search)
-    const filteredShows = (allShows || []).filter((show: any) =>
+    const filteredShows = allShows.filter((show: any) =>
       show.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       show.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       show.speakerName?.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 3); // Limit to 3 results
 
     // Posts are already filtered server-side
-    const filteredPosts = postsResponse.data || [];
+    const filteredPosts = Array.isArray(allPosts) ? allPosts : [];
 
     console.log('📊 Filtered results:', { 
       shows: filteredShows.length, 
