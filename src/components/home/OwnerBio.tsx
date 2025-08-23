@@ -104,7 +104,7 @@ export const OwnerBio: React.FC = () => {
       {/* Biography text and achievements */}
       <div style={textStyle}>
         <h2 style={nameStyle}>
-          👨‍💼 {owner.name}
+            {owner.name}
         </h2>
         <p style={bioStyle}>{owner.bio}</p>
         

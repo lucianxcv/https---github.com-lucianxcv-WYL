@@ -438,7 +438,7 @@ export const HomePage: React.FC = () => {
 
         {/* Owner Bio Section */}
         <section style={sectionStyle} id="owner">
-          <h2 style={sectionTitleStyle}>👨‍✈️ Meet Our Executive Producer</h2>
+          <h2 style={sectionTitleStyle}>⭐ Meet Our Executive Producer</h2>
           <OwnerBio />
         </section>
 
