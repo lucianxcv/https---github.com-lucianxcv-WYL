@@ -327,22 +327,90 @@ export const showsApi = {
   }),
 };
 
-// Comments API functions
+// ==================== COMMENTS API UPDATE ====================
+// Add these methods to your existing commentsApi in apiService.ts
+
+// Enhanced Comments API functions
 export const commentsApi = {
-  getAll: () => apiRequest<any[]>('/api/comments'),
-  getById: (id: string) => apiRequest<any>(`/api/comments/${id}`),
-  getByShow: (showId: string) => apiRequest<any[]>(`/api/comments/show/${showId}`),
-  create: (comment: any) => apiRequest<any>('/api/comments', {
-    method: 'POST',
-    body: JSON.stringify(comment),
-  }),
-  update: (id: string, comment: any) => apiRequest<any>(`/api/comments/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(comment),
-  }),
-  delete: (id: string) => apiRequest<any>(`/api/comments/${id}`, {
-    method: 'DELETE',
-  }),
+  // Get all comments (general or filtered)
+  getAll: (params?: {
+    showId?: string;
+    status?: 'approved' | 'pending' | 'rejected';
+    page?: number;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.showId) query.set('showId', params.showId);
+    if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    
+    return apiRequest<any[]>(`/api/comments?${query.toString()}`);
+  },
+
+  // Get comment by ID
+  getById: (id: string) => 
+    apiRequest<any>(`/api/comments/${id}`),
+
+  // Get comments for specific show
+  getByShow: (showId: string) => 
+    apiRequest<any[]>(`/api/comments/show/${showId}`),
+
+  // Create new comment
+  create: (commentData: {
+    content: string;
+    showId?: string;
+    parentId?: string;
+    status?: 'approved' | 'pending';
+  }) => 
+    apiRequest<any>('/api/comments', {
+      method: 'POST',
+      body: JSON.stringify(commentData),
+    }),
+
+  // Update comment
+  update: (id: string, commentData: {
+    content?: string;
+    status?: 'approved' | 'pending' | 'rejected';
+  }) => 
+    apiRequest<any>(`/api/comments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(commentData),
+    }),
+
+  // Delete comment
+  delete: (id: string) => 
+    apiRequest<any>(`/api/comments/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // 🔥 NEW: Update comment reaction
+  updateReaction: (commentId: string, reaction: 'like' | 'dislike') =>
+    apiRequest<any>(`/api/comments/${commentId}/reaction`, {
+      method: 'PUT',
+      body: JSON.stringify({ reaction }),
+    }),
+
+  // 🔥 NEW: Remove reaction
+  removeReaction: (commentId: string) =>
+    apiRequest<any>(`/api/comments/${commentId}/reaction`, {
+      method: 'DELETE',
+    }),
+
+  // 🔥 NEW: Report comment
+  report: (commentId: string, reason?: string) =>
+    apiRequest<any>(`/api/comments/${commentId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
+  // 🔥 NEW: Get comment reactions
+  getReactions: (commentId: string) =>
+    apiRequest<{
+      likes: number;
+      dislikes: number;
+      userReaction?: 'like' | 'dislike' | null;
+    }>(`/api/comments/${commentId}/reactions`),
 };
 
 // Owner API functions

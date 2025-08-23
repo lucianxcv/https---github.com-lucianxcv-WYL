@@ -1,40 +1,44 @@
 /**
- * ENHANCED COMMENTS SECTION COMPONENT
+ * ENHANCED COMMENTS SECTION COMPONENT - REAL API INTEGRATION
  * 
  * Major improvements:
- * - Modern comment thread design
- * - Real-time comment posting
- * - Reply functionality with threading
- * - Enhanced moderation features
- * - Better user experience with animations
- * - Emoji reactions and voting
- * - Rich text formatting support
- * - Better mobile responsiveness
+ * - Real API integration with useComments hook
+ * - Error handling and loading states
+ * - Proper form validation
+ * - Optimistic UI updates
+ * - Better accessibility
+ * - Fixed TypeScript interfaces
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useAuth } from '../../utils/useAuth';
-import { commentsApi } from '../../utils/apiService';
+import { useComments } from '../../hooks/useComments';
+
+// Define proper TypeScript interfaces
+interface CommentAuthor {
+  id: string;
+  name: string;
+  avatar?: string;
+  role?: 'USER' | 'ADMIN' | 'MODERATOR';
+}
+
+interface CommentReactions {
+  likes: number;
+  dislikes: number;
+  userReaction?: 'like' | 'dislike' | null;
+}
 
 interface Comment {
   id: string;
   content: string;
-  author: {
-    id: string;
-    name: string;
-    avatar?: string;
-    role?: string;
-  };
+  author: CommentAuthor;
   createdAt: string;
   updatedAt?: string;
   replies?: Comment[];
-  reactions?: {
-    likes: number;
-    dislikes: number;
-    userReaction?: 'like' | 'dislike' | null;
-  };
+  reactions?: CommentReactions;
   status: 'approved' | 'pending' | 'rejected';
+  showId?: string;
 }
 
 interface CommentsSectionProps {
@@ -52,17 +56,31 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
 }) => {
   const theme = useTheme();
   const { user, isAuthenticated } = useAuth();
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  
+  // Use the real comments hook
+  const {
+    comments,
+    totalComments,
+    totalParticipants,
+    loading,
+    submitting,
+    error,
+    loadComments,
+    submitComment,
+    updateReaction,
+    deleteComment,
+    clearError
+  } = useComments({ showId });
+
   const [newComment, setNewComment] = useState('');
-  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
+  const [expandedComments, setExpandedComments] = useState<number>(maxComments);
   
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Styling (keeping your existing styles)
   const sectionStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
     borderRadius: '24px',
@@ -181,18 +199,45 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     border: `1px solid ${theme.colors.border}`
   };
 
+  // Error display component
+  const ErrorBanner: React.FC<{ error: string; onDismiss: () => void }> = ({ error, onDismiss }) => (
+    <div style={{
+      backgroundColor: '#fee2e2',
+      border: '1px solid #fca5a5',
+      borderRadius: '12px',
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.md,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+        <span style={{ color: '#dc2626', fontSize: '1.2rem' }}>⚠️</span>
+        <span style={{ color: '#dc2626', fontSize: theme.typography.sizes.sm }}>
+          {error}
+        </span>
+      </div>
+      <button
+        onClick={onDismiss}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: '#dc2626',
+          cursor: 'pointer',
+          fontSize: '1.2rem',
+          padding: '4px'
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  );
+
   // Comment component
-  const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ 
-    comment, 
-    depth = 0 
-  }) => {
+  const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [showReplyForm, setShowReplyForm] = useState(false);
     const [replyText, setReplyText] = useState('');
-    const [isLiked, setIsLiked] = useState(comment.reactions?.userReaction === 'like');
-    const [isDisliked, setIsDisliked] = useState(comment.reactions?.userReaction === 'dislike');
-    const [likes, setLikes] = useState(comment.reactions?.likes || 0);
-    const [dislikes, setDislikes] = useState(comment.reactions?.dislikes || 0);
 
     const commentStyle: React.CSSProperties = {
       backgroundColor: depth === 0 ? theme.colors.surface : theme.colors.background,
@@ -312,43 +357,43 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       });
     };
 
-    const handleReaction = (type: 'like' | 'dislike') => {
-      if (type === 'like') {
-        if (isLiked) {
-          setIsLiked(false);
-          setLikes(prev => prev - 1);
-        } else {
-          setIsLiked(true);
-          setLikes(prev => prev + 1);
-          if (isDisliked) {
-            setIsDisliked(false);
-            setDislikes(prev => prev - 1);
-          }
-        }
-      } else {
-        if (isDisliked) {
-          setIsDisliked(false);
-          setDislikes(prev => prev - 1);
-        } else {
-          setIsDisliked(true);
-          setDislikes(prev => prev + 1);
-          if (isLiked) {
-            setIsLiked(false);
-            setLikes(prev => prev - 1);
-          }
-        }
+    const handleReaction = async (type: 'like' | 'dislike') => {
+      if (!isAuthenticated) return;
+      
+      try {
+        await updateReaction(comment.id, type);
+        // The hook handles optimistic updates
+      } catch (error) {
+        console.error('Failed to update reaction:', error);
       }
     };
 
     const handleReply = async () => {
-      if (!replyText.trim() || !isAuthenticated) return;
+      if (!replyText.trim() || !isAuthenticated || submitting) return;
 
       try {
-        // TODO: Implement reply API call
-        setReplyText('');
-        setShowReplyForm(false);
+        const newReply = await submitComment({
+          content: replyText.trim(),
+          showId,
+          parentId: comment.id
+        });
+
+        if (newReply) {
+          setReplyText('');
+          setShowReplyForm(false);
+        }
       } catch (error) {
         console.error('Failed to post reply:', error);
+      }
+    };
+
+    const handleDelete = async () => {
+      if (!confirm('Are you sure you want to delete this comment?')) return;
+      
+      try {
+        await deleteComment(comment.id);
+      } catch (error) {
+        console.error('Failed to delete comment:', error);
       }
     };
 
@@ -408,19 +453,21 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
         <div style={actionsStyle}>
           {/* Reactions */}
           <button
-            style={actionButtonStyle(isLiked)}
+            style={actionButtonStyle(comment.reactions?.userReaction === 'like')}
             onClick={() => handleReaction('like')}
             disabled={!isAuthenticated}
+            title={!isAuthenticated ? 'Sign in to react' : ''}
           >
-            👍 {likes}
+            👍 {comment.reactions?.likes || 0}
           </button>
 
           <button
-            style={actionButtonStyle(isDisliked)}
+            style={actionButtonStyle(comment.reactions?.userReaction === 'dislike')}
             onClick={() => handleReaction('dislike')}
             disabled={!isAuthenticated}
+            title={!isAuthenticated ? 'Sign in to react' : ''}
           >
-            👎 {dislikes}
+            👎 {comment.reactions?.dislikes || 0}
           </button>
 
           {/* Reply */}
@@ -433,12 +480,22 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
             </button>
           )}
 
+          {/* Delete (only for comment author or admin) */}
+          {isAuthenticated && (user?.id === comment.author.id || user?.role === 'ADMIN') && (
+            <button
+              style={actionButtonStyle(false)}
+              onClick={handleDelete}
+            >
+              🗑️ Delete
+            </button>
+          )}
+
           {/* Report */}
           <button
             style={actionButtonStyle(false)}
             onClick={() => {
-              // TODO: Implement report functionality
-              alert('Comment reported for review');
+              // TODO: Implement proper report functionality
+              alert('Comment reported for review. Thank you for helping keep our community safe.');
             }}
           >
             🚨 Report
@@ -459,6 +516,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder={`Reply to ${comment.author.name}...`}
+              maxLength={500}
               onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
               onBlur={(e) => e.target.style.borderColor = theme.colors.border}
             />
@@ -477,21 +535,24 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   Cancel
                 </button>
                 <button
-                  style={primaryButtonStyle}
+                  style={{
+                    ...primaryButtonStyle,
+                    opacity: (!replyText.trim() || replyText.length > 500 || submitting) ? 0.6 : 1
+                  }}
                   onClick={handleReply}
-                  disabled={!replyText.trim() || replyText.length > 500}
+                  disabled={!replyText.trim() || replyText.length > 500 || submitting}
                   onMouseEnter={(e) => {
-                    if (!(!replyText.trim() || replyText.length > 500)) {
+                    if (!(!replyText.trim() || replyText.length > 500 || submitting)) {
                       e.currentTarget.style.backgroundColor = theme.colors.secondary;
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!(!replyText.trim() || replyText.length > 500)) {
+                    if (!(!replyText.trim() || replyText.length > 500 || submitting)) {
                       e.currentTarget.style.backgroundColor = theme.colors.primary;
                     }
                   }}
                 >
-                  💬 Reply
+                  {submitting ? '⏳ Posting...' : '💬 Reply'}
                 </button>
               </div>
             </div>
@@ -501,7 +562,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
         {/* Replies */}
         {isExpanded && comment.replies && comment.replies.length > 0 && (
           <div style={{marginTop: theme.spacing.md}}>
-            {comment.replies.map((reply) => (
+            {comment.replies.map((reply: Comment) => (
               <CommentItem 
                 key={reply.id} 
                 comment={reply} 
@@ -514,116 +575,30 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     );
   };
 
-  // Load comments
-  const loadComments = async () => {
-    try {
-      setLoading(true);
-      
-      // Simulate API call with sample data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const sampleComments: Comment[] = [
-        {
-          id: '1',
-          content: 'What an incredible presentation! Captain Rodriguez really knows how to explain complex maritime navigation in simple terms. Looking forward to more sessions like this.',
-          author: {
-            id: '1',
-            name: 'Sarah Mitchell',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b332c93b?w=150',
-            role: 'USER'
-          },
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          reactions: { likes: 12, dislikes: 0, userReaction: null },
-          status: 'approved',
-          replies: [
-            {
-              id: '2',
-              content: 'I completely agree! The safety protocols section was particularly enlightening.',
-              author: {
-                id: '2',
-                name: 'Mike Chen',
-                role: 'MODERATOR'
-              },
-              createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-              reactions: { likes: 5, dislikes: 0 },
-              status: 'approved'
-            }
-          ]
-        },
-        {
-          id: '3',
-          content: 'The weather conditions today were perfect for discussing storm navigation techniques. Great timing!',
-          author: {
-            id: '3',
-            name: 'Captain James Wilson',
-            role: 'ADMIN'
-          },
-          createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-          reactions: { likes: 8, dislikes: 0 },
-          status: 'approved'
-        },
-        {
-          id: '4',
-          content: 'Could we get the slides from today\'s presentation? I\'d love to review the cargo handling procedures again.',
-          author: {
-            id: '4',
-            name: 'Lisa Thompson',
-            role: 'USER'
-          },
-          createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-          reactions: { likes: 3, dislikes: 0 },
-          status: 'approved'
-        }
-      ];
-
-      setComments(sampleComments);
-    } catch (error) {
-      console.error('Failed to load comments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Submit comment
+  // Submit main comment
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !isAuthenticated || submitting) return;
 
     try {
-      setSubmitting(true);
-      
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newCommentObj: Comment = {
-        id: Date.now().toString(),
-        content: newComment,
-        author: {
-          id: user?.id || '',
-          name: user?.name || 'Anonymous',
-          avatar: user?.avatar,
-          role: user?.role
-        },
-        createdAt: new Date().toISOString(),
-        reactions: { likes: 0, dislikes: 0 },
-        status: 'approved'
-      };
+      const result = await submitComment({
+        content: newComment.trim(),
+        showId
+      });
 
-      setComments(prev => [newCommentObj, ...prev]);
-      setNewComment('');
-      setShowCommentForm(false);
+      if (result) {
+        setNewComment('');
+        setShowCommentForm(false);
+        
+        // Show success message
+        console.log('✅ Comment posted successfully!');
+      }
     } catch (error) {
       console.error('Failed to post comment:', error);
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    loadComments();
-  }, [showId, sortBy]);
-
   // Sort comments
-  const sortedComments = [...comments].sort((a, b) => {
+  const sortedComments: Comment[] = [...comments].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -638,21 +613,23 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     }
   });
 
-  const displayComments = sortedComments.slice(0, maxComments);
-  const totalComments = comments.reduce((count, comment) => {
-    return count + 1 + (comment.replies?.length || 0);
-  }, 0);
+  const displayComments: Comment[] = sortedComments.slice(0, expandedComments);
 
   return (
     <section style={sectionStyle}>
       <h2 style={titleStyle}>💬 Comments & Discussion</h2>
+
+      {/* Error Display */}
+      {error && (
+        <ErrorBanner error={error} onDismiss={clearError} />
+      )}
 
       {/* Header */}
       <div style={headerStyle}>
         <div style={statsStyle}>
           <span>📊 {totalComments} comment{totalComments !== 1 ? 's' : ''}</span>
           <span>•</span>
-          <span>👥 {comments.length} participant{comments.length !== 1 ? 's' : ''}</span>
+          <span>👥 {totalParticipants} participant{totalParticipants !== 1 ? 's' : ''}</span>
         </div>
 
         <div style={sortControlStyle}>
@@ -703,7 +680,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              💭 Share your thoughts about today's presentation...
+              💭 Share your thoughts about {showId ? 'this presentation' : 'today\'s presentation'}...
             </button>
           ) : (
             <>
@@ -789,7 +766,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   </button>
 
                   <button
-                    style={primaryButtonStyle}
+                    style={{
+                      ...primaryButtonStyle,
+                      opacity: (!newComment.trim() || newComment.length > 1000 || submitting) ? 0.6 : 1
+                    }}
                     onClick={handleSubmitComment}
                     disabled={!newComment.trim() || newComment.length > 1000 || submitting}
                     onMouseEnter={(e) => {
@@ -851,14 +831,11 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
           </div>
 
           {/* Load More Button */}
-          {comments.length > maxComments && (
+          {comments.length > expandedComments && (
             <div style={{textAlign: 'center', marginTop: theme.spacing.lg}}>
               <button
                 style={secondaryButtonStyle}
-                onClick={() => {
-                  // TODO: Implement load more functionality
-                  console.log('Load more comments');
-                }}
+                onClick={() => setExpandedComments(prev => prev + maxComments)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = theme.colors.primary;
                   e.currentTarget.style.color = '#ffffff';
@@ -870,7 +847,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   e.currentTarget.style.borderColor = theme.colors.border;
                 }}
               >
-                📄 Load More Comments ({comments.length - maxComments} remaining)
+                📄 Load More Comments ({comments.length - expandedComments} remaining)
               </button>
             </div>
           )}
@@ -897,7 +874,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
             marginBottom: theme.spacing.lg,
             fontSize: theme.typography.sizes.base
           }}>
-            Be the first to share your thoughts about today's presentation or ask questions for future sessions.
+            Be the first to share your thoughts about {showId ? 'this presentation' : 'today\'s presentation'} or ask questions for future sessions.
           </p>
           {isAuthenticated && (
             <button
@@ -943,6 +920,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
           <li>Stay on topic related to maritime subjects</li>
           <li>No spam, self-promotion, or off-topic content</li>
           <li>Use constructive language when providing feedback</li>
+          <li>Report inappropriate content to help maintain our community</li>
         </ul>
       </div>
     </section>

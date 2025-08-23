@@ -1,5 +1,5 @@
 /**
- * ADMIN DASHBOARD PAGE - WITH PAST SHOWS MANAGEMENT
+ * ADMIN DASHBOARD PAGE - UPDATED STATS LAYOUT
  */
 
 import React, { useState, useEffect } from 'react';
@@ -14,24 +14,26 @@ import { PastShowManagement } from '../components/admin/PastShowManagement';
 import { Post, User } from '../data/types';
 import { adminApi } from '../utils/apiService';
 
-// Admin stats interface
+// 🔥 UPDATED: Admin stats interface to match backend
 interface AdminStats {
   totalUsers: number;
-  totalPosts: number;
+  totalComments: number;
   publishedPosts: number;
-  draftPosts: number;
+  draftPosts: number;        // ← ADDED
+  totalSpeakers: number;     // ← ADDED
   totalShows: number;
-  publishedShows: number;
+  pendingComments: number;
 }
 
-// Normalize API data safely
+// 🔥 UPDATED: Normalize API data safely
 const normalizeStats = (data: Partial<AdminStats>): AdminStats => ({
   totalUsers: data.totalUsers ?? 0,
-  totalPosts: data.totalPosts ?? 0,
+  totalComments: data.totalComments ?? 0,
   publishedPosts: data.publishedPosts ?? 0,
-  draftPosts: data.draftPosts ?? 0,
+  draftPosts: data.draftPosts ?? 0,           // ← ADDED
+  totalSpeakers: data.totalSpeakers ?? 0,     // ← ADDED
   totalShows: data.totalShows ?? 0,
-  publishedShows: data.publishedShows ?? 0
+  pendingComments: data.pendingComments ?? 0
 });
 
 export const Admin: React.FC = () => {
@@ -109,19 +111,46 @@ export const Admin: React.FC = () => {
           <div style={{ color: theme.colors.textSecondary }}>{loading && <span>🔄</span>}👋 {user?.name || user?.email}</div>
         </div>
 
-        {/* Stats Cards */}
+        {/* 🔥 UPDATED: Stats Cards - Clean Layout */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:theme.spacing.lg, marginBottom:theme.spacing.xl }}>
           {[
-            { icon:'👥', label:'Total Users', value: stats.totalUsers },
-            { icon:'📝', label:'Total Posts', value: stats.totalPosts },
-            { icon:'✅', label:'Published', value: stats.publishedPosts },
-            { icon:'📄', label:'Drafts', value: stats.draftPosts },
-            { icon:'📹', label:'Past Shows', value: stats.totalShows }
+            { icon:'👥', label:'Total Users', value: stats.totalUsers, color: theme.colors.primary },
+            { icon:'✅', label:'Published Posts', value: stats.publishedPosts, color: '#22c55e' },
+            { icon:'📄', label:'Draft Posts', value: stats.draftPosts, color: '#f59e0b' },
+            { icon:'🎤', label:'Total Speakers', value: stats.totalSpeakers, color: '#8b5cf6' },
+            { icon:'📹', label:'Past Shows', value: stats.totalShows, color: '#ef4444' }
           ].map((card, i) => (
-            <div key={i} style={{ backgroundColor: theme.colors.background, padding:theme.spacing.lg, borderRadius:'12px', textAlign:'center', border:`1px solid ${theme.colors.border}`, boxShadow:theme.shadows.md }}>
+            <div 
+              key={i} 
+              style={{ 
+                backgroundColor: theme.colors.background, 
+                padding: theme.spacing.lg, 
+                borderRadius: '12px', 
+                textAlign: 'center', 
+                border: `1px solid ${theme.colors.border}`, 
+                boxShadow: theme.shadows.md,
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = theme.shadows.lg;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = theme.shadows.md;
+              }}
+            >
               <div style={{ fontSize:'2rem', marginBottom:theme.spacing.sm }}>{card.icon}</div>
-              <h3 style={{ color: theme.colors.primary, margin:0 }}>{card.label}</h3>
-              <p style={{ fontSize: theme.typography.sizes.xl, fontWeight: theme.typography.weights.bold, margin: theme.spacing.xs }}>{card.value}</p>
+              <h3 style={{ color: card.color, margin:0, fontSize: theme.typography.sizes.sm }}>{card.label}</h3>
+              <p style={{ 
+                fontSize: theme.typography.sizes.xl, 
+                fontWeight: theme.typography.weights.bold, 
+                margin: theme.spacing.xs,
+                color: theme.colors.text
+              }}>
+                {card.value}
+              </p>
             </div>
           ))}
         </div>

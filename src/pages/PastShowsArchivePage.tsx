@@ -556,35 +556,6 @@ export const PastShowsArchivePage: React.FC = () => {
           )}
         </div>
 
-        {/* Featured Shows Section */}
-        {featuredShows.length > 0 && searchTerm === '' && selectedTopic === 'all' && selectedYear === 'all' && (
-          <section style={{ marginBottom: theme.spacing.xl }}>
-            <h2 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              fontWeight: theme.typography.weights.bold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.lg,
-              textAlign: 'center'
-            }}>
-              ⭐ Featured Presentations
-            </h2>
-            <div style={gridStyle}>
-              {featuredShows.slice(0, 4).map((show) => (
-                <PastShowVideo 
-                  key={show.id} 
-                  {...show} 
-                  onClick={() => handleShowClick(show)}
-                />
-              ))}
-            </div>
-            <div style={{
-              height: '2px',
-              background: `linear-gradient(90deg, transparent, ${theme.colors.border}, transparent)`,
-              margin: `${theme.spacing.xl} 0`
-            }} />
-          </section>
-        )}
-
         {/* Main Shows Grid */}
         {currentShows.length === 0 ? (
           <div style={{
