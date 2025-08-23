@@ -6,7 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { showsApi, postsApi } from '/home/lucian/projects/wyl/src/utils/apiService';
+import { showsApi, postsApi } from '../../utils/apiService';
 
 
 interface SearchResult {
