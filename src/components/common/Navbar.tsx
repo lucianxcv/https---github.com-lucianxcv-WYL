@@ -364,7 +364,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* Admin Link */}
                 {isAdmin && (
                   <a
-                    href="#admin"
+                    href="/admin"
                     style={{
                       ...secondaryButtonStyle,
                       padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
@@ -372,7 +372,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                     onClick={(e) => {
                       e.preventDefault();
-                      window.location.hash = '#admin';
+                      window.location.hash = '/admin';
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#475569';

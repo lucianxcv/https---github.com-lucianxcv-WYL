@@ -548,8 +548,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
         </div>
       </div>
 
-// Enhanced Comment Form Section (for your CommentsSection.tsx)
-// This replaces your existing comment form
+
 
 {/* Enhanced Comment Form with Validation */}
 {isAuthenticated ? (
