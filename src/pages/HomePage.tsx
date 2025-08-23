@@ -1,11 +1,14 @@
 /**
- * ENHANCED HOMEPAGE COMPONENT - REAL DATA INTEGRATION (COMPLETE)
+ * ENHANCED HOMEPAGE COMPONENT - REACT ROUTER VERSION
  * 
- * Updated to use real API data for both blog posts and past shows
- * with improved compact layout for video cards
+ * Updated to use React Router navigation instead of hash-based routing:
+ * - useNavigate() for programmatic navigation
+ * - Clean URL navigation for blog posts and shows
+ * - Backwards compatible with existing functionality
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
@@ -20,15 +23,31 @@ import { CommentsSection } from '../components/home/CommentsSection';
 import { MultiLocationWeather } from '../components/home/MultiLocationWeather';
 import { useSpeakers } from '../hooks/useSpeakers';
 import { useBlogPosts } from '../hooks/useBlogPosts';
-import { usePastShows } from '../hooks/usePastShows'; // ← New import
+import { usePastShows } from '../hooks/usePastShows';
 
 export const HomePage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   // Get dynamic data from our hooks
   const { thisWeekSpeaker, upcomingSpeakers, loading: speakersLoading } = useSpeakers();
   const { latestPosts, loading: postsLoading } = useBlogPosts();
-  const { latestShows, loading: showsLoading } = usePastShows(); // ← Use latestShows instead of featuredShows
+  const { latestShows, loading: showsLoading } = usePastShows();
+
+  // Handle URL parameters for smooth scrolling to sections
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [searchParams]);
 
   // Global page styling with theme support
   const pageStyle: React.CSSProperties = {
@@ -95,50 +114,55 @@ export const HomePage: React.FC = () => {
     return possibleTags.filter(tag => text.includes(tag)).slice(0, 3);
   };
 
-  // Handle search result clicks
+  // UPDATED: Handle search result clicks with React Router
   const handleSearchResultClick = (result: any) => {
     if (result.type === 'speaker') {
       const speakerSection = document.getElementById('upcoming');
       speakerSection?.scrollIntoView({ behavior: 'smooth' });
-    } else if (result.type === 'blog') {
+    } else if (result.type === 'blog' || result.type === 'article') {
       if (result.slug) {
-        window.location.hash = `#posts/${result.slug}`;
+        navigate(`/posts/${result.slug}`);
       } else {
-        window.location.hash = `#blog-post-${result.id}`;
+        console.warn('⚠️ No slug available for post, using ID fallback:', result.id);
+        navigate(`/blog-post-${result.id}`);
       }
-    } else if (result.type === 'presentation') {
-      window.location.hash = '#past-shows';
+    } else if (result.type === 'presentation' || result.type === 'show') {
+      if (result.slug) {
+        navigate(`/shows/${result.slug}`);
+      } else {
+        navigate('/past-shows');
+      }
     }
   };
 
-  // Handle blog post clicks - UPDATED FOR SLUG NAVIGATION
+  // UPDATED: Handle blog post clicks with React Router
   const handleBlogPostClick = (post: any) => {
     if (post.slug) {
-      window.location.hash = `#posts/${post.slug}`;
+      navigate(`/posts/${post.slug}`);
     } else {
       console.warn('⚠️ No slug available for post, using ID fallback:', post.id);
-      window.location.hash = `#blog-post-${post.id}`;
+      navigate(`/blog-post-${post.id}`);
     }
   };
 
-  // 🔥 NEW: Handle past show clicks with slug navigation
+  // UPDATED: Handle past show clicks with React Router
   const handlePastShowClick = (show: any) => {
     if (show.slug) {
-      window.location.hash = `#shows/${show.slug}`;
+      navigate(`/shows/${show.slug}`);
     } else {
       console.warn('⚠️ No slug available for show, using ID fallback:', show.id);
-      window.location.hash = `#past-show-${show.id}`;
+      navigate(`/past-show-${show.id}`);
     }
   };
 
-  // Navigate to all articles page
+  // UPDATED: Navigate to all articles page with React Router
   const handleViewAllArticles = () => {
-    window.location.hash = '#articles';
+    navigate('/articles');
   };
 
-  // Navigate to past shows archive
+  // UPDATED: Navigate to past shows archive with React Router
   const handleViewAllPresentations = () => {
-    window.location.hash = '#past-shows';
+    navigate('/past-shows');
   };
 
   return (
@@ -325,7 +349,7 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* 🔥 UPDATED: Latest 2 Presentations - Simple Layout */}
+        {/* Latest Presentations */}
         <section style={sectionStyle} id="past-shows">
           <h2 style={sectionTitleStyle}>🎥 Latest Presentations</h2>
           
@@ -342,18 +366,18 @@ export const HomePage: React.FC = () => {
                   display: 'grid',
                   gridTemplateColumns: latestShows.length === 1 
                     ? '1fr' 
-                    : 'repeat(auto-fit, minmax(350px, 1fr))', // ← UPDATED: Better for 2 cards
+                    : 'repeat(auto-fit, minmax(350px, 1fr))',
                   gap: theme.spacing.xl,
                   marginBottom: theme.spacing.lg,
-                  maxWidth: '900px', // ← UPDATED: Wider for 2 side-by-side cards
+                  maxWidth: '900px',
                   margin: `0 auto ${theme.spacing.lg} auto`
                 }}
               >
-                {latestShows.slice(0, 2).map((show) => ( // ← UPDATED: Show latest 2 shows only
+                {latestShows.slice(0, 2).map((show) => (
                   <PastShowVideo 
                     key={show.id} 
                     {...show} 
-                    compact={false} // ← UPDATED: Use normal size for better visibility
+                    compact={false}
                     onClick={() => handlePastShowClick(show)}
                   />
                 ))}
@@ -529,7 +553,7 @@ export const HomePage: React.FC = () => {
               marginBottom: theme.spacing.md,
               textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
             }}>
-              🚀 Join the Maritime Community
+              ⛵ Join the WEDNESDAY YACHTING LUNCHEON Community
             </h3>
             
             <p style={{

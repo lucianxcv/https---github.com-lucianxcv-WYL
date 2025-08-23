@@ -529,36 +529,6 @@ export const Footer: React.FC<FooterProps> = ({
           )}
         </div>
 
-        {/* Legal Links */}
-        <div style={{
-          borderTop: '1px solid #1e293b',
-          paddingTop: theme.spacing.md,
-          marginTop: theme.spacing.lg,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: theme.spacing.lg,
-          flexWrap: 'wrap'
-        }}>
-          {['Privacy Policy', 'Terms of Service', 'Club Rules', 'Accessibility'].map((item, index) => (
-            <a
-              key={index}
-              href={`#${item.toLowerCase().replace(' ', '-')}`}
-              style={{
-                ...linkStyle,
-                fontSize: theme.typography.sizes.sm,
-                marginBottom: 0
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#cbd5e1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#64748b';
-              }}
-            >
-              {item}
-            </a>
-          ))}
-        </div>
 
         {/* Prestige Badge & Developer Credit */}
         <div style={{

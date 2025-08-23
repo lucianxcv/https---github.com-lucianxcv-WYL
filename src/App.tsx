@@ -1,12 +1,15 @@
 /**
- * MAIN APPLICATION COMPONENT - ENHANCED ROUTING WITH SHOW SUPPORT
+ * MAIN APPLICATION COMPONENT - REACT ROUTER VERSION
  *
- * Now includes both blog posts and show episodes with slug-based routing:
- * - #posts/{slug} for blog articles
- * - #shows/{slug} for past show episodes
+ * Migrated from hash-based routing to React Router:
+ * - Clean URLs: /posts/slug instead of #posts/slug
+ * - Automatic scroll to top on navigation
+ * - Better SEO and sharing
+ * - Professional URL structure
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { HomePage } from './pages/HomePage';
 import { Admin } from './pages/Admin';
@@ -14,114 +17,168 @@ import { Auth } from './pages/Auth';
 import { AllArticlesPage } from './pages/AllArticlesPage';
 import { BlogPostPage } from './pages/BlogPostPage';
 import { PastShowsArchivePage } from './pages/PastShowsArchivePage';
-import { PastShowPage } from './pages/PastShowPage'; // ← New import
+import { PastShowPage } from './pages/PastShowPage';
 import { useAuth } from './utils/useAuth';
 
-const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [routeParams, setRouteParams] = useState<{[key: string]: string}>({});
+// Component to handle scroll to top on route changes
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Scroll to top whenever the route changes
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+// Component to handle hash URL redirects for backwards compatibility
+const HashRedirect: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Handle old hash URLs for backwards compatibility
+    const hash = window.location.hash;
+    if (hash) {
+      console.log('🔄 Redirecting hash URL:', hash);
+      
+      // Remove the hash from URL and navigate to clean path
+      let newPath = hash.slice(1); // Remove the '#'
+      
+      // Handle specific hash patterns
+      if (newPath === '' || newPath === 'home') {
+        newPath = '/';
+      } else if (newPath === 'upcoming') {
+        newPath = '/?scroll=upcoming'; // Special case for sections
+      } else if (!newPath.startsWith('/')) {
+        newPath = '/' + newPath; // Ensure it starts with '/'
+      }
+      
+      // Clear the hash and navigate
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      navigate(newPath);
+    }
+  }, [navigate]);
+
+  return null;
+};
+
+// Protected Route wrapper for admin pages
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({ 
+  children, 
+  requireAdmin = false 
+}) => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
-  // Parse the URL hash to extract page and parameters
-  const parseRoute = (hash: string): { page: string; params: {[key: string]: string} } => {
-    const route = hash.slice(1); // Remove the '#'
-    
-    // Handle different route patterns
-    if (route.startsWith('posts/')) {
-      // Blog post slug routing: #posts/my-article-slug
-      const slug = route.replace('posts/', '');
-      return { page: 'blog-post', params: { slug } };
-    }
-    
-    if (route.startsWith('post/')) {
-      // Alternative blog post format: #post/my-article-slug
-      const slug = route.replace('post/', '');
-      return { page: 'blog-post', params: { slug } };
-    }
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        fontFamily: 'Arial, sans-serif',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <div style={{ fontSize: '3rem' }}>⚓</div>
+        <div>🔄 Loading...</div>
+      </div>
+    );
+  }
 
-    if (route.startsWith('shows/')) {
-      // Show episode slug routing: #shows/my-episode-slug
-      const slug = route.replace('shows/', '');
-      return { page: 'past-show', params: { slug } };
-    }
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
 
-    if (route.startsWith('show/')) {
-      // Alternative show format: #show/my-episode-slug  
-      const slug = route.replace('show/', '');
-      return { page: 'past-show', params: { slug } };
-    }
-    
-    if (route.startsWith('blog-post-')) {
-      // Legacy blog post ID routing: #blog-post-123 (backward compatibility)
-      const postId = route.replace('blog-post-', '');
-      return { page: 'blog-post', params: { postId } };
-    }
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
-    if (route.startsWith('past-show-')) {
-      // Legacy show ID routing: #past-show-123 (backward compatibility)
-      const showId = route.replace('past-show-', '');
-      return { page: 'past-show', params: { showId } };
-    }
-    
-    if (route.startsWith('articles')) {
-      return { page: 'articles', params: {} };
-    }
-    
-    if (route.startsWith('past-shows') || route.startsWith('archive')) {
-      return { page: 'past-shows', params: {} };
-    }
-    
-    // Handle simple routes
-    switch (route) {
-      case 'home':
-      case '':
-        return { page: 'home', params: {} };
-      case 'auth':
-      case 'login':
-        return { page: 'auth', params: {} };
-      case 'admin':
-        return { page: 'admin', params: {} };
-      default:
-        return { page: 'home', params: {} };
-    }
-  };
+  return <>{children}</>;
+};
 
-  // Listen for URL hash changes to handle routing
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      const { page, params } = parseRoute(hash);
-      console.log('🧭 Route changed:', { hash, page, params });
-      setCurrentPage(page);
-      setRouteParams(params);
-    };
+// Auth Route wrapper - redirects to home if already authenticated
+const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-    // Set initial page based on current URL
-    handleHashChange();
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        fontFamily: 'Arial, sans-serif',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <div style={{ fontSize: '3rem' }}>⚓</div>
+        <div>🔄 Loading...</div>
+      </div>
+    );
+  }
 
-    // Listen for hash changes (when user clicks links or uses back/forward)
-    window.addEventListener('hashchange', handleHashChange);
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
-    // Cleanup: remove event listener when component unmounts
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  return <>{children}</>;
+};
 
-  // Handle authentication-based redirects
-  useEffect(() => {
-    if (!isLoading) {
-      // If user is on auth page but already authenticated, redirect to home
-      if (currentPage === 'auth' && isAuthenticated) {
-        window.location.hash = '#home';
-        return;
-      }
+// Main App Router Component
+const AppRouter: React.FC = () => {
+  return (
+    <Routes>
+      {/* Home Routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/home" element={<Navigate to="/" replace />} />
+      
+      {/* Content Routes */}
+      <Route path="/articles" element={<AllArticlesPage />} />
+      <Route path="/posts/:slug" element={<BlogPostPage />} />
+      <Route path="/past-shows" element={<PastShowsArchivePage />} />
+      <Route path="/shows/:slug" element={<PastShowPage />} />
+      
+      {/* Legacy ID-based routes (backwards compatibility) */}
+      <Route path="/blog-post-:postId" element={<BlogPostPage />} />
+      <Route path="/past-show-:showId" element={<PastShowPage />} />
+      
+      {/* Auth Routes */}
+      <Route 
+        path="/auth" 
+        element={
+          <AuthRoute>
+            <Auth />
+          </AuthRoute>
+        } 
+      />
+      
+      {/* Protected Admin Route */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <Admin />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Special routes for homepage sections */}
+      <Route path="/upcoming" element={<Navigate to="/?section=upcoming" replace />} />
+      
+      {/* Catch-all route - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
 
-      // If user tries to access admin page but is not admin, redirect to home
-      if (currentPage === 'admin' && (!isAuthenticated || !isAdmin)) {
-        window.location.hash = '#home';
-        return;
-      }
-    }
-  }, [currentPage, isAuthenticated, isAdmin, isLoading]);
+// Main App Component
+const App: React.FC = () => {
+  const { isLoading } = useAuth();
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -144,77 +201,13 @@ const App: React.FC = () => {
     );
   }
 
-  // Render the appropriate page based on current route
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'admin':
-        // Only render admin if user is authenticated and is admin
-        if (isAuthenticated && isAdmin) {
-          return <Admin />;
-        }
-        // Otherwise redirect to home (handled by useEffect above)
-        return <HomePage />;
-        
-      case 'auth':
-        // If already authenticated, redirect to home (handled by useEffect above)
-        if (isAuthenticated) {
-          return <HomePage />;
-        }
-        return <Auth />;
-
-      case 'articles':
-        return <AllArticlesPage />;
-
-      case 'blog-post':
-        // Extract slug or fallback to ID from route params
-        const slug = routeParams.slug;
-        const postId = routeParams.postId;
-        
-        if (slug) {
-          // Use slug-based BlogPostPage
-          return <BlogPostPage slug={slug} />;
-        } else if (postId) {
-          // Legacy support: use ID to look up slug, then redirect
-          console.log('⚠️ Legacy blog post ID-based route detected, should redirect to slug');
-          return <BlogPostPage postId={postId} />;
-        } else {
-          // No valid identifier, redirect to articles
-          console.log('❌ No valid blog post identifier found');
-          setTimeout(() => window.location.hash = '#articles', 0);
-          return <AllArticlesPage />;
-        }
-
-      case 'past-show':
-        // Extract slug or fallback to ID from route params
-        const showSlug = routeParams.slug;
-        const showId = routeParams.showId;
-        
-        if (showSlug) {
-          // Use slug-based PastShowPage
-          return <PastShowPage slug={showSlug} />;
-        } else if (showId) {
-          // Legacy support: use ID to look up slug, then redirect
-          console.log('⚠️ Legacy show ID-based route detected, should redirect to slug');
-          return <PastShowPage showId={showId} />;
-        } else {
-          // No valid identifier, redirect to past shows
-          console.log('❌ No valid show identifier found');
-          setTimeout(() => window.location.hash = '#past-shows', 0);
-          return <PastShowsArchivePage />;
-        }
-
-      case 'past-shows':
-        return <PastShowsArchivePage />;
-        
-      case 'home':
-      default:
-        return <HomePage />;
-    }
-  };
-
   return (
     <ThemeProvider>
-      {renderCurrentPage()}
+      <BrowserRouter>
+        <ScrollToTop />
+        <HashRedirect />
+        <AppRouter />
+      </BrowserRouter>
     </ThemeProvider>
   );
 };

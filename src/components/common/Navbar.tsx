@@ -1,16 +1,15 @@
 /**
- * CLASSIC SIMPLE NAVIGATION COMPONENT WITH SCROLL HIDE
+ * NAVBAR COMPONENT - REACT ROUTER VERSION
  * 
- * Maintained original design with:
- * - Original emoji icons
- * - Clean, simple structure
- * - Elegant navy background
- * - Original navigation items
- * - Simple, readable layout
- * - NEW: Hide navbar on scroll down, show on scroll up
+ * Updated to use React Router Links instead of hash navigation:
+ * - Link components instead of <a> tags
+ * - useLocation for active state detection
+ * - useNavigate for programmatic navigation
+ * - Clean URL navigation
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../theme/ThemeProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '../../utils/useAuth';
@@ -28,9 +27,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { user, isAuthenticated, isAdmin, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
   const [prevScrollY, setPrevScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Determine active section based on current route
+  const getActiveSection = () => {
+    const path = location.pathname;
+    if (path === '/' || path === '/home') return 'home';
+    if (path === '/upcoming') return 'speakers';
+    if (path === '/past-shows') return 'past-shows';
+    if (path.startsWith('/posts/') || path === '/articles') return 'articles';
+    if (path.startsWith('/shows/')) return 'past-shows';
+    return 'home';
+  };
+
+  const activeSection = getActiveSection();
 
   // Handle scroll effect with hide/show functionality
   useEffect(() => {
@@ -56,18 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [prevScrollY]);
-
-  // Handle section detection
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || 'home';
-      setActiveSection(hash);
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
   const navbarStyle: React.CSSProperties = {
     position: 'fixed',
@@ -129,7 +131,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     borderRadius: '6px',
     transition: 'all 0.3s ease',
     position: 'relative',
-    borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent' // Blue accent for active
+    borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent', // Blue accent for active
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing.xs
   });
 
   const userMenuStyle: React.CSSProperties = {
@@ -226,28 +231,35 @@ export const Navbar: React.FC<NavbarProps> = ({
     textDecoration: 'none'
   };
 
-  // Original navigation items with emojis
+  // Updated navigation items with React Router paths
   const navItems = [
-    { id: 'home', label: 'Home', href: '#home', icon: '🏠' },
-    { id: 'speakers', label: 'Upcoming Speakers', href: '#upcoming', icon: '🎤' },
-    { id: 'past-shows', label: 'Past Shows', href: '#past-shows', icon: '🎥' }
+    { id: 'home', label: 'Home', href: '/', icon: '🏠' },
+    { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '🎤' },
+    { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '🎥' }
   ];
 
-  const handleNavClick = (href: string) => {
-    window.location.hash = href;
+  // Handle navigation with smooth scrolling for same-page sections
+  const handleNavClick = (href: string, itemId: string) => {
     setIsMobileMenuOpen(false);
     
-    // Smooth scroll to section
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    // Special handling for upcoming speakers (same page section)
+    if (itemId === 'speakers' && location.pathname === '/') {
+      const element = document.getElementById('upcoming');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
     }
+    
+    // For other routes, use React Router navigation
+    navigate(href);
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setIsMobileMenuOpen(false);
+      navigate('/');
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -271,13 +283,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       <nav style={navbarStyle}>
         <div style={containerStyle}>
           {/* Logo */}
-          <a 
-            href="#home" 
+          <Link 
+            to="/" 
             style={logoStyle}
-            onClick={(e) => {
-              e.preventDefault();
-              handleNavClick('#home');
-            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)';
             }}
@@ -287,37 +295,60 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <span style={{ fontSize: '1.5rem' }}>🛥️</span>
             <span>Wednesday Yachting Luncheon</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <ul style={desktopMenuStyle} className="desktop-menu">
             {navItems.map((item) => (
               <li key={item.id}>
-                <a
-                  href={item.href}
-                  style={navLinkStyle(activeSection === item.id)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavClick(item.href);
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeSection !== item.id) {
-                      e.currentTarget.style.color = '#f8fafc';
-                      e.currentTarget.style.backgroundColor = '#334155';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeSection !== item.id) {
-                      e.currentTarget.style.color = '#cbd5e1';
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
-                >
-                  <span style={{ marginRight: theme.spacing.xs }}>
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </a>
+                {item.id === 'speakers' ? (
+                  // Special case: Upcoming speakers - handle as button for smooth scroll
+                  <button
+                    style={{
+                      ...navLinkStyle(activeSection === item.id),
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleNavClick(item.href, item.id)}
+                    onMouseEnter={(e) => {
+                      if (activeSection !== item.id) {
+                        e.currentTarget.style.color = '#f8fafc';
+                        e.currentTarget.style.backgroundColor = '#334155';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeSection !== item.id) {
+                        e.currentTarget.style.color = '#cbd5e1';
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                ) : (
+                  // Regular React Router Links
+                  <Link
+                    to={item.href}
+                    style={navLinkStyle(activeSection === item.id)}
+                    onMouseEnter={(e) => {
+                      if (activeSection !== item.id) {
+                        e.currentTarget.style.color = '#f8fafc';
+                        e.currentTarget.style.backgroundColor = '#334155';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeSection !== item.id) {
+                        e.currentTarget.style.color = '#cbd5e1';
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -363,16 +394,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Admin Link */}
                 {isAdmin && (
-                  <a
-                    href="#admin"
+                  <Link
+                    to="/admin"
                     style={{
                       ...secondaryButtonStyle,
                       padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
                       fontSize: theme.typography.sizes.xs
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.location.hash = '#admin';
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#475569';
@@ -384,7 +411,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     ⚙️ Admin
-                  </a>
+                  </Link>
                 )}
 
                 {/* Sign Out */}
@@ -410,13 +437,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
             ) : (
-              <a
-                href="#auth"
+              <Link
+                to="/auth"
                 style={actionButtonStyle}
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.hash = '#auth';
-                }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#2563eb';
                   e.currentTarget.style.transform = 'translateY(-1px)';
@@ -427,7 +450,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
               >
                 🔐 Login
-              </a>
+              </Link>
             )}
 
             {/* Mobile Menu Button */}
@@ -452,28 +475,47 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div style={mobileMenuContentStyle}>
             {/* Mobile Navigation Items */}
             {navItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.href}
-                style={{
-                  ...navLinkStyle(activeSection === item.id),
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: theme.spacing.md,
-                  border: '1px solid #334155',
-                  borderRadius: '6px',
-                  backgroundColor: activeSection === item.id 
-                    ? '#334155' 
-                    : 'transparent'
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(item.href);
-                }}
-              >
-                <span style={{ marginRight: theme.spacing.sm }}>{item.icon}</span>
-                {item.label}
-              </a>
+              <div key={item.id}>
+                {item.id === 'speakers' ? (
+                  <button
+                    style={{
+                      ...navLinkStyle(activeSection === item.id),
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: theme.spacing.md,
+                      border: '1px solid #334155',
+                      borderRadius: '6px',
+                      backgroundColor: activeSection === item.id 
+                        ? '#334155' 
+                        : 'transparent',
+                      justifyContent: 'flex-start'
+                    }}
+                    onClick={() => handleNavClick(item.href, item.id)}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    to={item.href}
+                    style={{
+                      ...navLinkStyle(activeSection === item.id),
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: theme.spacing.md,
+                      border: '1px solid #334155',
+                      borderRadius: '6px',
+                      backgroundColor: activeSection === item.id 
+                        ? '#334155' 
+                        : 'transparent'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                )}
+              </div>
             ))}
 
             {/* Mobile User Actions */}
@@ -516,17 +558,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                   {/* Admin Link (Mobile) */}
                   {isAdmin && (
-                    <a
-                      href="#admin"
+                    <Link
+                      to="/admin"
                       style={{...actionButtonStyle, width: '100%', justifyContent: 'center'}}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.location.hash = '#admin';
-                        setIsMobileMenuOpen(false);
-                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       ⚙️ Admin Dashboard
-                    </a>
+                    </Link>
                   )}
 
                   {/* Sign Out (Mobile) */}
@@ -542,17 +580,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 </div>
               ) : (
-                <a
-                  href="#auth"
+                <Link
+                  to="/auth"
                   style={{...actionButtonStyle, width: '100%', justifyContent: 'center'}}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.hash = '#auth';
-                    setIsMobileMenuOpen(false);
-                  }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   🔐 Login
-                </a>
+                </Link>
               )}
             </div>
           </div>
