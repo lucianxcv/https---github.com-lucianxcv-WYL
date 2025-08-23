@@ -1,311 +1,57 @@
 /**
- * ENHANCED GLOBAL SEARCH COMPONENT
+ * FUNCTIONAL GLOBAL SEARCH COMPONENT
  * 
- * Major improvements:
- * - Modern search UI with better UX
- * - Real-time search suggestions
- * - Category filtering
- * - Search history
- * - Enhanced results display
- * - Keyboard navigation
- * - Loading states and animations
- * - Better mobile responsiveness
+ * Simple search for show titles and article titles
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
-import { useGlobalSearch } from '../../hooks/useGlobalSearch';
+import { showsApi, postsApi } from '/home/lucian/projects/wyl/src/utils/apiService';
+
 
 interface SearchResult {
   id: string;
   title: string;
-  type: 'speaker' | 'blog' | 'presentation' | 'weather';
-  excerpt?: string;
-  category?: string;
+  type: 'show' | 'article';
+  description?: string;
+  speakerName?: string; // For shows
+  author?: string;      // For articles
   date?: string;
-  imageUrl?: string;
-  tags?: string[];
+  slug?: string;
 }
 
 interface GlobalSearchProps {
   onResultClick?: (result: SearchResult) => void;
-  placeholder?: string;
-  maxResults?: number;
-  showCategories?: boolean;
 }
 
-export const GlobalSearch: React.FC<GlobalSearchProps> = ({
-  onResultClick,
-  placeholder = "Search speakers, articles, presentations...",
-  maxResults = 8,
-  showCategories = true
-}) => {
+export const GlobalSearch: React.FC<GlobalSearchProps> = ({ onResultClick }) => {
   const theme = useTheme();
-  const { searchResults, loading, search } = useGlobalSearch();
   const [query, setQuery] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Search categories
-  const categories = [
-    { id: 'all', label: 'All', icon: '🔍' },
-    { id: 'speaker', label: 'Speakers', icon: '🎤' },
-    { id: 'blog', label: 'Articles', icon: '📝' },
-    { id: 'presentation', label: 'Presentations', icon: '🎥' },
-    { id: 'weather', label: 'Weather', icon: '🌊' }
-  ];
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (query.length >= 3) {
+        performSearch(query);
+      } else {
+        setResults([]);
+        setShowResults(false);
+      }
+    }, 300); // Wait 300ms after user stops typing
 
-  const containerStyle: React.CSSProperties = {
-    position: 'relative',
-    maxWidth: '600px',
-    margin: '0 auto'
-  };
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
-  const searchBoxStyle: React.CSSProperties = {
-    position: 'relative',
-    backgroundColor: theme.colors.background,
-    borderRadius: '20px',
-    border: `2px solid ${isOpen ? theme.colors.primary : theme.colors.border}`,
-    boxShadow: isOpen ? theme.shadows.lg : theme.shadows.md,
-    transition: 'all 0.3s ease',
-    overflow: 'hidden'
-  };
-
-  const inputContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing.md
-  };
-
-  const searchIconStyle: React.CSSProperties = {
-    fontSize: '1.5rem',
-    marginRight: theme.spacing.sm,
-    color: theme.colors.textSecondary
-  };
-
-  const inputStyle: React.CSSProperties = {
-    flex: 1,
-    border: 'none',
-    outline: 'none',
-    fontSize: theme.typography.sizes.lg,
-    backgroundColor: 'transparent',
-    color: theme.colors.text,
-    fontFamily: theme.typography.fontFamily,
-    fontWeight: theme.typography.weights.medium
-  };
-
-  const clearButtonStyle: React.CSSProperties = {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: theme.spacing.xs,
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: theme.colors.textSecondary,
-    transition: 'all 0.2s ease'
-  };
-
-  const categoriesStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: theme.spacing.xs,
-    padding: `0 ${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md}`,
-    borderTop: `1px solid ${theme.colors.border}`,
-    backgroundColor: theme.colors.surface
-  };
-
-  const categoryButtonStyle = (isActive: boolean): React.CSSProperties => ({
-    backgroundColor: isActive ? theme.colors.primary : 'transparent',
-    color: isActive ? '#ffffff' : theme.colors.textSecondary,
-    border: `1px solid ${isActive ? theme.colors.primary : theme.colors.border}`,
-    borderRadius: '20px',
-    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    whiteSpace: 'nowrap'
-  });
-
-  const dropdownStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    backgroundColor: theme.colors.background,
-    borderRadius: '16px',
-    border: `1px solid ${theme.colors.border}`,
-    boxShadow: theme.shadows.xl,
-    zIndex: 1000,
-    marginTop: theme.spacing.xs,
-    maxHeight: '400px',
-    overflowY: 'auto',
-    animation: 'slideDown 0.2s ease-out'
-  };
-
-  const resultItemStyle = (isSelected: boolean): React.CSSProperties => ({
-    padding: theme.spacing.md,
-    borderBottom: `1px solid ${theme.colors.border}`,
-    cursor: 'pointer',
-    backgroundColor: isSelected ? theme.colors.surface : 'transparent',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing.md
-  });
-
-  const resultIconStyle: React.CSSProperties = {
-    fontSize: '1.5rem',
-    flexShrink: 0
-  };
-
-  const resultContentStyle: React.CSSProperties = {
-    flex: 1,
-    minWidth: 0
-  };
-
-  const resultTitleStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.semibold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  };
-
-  const resultExcerptStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textSecondary,
-    lineHeight: 1.4,
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden'
-  };
-
-  const resultMetaStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
-    fontSize: theme.typography.sizes.xs,
-    color: theme.colors.textSecondary
-  };
-
-  const noResultsStyle: React.CSSProperties = {
-    padding: theme.spacing.xl,
-    textAlign: 'center',
-    color: theme.colors.textSecondary
-  };
-
-  const historyItemStyle: React.CSSProperties = {
-    padding: theme.spacing.sm,
-    borderBottom: `1px solid ${theme.colors.border}`,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    transition: 'all 0.2s ease'
-  };
-
-  // Get icon for result type
-  const getResultIcon = (type: string) => {
-    switch (type) {
-      case 'speaker': return '🎤';
-      case 'blog': return '📝';
-      case 'presentation': return '🎥';
-      case 'weather': return '🌊';
-      default: return '📄';
-    }
-  };
-
-  // Handle search
-  const handleSearch = async (searchQuery: string) => {
-    if (searchQuery.trim()) {
-      await search(searchQuery);
-      setIsOpen(true);
-      setShowHistory(false);
-    } else {
-      setIsOpen(false);
-    }
-  };
-
-  // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    setSelectedIndex(-1);
-    
-    if (value.trim()) {
-      handleSearch(value);
-    } else {
-      setIsOpen(false);
-      setShowHistory(true);
-    }
-  };
-
-  // Handle result click
-  const handleResultClick = (result: SearchResult) => {
-    // Add to search history
-    const newHistory = [query, ...searchHistory.filter(h => h !== query)].slice(0, 5);
-    setSearchHistory(newHistory);
-    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-    
-    setQuery(result.title);
-    setIsOpen(false);
-    onResultClick?.(result);
-  };
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < filteredResults.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : prev);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && filteredResults[selectedIndex]) {
-          handleResultClick(filteredResults[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setSelectedIndex(-1);
-        break;
-    }
-  };
-
-  // Filter results by category
-  const filteredResults = selectedCategory === 'all' 
-    ? searchResults.slice(0, maxResults)
-    : searchResults.filter(result => result.type === selectedCategory).slice(0, maxResults);
-
-  // Handle click outside
+  // Close results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setShowHistory(false);
+        setShowResults(false);
       }
     };
 
@@ -313,199 +59,281 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Load search history
-  useEffect(() => {
-    const saved = localStorage.getItem('searchHistory');
-    if (saved) {
-      setSearchHistory(JSON.parse(saved));
-    }
-  }, []);
+const performSearch = async (searchQuery: string) => {
+  if (!searchQuery || searchQuery.length < 3) return;
 
-  const animations = `
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+  setLoading(true);
+  try {
+    console.log('🔍 Searching for:', searchQuery);
+
+    // Search both shows and posts
+    const [allShows, postsResponse] = await Promise.all([
+      showsApi.getAll(), // Returns any[] directly
+      postsApi.getAll({ search: searchQuery, limit: 3, published: true }) // Returns PaginatedResponse<Post>
+    ]);
+
+    console.log('📊 Raw API results:', { 
+      shows: allShows?.length || 0, 
+      posts: postsResponse.data?.length || 0 
+    });
+
+    // Filter shows client-side (since showsApi doesn't support search)
+    const filteredShows = (allShows || []).filter((show: any) =>
+      show.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      show.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      show.speakerName?.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3); // Limit to 3 results
+
+    // Posts are already filtered server-side
+    const filteredPosts = postsResponse.data || [];
+
+    console.log('📊 Filtered results:', { 
+      shows: filteredShows.length, 
+      posts: filteredPosts.length 
+    });
+
+    const searchResults: SearchResult[] = [];
+
+    // Add show results
+    filteredShows.forEach((show: any) => {
+      searchResults.push({
+        id: show.id.toString(),
+        title: show.title,
+        type: 'show',
+        description: show.description,
+        speakerName: show.speakerName,
+        date: show.date,
+        slug: `show-${show.id}`
+      });
+    });
+
+    // Add article results  
+    filteredPosts.forEach((post: any) => {
+      searchResults.push({
+        id: post.id,
+        title: post.title,
+        type: 'article',
+        description: post.excerpt || post.description,
+        author: post.author?.name,
+        date: post.publishedAt || post.createdAt,
+        slug: post.slug
+      });
+    });
+
+    setResults(searchResults);
+    setShowResults(searchResults.length > 0);
+
+  } catch (error) {
+    console.error('❌ Search error:', error);
+    setResults([]);
+    setShowResults(false);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleResultClick = (result: SearchResult) => {
+    console.log('🎯 Search result clicked:', result);
+    
+    // Navigate to the content
+    if (result.type === 'show') {
+      window.location.hash = `#shows/${result.slug}`;
+    } else if (result.type === 'article') {
+      window.location.hash = `#posts/${result.slug}`;
     }
-  `;
+    
+    // Clear search
+    setQuery('');
+    setShowResults(false);
+    
+    // Call optional callback
+    if (onResultClick) {
+      onResultClick(result);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (results.length > 0) {
+      setShowResults(true);
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Styling
+  const containerStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '500px'
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+    fontSize: theme.typography.sizes.base,
+    border: `2px solid ${theme.colors.border}`,
+    borderRadius: '25px',
+    backgroundColor: theme.colors.background,
+    color: theme.colors.text,
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    paddingRight: '50px' // Space for search icon
+  };
+
+  const searchIconStyle: React.CSSProperties = {
+    position: 'absolute',
+    right: '15px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: theme.colors.textSecondary,
+    fontSize: '1.2rem',
+    pointerEvents: 'none'
+  };
+
+  const resultsStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '100%',
+    left: '0',
+    right: '0',
+    backgroundColor: theme.colors.background,
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: '12px',
+    boxShadow: theme.shadows.lg,
+    zIndex: 1000,
+    marginTop: '4px',
+    maxHeight: '400px',
+    overflowY: 'auto'
+  };
+
+  const resultItemStyle: React.CSSProperties = {
+    padding: theme.spacing.md,
+    cursor: 'pointer',
+    borderBottom: `1px solid ${theme.colors.border}`,
+    transition: 'all 0.2s ease'
+  };
+
+  const resultTypeStyle = (type: 'show' | 'article'): React.CSSProperties => ({
+    display: 'inline-block',
+    padding: '2px 8px',
+    borderRadius: '6px',
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.semibold,
+    backgroundColor: type === 'show' ? '#3b82f6' : '#10b981',
+    color: '#ffffff',
+    marginBottom: '4px'
+  });
+
+  const noResultsStyle: React.CSSProperties = {
+    padding: theme.spacing.lg,
+    textAlign: 'center',
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm
+  };
 
   return (
-    <>
-      <style>{animations}</style>
-      <div style={containerStyle} ref={searchRef}>
-        {/* Search Input */}
-        <div style={searchBoxStyle}>
-          <div style={inputContainerStyle}>
-            <div style={searchIconStyle}>🔍</div>
-            <input
-              ref={inputRef}
-              style={inputStyle}
-              type="text"
-              placeholder={placeholder}
-              value={query}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => {
-                if (query.trim()) {
-                  setIsOpen(true);
-                } else {
-                  setShowHistory(searchHistory.length > 0);
-                }
-              }}
-            />
-            {query && (
-              <button
-                style={clearButtonStyle}
-                onClick={() => {
-                  setQuery('');
-                  setIsOpen(false);
-                  setShowHistory(false);
-                  inputRef.current?.focus();
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.colors.surface;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
+    <div ref={searchRef} style={containerStyle}>
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="Search presentations and articles..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={handleInputFocus}
+        style={{
+          ...inputStyle,
+          borderColor: showResults ? theme.colors.primary : theme.colors.border
+        }}
+      />
+      
+      <div style={searchIconStyle}>
+        {loading ? '⏳' : '🔍'}
+      </div>
 
-          {/* Categories */}
-          {showCategories && isOpen && !showHistory && (
-            <div style={categoriesStyle}>
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  style={categoryButtonStyle(selectedCategory === category.id)}
-                  onClick={() => setSelectedCategory(category.id)}
+      {showResults && (
+        <div style={resultsStyle}>
+          {results.length > 0 ? (
+            <>
+              {results.map((result) => (
+                <div
+                  key={`${result.type}-${result.id}`}
+                  style={resultItemStyle}
+                  onClick={() => handleResultClick(result)}
                   onMouseEnter={(e) => {
-                    if (selectedCategory !== category.id) {
-                      e.currentTarget.style.backgroundColor = theme.colors.surface;
-                    }
+                    e.currentTarget.style.backgroundColor = theme.colors.surface;
                   }}
                   onMouseLeave={(e) => {
-                    if (selectedCategory !== category.id) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <span>{category.icon}</span>
-                  <span>{category.label}</span>
-                </button>
+                  <div style={resultTypeStyle(result.type)}>
+                    {result.type === 'show' ? '🎥 Show' : '📄 Article'}
+                  </div>
+                  
+                  <div style={{
+                    fontSize: theme.typography.sizes.md,
+                    fontWeight: theme.typography.weights.semibold,
+                    color: theme.colors.text,
+                    marginBottom: '4px'
+                  }}>
+                    {result.title}
+                  </div>
+                  
+                  {result.description && (
+                    <div style={{
+                      fontSize: theme.typography.sizes.sm,
+                      color: theme.colors.textSecondary,
+                      marginBottom: '4px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {result.description}
+                    </div>
+                  )}
+                  
+                  <div style={{
+                    fontSize: theme.typography.sizes.xs,
+                    color: theme.colors.textSecondary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm
+                  }}>
+                    {result.speakerName && (
+                      <span>👤 {result.speakerName}</span>
+                    )}
+                    {result.author && (
+                      <span>✍️ {result.author}</span>
+                    )}
+                    {result.date && (
+                      <span>📅 {formatDate(result.date)}</span>
+                    )}
+                  </div>
+                </div>
               ))}
+            </>
+          ) : (
+            <div style={noResultsStyle}>
+              {loading ? (
+                <div>🔍 Searching...</div>
+              ) : (
+                <div>
+                  No results found for "{query}"
+                  <br />
+                  <small>Try searching for presentation titles or article names</small>
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        {/* Search Results Dropdown */}
-        {(isOpen || showHistory) && (
-          <div style={dropdownStyle}>
-            {showHistory && searchHistory.length > 0 ? (
-              // Search History
-              <>
-                <div style={{
-                  padding: theme.spacing.md,
-                  borderBottom: `1px solid ${theme.colors.border}`,
-                  fontSize: theme.typography.sizes.sm,
-                  fontWeight: theme.typography.weights.semibold,
-                  color: theme.colors.textSecondary
-                }}>
-                  Recent Searches
-                </div>
-                {searchHistory.map((historyItem, index) => (
-                  <div
-                    key={index}
-                    style={historyItemStyle}
-                    onClick={() => {
-                      setQuery(historyItem);
-                      handleSearch(historyItem);
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = theme.colors.surface;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-                      <span>🕒</span>
-                      <span>{historyItem}</span>
-                    </div>
-                    <button
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: theme.colors.textSecondary,
-                        cursor: 'pointer',
-                        padding: theme.spacing.xs
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const newHistory = searchHistory.filter((_, i) => i !== index);
-                        setSearchHistory(newHistory);
-                        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </>
-            ) : (
-              // Search Results
-              <>
-                {loading ? (
-                  <div style={noResultsStyle}>
-                    <div style={{ fontSize: '2rem', marginBottom: theme.spacing.sm }}>⏳</div>
-                    <p>Searching...</p>
-                  </div>
-                ) : filteredResults.length > 0 ? (
-                  <>
-                    {filteredResults.map((result, index) => (
-                      <div
-                        key={result.id}
-                        style={resultItemStyle(index === selectedIndex)}
-                        onClick={() => handleResultClick(result)}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                      >
-                        <div style={resultIconStyle}>
-                          {getResultIcon(result.type)}
-                        </div>
-                        <div style={resultContentStyle}>
-                          <div style={resultTitleStyle}>{result.title}</div>
-                          {result.excerpt && (
-                            <div style={resultExcerptStyle}>{result.excerpt}</div>
-                          )}
-                          <div style={resultMetaStyle}>
-                            <span style={{ textTransform: 'capitalize' }}>{result.type}</span>
-                            {result.date && <span>📅 {result.date}</span>}
-                            {result.category && <span>🏷️ {result.category}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ) : query.trim() ? (
-                  <div style={noResultsStyle}>
-                    <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>🔍</div>
-                    <h3 style={{ marginBottom: theme.spacing.sm }}>No results found</h3>
-                    <p>Try adjusting your search terms or browse our categories.</p>
-                  </div>
-                ) : null}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 };
