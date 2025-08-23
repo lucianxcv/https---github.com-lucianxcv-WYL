@@ -192,7 +192,8 @@ const performSearch = async (searchQuery: string) => {
   const containerStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    maxWidth: '500px'
+    maxWidth: '500px',
+    margin: '0 auto'   // centers within parent
   };
 
   const inputStyle: React.CSSProperties = {
