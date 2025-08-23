@@ -1,13 +1,18 @@
 /**
- * COMMENTS HOOK - Real API Integration
+ * COMMENTS HOOK - Real API Integration (FIXED)
  * 
  * Custom hook for managing comments with real API calls
  * Supports general comments and show-specific comments
+ * 🔧 FIXED: Proper error handling and response validation
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { commentsApi } from '../utils/apiService';
-
+interface ApiResponse {
+  data?: any[];
+  comments?: any[];
+  [key: string]: any;
+}
 interface CommentAuthor {
   id: string;
   name: string;
@@ -52,80 +57,146 @@ export const useComments = (options: UseCommentsOptions = {}) => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load comments from API
-  const loadComments = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      let response;
-      if (showId) {
-        // Load comments for specific show
-        response = await commentsApi.getByShow(showId);
-      } else {
-        // Load general comments (homepage/community)
-        response = await commentsApi.getAll();
-      }
-      
-      // Transform API response to match our Comment interface
-      const transformedComments = response.map((comment: any) => ({
-        id: comment.id,
-        content: comment.content,
-        author: {
-          id: comment.author?.id || comment.authorId || 'unknown',
-          name: comment.author?.name || comment.authorName || 'Anonymous',
-          avatar: comment.author?.avatar || comment.authorAvatar,
-          role: comment.author?.role || 'USER'
-        },
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        replies: comment.replies?.map((reply: any) => ({
-          id: reply.id,
-          content: reply.content,
-          author: {
-            id: reply.author?.id || reply.authorId || 'unknown',
-            name: reply.author?.name || reply.authorName || 'Anonymous',
-            avatar: reply.author?.avatar || reply.authorAvatar,
-            role: reply.author?.role || 'USER'
-          },
-          createdAt: reply.createdAt,
-          updatedAt: reply.updatedAt,
-          reactions: {
-            likes: reply.likes || 0,
-            dislikes: reply.dislikes || 0,
-            userReaction: reply.userReaction || null
-          },
-          status: reply.status || 'approved'
-        })) || [],
-        reactions: {
-          likes: comment.likes || 0,
-          dislikes: comment.dislikes || 0,
-          userReaction: comment.userReaction || null
-        },
-        status: comment.status || 'approved',
-        showId: comment.showId
-      }));
-      
-      setComments(transformedComments);
-    } catch (err) {
-      console.error('Failed to load comments:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load comments');
-      
-      // Fallback to mock data if API fails (for development)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 Using mock data as fallback');
-        setComments(getMockComments());
-      }
-    } finally {
-      setLoading(false);
+// Load comments from API
+const loadComments = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    console.log('🔍 Loading comments...', { showId });
+    
+    let response: any; // Type the response properly
+    if (showId) {
+      // Load comments for specific show
+      response = await commentsApi.getByShow(showId);
+    } else {
+      // Load general comments (homepage/community)
+      response = await commentsApi.getAll();
     }
-  }, [showId]);
-
+    
+    console.log('📡 Raw API response:', response);
+    
+    // 🔧 FIXED: Handle different response formats
+    let commentsArray: any[] = [];
+    
+    if (Array.isArray(response)) {
+      // Direct array response
+      commentsArray = response;
+    } else if (response && (response as any).data && Array.isArray((response as any).data)) {
+      // Wrapped in data property
+      commentsArray = (response as any).data;
+    } else if (response && (response as any).comments && Array.isArray((response as any).comments)) {
+      // Wrapped in comments property
+      commentsArray = (response as any).comments;
+    } else if (response === null || response === undefined) {
+      // No comments exist - use empty array
+      commentsArray = [];
+      console.log('📝 No comments found, using empty array');
+    } else {
+      // Unexpected format
+      console.warn('⚠️ Unexpected response format:', typeof response, response);
+      commentsArray = [];
+    }
+    
+    console.log('📊 Processing comments array:', commentsArray.length, 'items');
+    
+    // 🔧 FIXED: Validate that we have an array before mapping
+    if (!Array.isArray(commentsArray)) {
+      console.error('❌ Expected array but got:', typeof commentsArray, commentsArray);
+      setComments([]);
+      return;
+    }
+    
+    // Transform API response to match our Comment interface
+    const transformedComments: Comment[] = commentsArray.map((comment: any, index: number) => {
+      try {
+        return {
+          id: comment.id || `temp-${index}`,
+          content: comment.content || 'No content',
+          author: {
+            id: comment.author?.id || comment.authorId || 'unknown',
+            name: comment.author?.name || comment.authorName || 'Anonymous',
+            avatar: comment.author?.avatar || comment.authorAvatar || undefined,
+            role: comment.author?.role || 'USER'
+          },
+          createdAt: comment.createdAt || new Date().toISOString(),
+          updatedAt: comment.updatedAt,
+          replies: comment.replies?.map((reply: any, replyIndex: number) => ({
+            id: reply.id || `temp-reply-${index}-${replyIndex}`,
+            content: reply.content || 'No content',
+            author: {
+              id: reply.author?.id || reply.authorId || 'unknown',
+              name: reply.author?.name || reply.authorName || 'Anonymous',
+              avatar: reply.author?.avatar || reply.authorAvatar || undefined,
+              role: reply.author?.role || 'USER'
+            },
+            createdAt: reply.createdAt || new Date().toISOString(),
+            updatedAt: reply.updatedAt,
+            reactions: {
+              likes: reply.likes || 0,
+              dislikes: reply.dislikes || 0,
+              userReaction: reply.userReaction || null
+            },
+            status: reply.status || 'approved'
+          })) || [],
+          reactions: {
+            likes: comment.likes || 0,
+            dislikes: comment.dislikes || 0,
+            userReaction: comment.userReaction || null
+          },
+          status: comment.status || 'approved',
+          showId: comment.showId
+        };
+      } catch (transformError) {
+        console.error('❌ Error transforming comment:', transformError, comment);
+        // Return a fallback Comment instead of null
+        return {
+          id: `error-${index}`,
+          content: 'Error loading comment',
+          author: { 
+            id: 'unknown', 
+            name: 'Unknown User', 
+            role: 'USER' as const 
+          },
+          createdAt: new Date().toISOString(),
+          reactions: { 
+            likes: 0, 
+            dislikes: 0, 
+            userReaction: null 
+          },
+          status: 'approved' as const,
+          replies: []
+        };
+      }
+    }); // No .filter() needed since we always return Comment
+    
+    console.log('✅ Transformed comments:', transformedComments.length);
+    setComments(transformedComments);
+    
+  } catch (err) {
+    console.error('❌ Failed to load comments:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load comments';
+    setError(errorMessage);
+    
+    // 🔧 FIXED: Always set empty array on error to prevent undefined issues
+    setComments([]);
+    
+    // Fallback to mock data if API fails (for development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Using mock data as fallback');
+      setComments(getMockComments());
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [showId]);
   // Submit new comment
   const submitComment = useCallback(async (commentData: CreateCommentData): Promise<Comment | null> => {
     try {
       setSubmitting(true);
       setError(null);
+      
+      console.log('📝 Submitting comment:', commentData);
       
       const response = await commentsApi.create({
         content: commentData.content,
@@ -134,24 +205,32 @@ export const useComments = (options: UseCommentsOptions = {}) => {
         status: 'pending' // Comments start as pending for moderation
       });
       
+      console.log('✅ Comment submission response:', response);
+      
+      // 🔧 FIXED: Handle different response formats for creation
+      let commentResult = response;
+      if (response && response.data) {
+        commentResult = response.data;
+      }
+      
       // Transform response to match our interface
       const newComment: Comment = {
-        id: response.id,
-        content: response.content,
+        id: commentResult.id || `temp-${Date.now()}`,
+        content: commentResult.content || commentData.content,
         author: {
-          id: response.author?.id || response.authorId,
-          name: response.author?.name || response.authorName,
-          avatar: response.author?.avatar || response.authorAvatar,
-          role: response.author?.role || 'USER'
+          id: commentResult.author?.id || commentResult.authorId || 'current-user',
+          name: commentResult.author?.name || commentResult.authorName || 'You',
+          avatar: commentResult.author?.avatar || commentResult.authorAvatar,
+          role: commentResult.author?.role || 'USER'
         },
-        createdAt: response.createdAt,
+        createdAt: commentResult.createdAt || new Date().toISOString(),
         reactions: {
           likes: 0,
           dislikes: 0,
           userReaction: null
         },
-        status: response.status || 'pending',
-        showId: response.showId,
+        status: commentResult.status || 'pending',
+        showId: commentResult.showId || showId,
         replies: []
       };
       
@@ -173,8 +252,9 @@ export const useComments = (options: UseCommentsOptions = {}) => {
       
       return newComment;
     } catch (err) {
-      console.error('Failed to submit comment:', err);
-      setError(err instanceof Error ? err.message : 'Failed to submit comment');
+      console.error('❌ Failed to submit comment:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit comment';
+      setError(errorMessage);
       return null;
     } finally {
       setSubmitting(false);
@@ -184,6 +264,8 @@ export const useComments = (options: UseCommentsOptions = {}) => {
   // Update comment reaction (like/dislike)
   const updateReaction = useCallback(async (commentId: string, reaction: 'like' | 'dislike') => {
     try {
+      console.log('👍 Updating reaction:', { commentId, reaction });
+      
       // Optimistically update UI
       setComments(prev => prev.map(comment => {
         if (comment.id === commentId) {
@@ -287,9 +369,10 @@ export const useComments = (options: UseCommentsOptions = {}) => {
       
       // Make API call to persist reaction
       await commentsApi.updateReaction(commentId, reaction);
+      
     } catch (err) {
-      console.error('Failed to update reaction:', err);
-      // Revert optimistic update on error
+      console.error('❌ Failed to update reaction:', err);
+      // Revert optimistic update on error by reloading comments
       await loadComments();
     }
   }, [loadComments]);
@@ -297,6 +380,8 @@ export const useComments = (options: UseCommentsOptions = {}) => {
   // Delete comment
   const deleteComment = useCallback(async (commentId: string): Promise<boolean> => {
     try {
+      console.log('🗑️ Deleting comment:', commentId);
+      
       await commentsApi.delete(commentId);
       
       // Remove from local state
@@ -313,8 +398,9 @@ export const useComments = (options: UseCommentsOptions = {}) => {
       
       return true;
     } catch (err) {
-      console.error('Failed to delete comment:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete comment');
+      console.error('❌ Failed to delete comment:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete comment';
+      setError(errorMessage);
       return false;
     }
   }, []);
