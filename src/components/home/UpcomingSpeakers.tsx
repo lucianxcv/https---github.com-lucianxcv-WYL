@@ -131,6 +131,25 @@ export const UpcomingSpeakers: React.FC<UpcomingSpeakersProps> = ({
     const [isHovered, setIsHovered] = useState(false);
     const [imageError, setImageError] = useState(false);
 
+    // Helper function to truncate bio to 2 sentences or ~150 characters
+    const getTruncatedBio = (bio: string): string => {
+      if (!bio) return '';
+      
+      // First, try to get the first 2 sentences
+      const sentences = bio.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      if (sentences.length >= 2) {
+        return sentences.slice(0, 2).join('. ') + '.';
+      }
+      
+      // If less than 2 sentences, truncate by character count
+      if (bio.length <= 150) return bio;
+      
+      // Find the last complete word before 150 characters
+      const truncated = bio.substring(0, 150);
+      const lastSpace = truncated.lastIndexOf(' ');
+      return truncated.substring(0, lastSpace) + '...';
+    };
+
     const cardStyle: React.CSSProperties = {
       backgroundColor: theme.colors.surface,
       borderRadius: '20px',
@@ -192,6 +211,17 @@ export const UpcomingSpeakers: React.FC<UpcomingSpeakersProps> = ({
       fontWeight: theme.typography.weights.medium
     };
 
+    // NEW: Bio snippet styling
+    const bioStyle: React.CSSProperties = {
+      fontSize: theme.typography.sizes.sm,
+      color: theme.colors.textSecondary,
+      lineHeight: 1.4,
+      marginBottom: theme.spacing.sm,
+      textAlign: 'left',
+      padding: `${theme.spacing.sm} 0`,
+      fontStyle: 'normal'
+    };
+
     const topicStyle: React.CSSProperties = {
       fontSize: theme.typography.sizes.sm,
       color: theme.colors.text,
@@ -201,7 +231,8 @@ export const UpcomingSpeakers: React.FC<UpcomingSpeakersProps> = ({
       display: '-webkit-box',
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      fontWeight: theme.typography.weights.medium
     };
 
     const dateContainerStyle: React.CSSProperties = {
@@ -294,9 +325,18 @@ export const UpcomingSpeakers: React.FC<UpcomingSpeakersProps> = ({
             <p style={companyStyle}>🏢 {speaker.company}</p>
           )}
 
+          {/* NEW: Bio Snippet */}
+          {speaker.bio && (
+            <p style={bioStyle}>
+              {getTruncatedBio(speaker.bio)}
+            </p>
+          )}
+
           {/* Topic */}
           {speaker.topic && (
-            <p style={topicStyle}>"{speaker.topic}"</p>
+            <p style={topicStyle}>
+              <strong>Topic:</strong> "{speaker.topic}"
+            </p>
           )}
 
           {/* Date */}
