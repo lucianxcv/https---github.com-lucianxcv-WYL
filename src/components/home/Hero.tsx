@@ -1,13 +1,5 @@
 /**
- * ENHANCED HERO SECTION WITH VIMEO VIDEO BACKGROUND
- * 
- * Features:
- * - Vimeo video background with overlay
- * - Fallback gradient background
- * - Interactive CTA buttons
- * - Enhanced countdown styling
- * - Responsive design
- * - Accessibility features
+ * FIXED HERO SECTION WITH MP4 VIDEO BACKGROUND
  */
 
 import React, { useState, useEffect } from 'react';
@@ -27,9 +19,8 @@ export const Hero: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Video configuration
-  //const vimeoVideoId = '1111866421';
-  const vimeoEmbedUrl = `https://static.clubessential.com/CEFED/_Axis-Website/Sites/StFrancisYachtClub2023/videos/2023_stfyc_homepage_video_smaller.mp4`;
+  // Video URL - Direct MP4 file
+  const videoUrl = `https://static.clubessential.com/CEFED/_Axis-Website/Sites/StFrancisYachtClub2023/videos/2023_stfyc_homepage_video_smaller.mp4`;
 
   // Main hero container with video background
   const heroStyle: React.CSSProperties = {
@@ -65,6 +56,7 @@ export const Hero: React.FC = () => {
     width: 'auto',
     height: 'auto',
     transform: 'translate(-50%, -50%)',
+    objectFit: 'cover' as const,
     opacity: videoLoaded && !videoError ? 1 : 0,
     transition: 'opacity 1s ease-in-out'
   };
@@ -109,16 +101,17 @@ export const Hero: React.FC = () => {
     transition: 'all 1s ease-out'
   };
 
-  // Handle video load events
+  // Handle video events
   const handleVideoLoad = () => {
     setVideoLoaded(true);
     setVideoError(false);
+    console.log('✅ Video loaded successfully');
   };
 
   const handleVideoError = () => {
     setVideoError(true);
     setVideoLoaded(false);
-    console.warn('Vimeo video failed to load, using fallback background');
+    console.warn('❌ Video failed to load, using fallback background');
   };
 
   // CSS animations
@@ -152,7 +145,7 @@ export const Hero: React.FC = () => {
     /* Mobile responsiveness for video */
     @media (max-width: 768px) {
       .hero-video {
-        transform: translate(-50%, -50%) scale(1.5);
+        transform: translate(-50%, -50%) scale(1.2) !important;
       }
       
       .countdown-corner {
@@ -172,18 +165,20 @@ export const Hero: React.FC = () => {
         {/* Fallback Background */}
         <div style={fallbackBackgroundStyle} />
         
-        {/* Video Background */}
+        {/* Video Background - Changed from iframe to video element */}
         <div style={videoContainerStyle}>
-          <iframe
-            src={vimeoEmbedUrl}
+          <video
+            src={videoUrl}
             style={videoStyle}
             className="hero-video"
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title="St. Francis Yacht Club Background Video"
-            onLoad={handleVideoLoad}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onCanPlayThrough={handleVideoLoad}
             onError={handleVideoError}
+            aria-hidden="true"
           />
         </div>
         
@@ -192,6 +187,7 @@ export const Hero: React.FC = () => {
         
         {/* Main Content */}
         <div style={heroContentStyle} className="hero-content">
+          {/* Add your hero content here */}
         </div>
 
         {/* Countdown Timer - Bottom Left Corner */}
