@@ -28,8 +28,8 @@ export const Hero: React.FC = () => {
   }, []);
 
   // Video configuration
-  const vimeoVideoId = '1111866421';
-  const vimeoEmbedUrl = `https://player.vimeo.com/video/${vimeoVideoId}?autoplay=1&loop=1&muted=1&controls=0&background=1&quality=auto`;
+  //const vimeoVideoId = '1111866421';
+  const vimeoEmbedUrl = `https://static.clubessential.com/CEFED/_Axis-Website/Sites/StFrancisYachtClub2023/videos/2023_stfyc_homepage_video_smaller.mp4`;
 
   // Main hero container with video background
   const heroStyle: React.CSSProperties = {
