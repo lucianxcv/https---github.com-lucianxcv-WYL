@@ -58,11 +58,7 @@ export const MultiLocationWeather: React.FC = () => {
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.text,
     marginBottom: theme.spacing.lg,
-    textAlign: 'center',
-    background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+    textAlign: 'center'
   };
 
   const headerStyle: React.CSSProperties = {
