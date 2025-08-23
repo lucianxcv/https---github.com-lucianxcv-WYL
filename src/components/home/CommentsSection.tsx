@@ -1,13 +1,11 @@
 /**
- * ENHANCED COMMENTS SECTION COMPONENT - REAL API INTEGRATION
+ * SIMPLIFIED COMMENTS SECTION COMPONENT - REAL API INTEGRATION
  * 
- * Major improvements:
- * - Real API integration with useComments hook
- * - Error handling and loading states
- * - Proper form validation
- * - Optimistic UI updates
- * - Better accessibility
- * - Fixed TypeScript interfaces
+ * Updated to match the simplified backend:
+ * - No reactions system
+ * - No nested replies  
+ * - Simple comment posting with authentication
+ * - Edit and delete own comments
  */
 
 import React, { useState, useRef } from 'react';
@@ -15,18 +13,12 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { useAuth } from '../../utils/useAuth';
 import { useComments } from '../../hooks/useComments';
 
-// Define proper TypeScript interfaces
+// Simplified TypeScript interfaces to match our backend
 interface CommentAuthor {
   id: string;
   name: string;
   avatar?: string;
-  role?: 'USER' | 'ADMIN' | 'MODERATOR';
-}
-
-interface CommentReactions {
-  likes: number;
-  dislikes: number;
-  userReaction?: 'like' | 'dislike' | null;
+  role: 'USER' | 'ADMIN' | 'MODERATOR';
 }
 
 interface Comment {
@@ -34,30 +26,27 @@ interface Comment {
   content: string;
   author: CommentAuthor;
   createdAt: string;
-  updatedAt?: string;
-  replies?: Comment[];
-  reactions?: CommentReactions;
+  updatedAt: string;
   status: 'approved' | 'pending' | 'rejected';
   showId?: string;
+  postId?: string;
 }
 
 interface CommentsSectionProps {
   showId?: string;
+  postId?: string;
   maxComments?: number;
-  allowReplies?: boolean;
-  requireAuth?: boolean;
 }
 
 export const CommentsSection: React.FC<CommentsSectionProps> = ({
   showId,
-  maxComments = 10,
-  allowReplies = true,
-  requireAuth = false
+  postId,
+  maxComments = 10
 }) => {
   const theme = useTheme();
   const { user, isAuthenticated } = useAuth();
   
-  // Use the real comments hook
+  // Use the simplified comments hook
   const {
     comments,
     totalComments,
@@ -67,15 +56,17 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     error,
     loadComments,
     submitComment,
-    updateReaction,
+    editComment,
     deleteComment,
     clearError
-  } = useComments({ showId });
+  } = useComments({ showId, postId, user });
 
   const [newComment, setNewComment] = useState('');
   const [showCommentForm, setShowCommentForm] = useState(false);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest'); // Removed 'popular' since no reactions
   const [expandedComments, setExpandedComments] = useState<number>(maxComments);
+  const [editingComment, setEditingComment] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -233,21 +224,19 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     </div>
   );
 
-  // Comment component
-  const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-    const [showReplyForm, setShowReplyForm] = useState(false);
-    const [replyText, setReplyText] = useState('');
+  // Simplified comment component (no reactions, no replies)
+  const CommentItem: React.FC<{ comment: Comment }> = ({ comment }) => {
+    const isOwner = user?.id === comment.author.id;
+    const isAdmin = user?.role === 'ADMIN';
+    const canEditDelete = isOwner || isAdmin;
 
     const commentStyle: React.CSSProperties = {
-      backgroundColor: depth === 0 ? theme.colors.surface : theme.colors.background,
+      backgroundColor: theme.colors.surface,
       borderRadius: '16px',
       padding: theme.spacing.lg,
       border: `1px solid ${theme.colors.border}`,
       marginBottom: theme.spacing.md,
-      marginLeft: depth > 0 ? `${depth * 24}px` : '0',
-      transition: 'all 0.3s ease',
-      position: 'relative'
+      transition: 'all 0.3s ease'
     };
 
     const authorStyle: React.CSSProperties = {
@@ -255,14 +244,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       alignItems: 'center',
       gap: theme.spacing.sm,
       marginBottom: theme.spacing.md
-    };
-
-    const avatarStyle: React.CSSProperties = {
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      objectFit: 'cover',
-      border: `2px solid ${theme.colors.border}`
     };
 
     const avatarPlaceholderStyle: React.CSSProperties = {
@@ -312,10 +293,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       flexWrap: 'wrap'
     };
 
-    const actionButtonStyle = (isActive: boolean): React.CSSProperties => ({
+    const actionButtonStyle: React.CSSProperties = {
       background: 'none',
       border: 'none',
-      color: isActive ? theme.colors.primary : theme.colors.textSecondary,
+      color: theme.colors.textSecondary,
       cursor: 'pointer',
       fontSize: theme.typography.sizes.sm,
       fontWeight: theme.typography.weights.medium,
@@ -325,7 +306,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       display: 'flex',
       alignItems: 'center',
       gap: theme.spacing.xs
-    });
+    };
 
     const roleBadgeStyle: React.CSSProperties = {
       backgroundColor: comment.author.role === 'ADMIN' ? '#e74c3c' : 
@@ -357,45 +338,30 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       });
     };
 
-    const handleReaction = async (type: 'like' | 'dislike') => {
-      if (!isAuthenticated) return;
+    const handleEdit = () => {
+      setEditingComment(comment.id);
+      setEditText(comment.content);
+    };
+
+    const handleSaveEdit = async () => {
+      if (!editText.trim()) return;
       
-      try {
-        await updateReaction(comment.id, type);
-        // The hook handles optimistic updates
-      } catch (error) {
-        console.error('Failed to update reaction:', error);
+      const success = await editComment(comment.id, editText.trim());
+      if (success) {
+        setEditingComment(null);
+        setEditText('');
       }
     };
 
-    const handleReply = async () => {
-      if (!replyText.trim() || !isAuthenticated || submitting) return;
-
-      try {
-        const newReply = await submitComment({
-          content: replyText.trim(),
-          showId,
-          parentId: comment.id
-        });
-
-        if (newReply) {
-          setReplyText('');
-          setShowReplyForm(false);
-        }
-      } catch (error) {
-        console.error('Failed to post reply:', error);
-      }
+    const handleCancelEdit = () => {
+      setEditingComment(null);
+      setEditText('');
     };
 
     const handleDelete = async () => {
-      // Use window.confirm to avoid ESLint no-restricted-globals error
       if (!window.confirm('Are you sure you want to delete this comment?')) return;
       
-      try {
-        await deleteComment(comment.id);
-      } catch (error) {
-        console.error('Failed to delete comment:', error);
-      }
+      await deleteComment(comment.id);
     };
 
     return (
@@ -406,7 +372,13 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
             <img 
               src={comment.author.avatar} 
               alt={comment.author.name}
-              style={avatarStyle}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: `2px solid ${theme.colors.border}`
+              }}
             />
           ) : (
             <div style={avatarPlaceholderStyle}>
@@ -428,63 +400,65 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
               {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
                 <span>✏️ Edited</span>
               )}
-              {comment.status === 'pending' && (
-                <span style={{ color: '#f39c12' }}>⏳ Pending approval</span>
-              )}
             </div>
           </div>
-
-          {/* Collapse button */}
-          {comment.replies && comment.replies.length > 0 && (
-            <button
-              style={actionButtonStyle(false)}
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? '▼' : '▶'} {comment.replies.length}
-            </button>
-          )}
         </div>
 
         {/* Comment Content */}
-        <div style={contentStyle}>
-          {comment.content}
-        </div>
+        {editingComment === comment.id ? (
+          <div style={{ marginBottom: theme.spacing.md }}>
+            <textarea
+              style={{...textareaStyle, minHeight: '100px'}}
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              maxLength={1000}
+            />
+            <div style={{...formActionsStyle, marginTop: theme.spacing.sm}}>
+              <div style={{fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary}}>
+                {editText.length}/1000
+              </div>
+              <div style={{display: 'flex', gap: theme.spacing.sm}}>
+                <button
+                  style={secondaryButtonStyle}
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  style={{
+                    ...primaryButtonStyle,
+                    opacity: (!editText.trim() || editText.length > 1000) ? 0.6 : 1
+                  }}
+                  onClick={handleSaveEdit}
+                  disabled={!editText.trim() || editText.length > 1000}
+                >
+                  💾 Save
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={contentStyle}>
+            {comment.content}
+          </div>
+        )}
 
         {/* Actions */}
         <div style={actionsStyle}>
-          {/* Reactions */}
-          <button
-            style={actionButtonStyle(comment.reactions?.userReaction === 'like')}
-            onClick={() => handleReaction('like')}
-            disabled={!isAuthenticated}
-            title={!isAuthenticated ? 'Sign in to react' : ''}
-          >
-            👍 {comment.reactions?.likes || 0}
-          </button>
-
-          <button
-            style={actionButtonStyle(comment.reactions?.userReaction === 'dislike')}
-            onClick={() => handleReaction('dislike')}
-            disabled={!isAuthenticated}
-            title={!isAuthenticated ? 'Sign in to react' : ''}
-          >
-            👎 {comment.reactions?.dislikes || 0}
-          </button>
-
-          {/* Reply */}
-          {allowReplies && depth < 3 && isAuthenticated && (
+          {/* Edit (only for comment author) */}
+          {canEditDelete && editingComment !== comment.id && (
             <button
-              style={actionButtonStyle(showReplyForm)}
-              onClick={() => setShowReplyForm(!showReplyForm)}
+              style={actionButtonStyle}
+              onClick={handleEdit}
             >
-              💬 Reply
+              ✏️ Edit
             </button>
           )}
 
           {/* Delete (only for comment author or admin) */}
-          {isAuthenticated && (user?.id === comment.author.id || user?.role === 'ADMIN') && (
+          {canEditDelete && (
             <button
-              style={actionButtonStyle(false)}
+              style={actionButtonStyle}
               onClick={handleDelete}
             >
               🗑️ Delete
@@ -493,85 +467,14 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
 
           {/* Report */}
           <button
-            style={actionButtonStyle(false)}
+            style={actionButtonStyle}
             onClick={() => {
-              // TODO: Implement proper report functionality
               alert('Comment reported for review. Thank you for helping keep our community safe.');
             }}
           >
             🚨 Report
           </button>
         </div>
-
-        {/* Reply Form */}
-        {showReplyForm && (
-          <div style={{
-            marginTop: theme.spacing.md,
-            padding: theme.spacing.md,
-            backgroundColor: theme.colors.background,
-            borderRadius: '12px',
-            border: `1px solid ${theme.colors.border}`
-          }}>
-            <textarea
-              style={{...textareaStyle, minHeight: '80px'}}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`Reply to ${comment.author.name}...`}
-              maxLength={500}
-              onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
-              onBlur={(e) => e.target.style.borderColor = theme.colors.border}
-            />
-            <div style={{...formActionsStyle, marginTop: theme.spacing.sm}}>
-              <div style={{fontSize: theme.typography.sizes.xs, color: theme.colors.textSecondary}}>
-                {replyText.length}/500
-              </div>
-              <div style={{display: 'flex', gap: theme.spacing.sm}}>
-                <button
-                  style={secondaryButtonStyle}
-                  onClick={() => {
-                    setShowReplyForm(false);
-                    setReplyText('');
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  style={{
-                    ...primaryButtonStyle,
-                    opacity: (!replyText.trim() || replyText.length > 500 || submitting) ? 0.6 : 1
-                  }}
-                  onClick={handleReply}
-                  disabled={!replyText.trim() || replyText.length > 500 || submitting}
-                  onMouseEnter={(e) => {
-                    if (!(!replyText.trim() || replyText.length > 500 || submitting)) {
-                      e.currentTarget.style.backgroundColor = theme.colors.secondary;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!(!replyText.trim() || replyText.length > 500 || submitting)) {
-                      e.currentTarget.style.backgroundColor = theme.colors.primary;
-                    }
-                  }}
-                >
-                  {submitting ? '⏳ Posting...' : '💬 Reply'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Replies */}
-        {isExpanded && comment.replies && comment.replies.length > 0 && (
-          <div style={{marginTop: theme.spacing.md}}>
-            {comment.replies.map((reply: Comment) => (
-              <CommentItem 
-                key={reply.id} 
-                comment={reply} 
-                depth={depth + 1} 
-              />
-            ))}
-          </div>
-        )}
       </div>
     );
   };
@@ -583,14 +486,13 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     try {
       const result = await submitComment({
         content: newComment.trim(),
-        showId
+        showId,
+        postId
       });
 
       if (result) {
         setNewComment('');
         setShowCommentForm(false);
-        
-        // Show success message
         console.log('✅ Comment posted successfully!');
       }
     } catch (error) {
@@ -598,17 +500,13 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     }
   };
 
-  // Sort comments
+  // Sort comments (simplified - no popularity)
   const sortedComments: Comment[] = [...comments].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case 'oldest':
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'popular':
-        const aScore = (a.reactions?.likes || 0) - (a.reactions?.dislikes || 0);
-        const bScore = (b.reactions?.likes || 0) - (b.reactions?.dislikes || 0);
-        return bScore - aScore;
       default:
         return 0;
     }
@@ -646,7 +544,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="popular">Most Popular</option>
           </select>
         </div>
       </div>
@@ -681,7 +578,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              💭 Share your thoughts about {showId ? 'this presentation' : 'today\'s presentation'}...
+              💭 Share your thoughts about {showId ? 'this presentation' : postId ? 'this article' : 'today\'s discussion'}...
             </button>
           ) : (
             <>
@@ -729,7 +626,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   style={textareaStyle}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Share your thoughts about the presentation, ask questions, or suggest topics for future sessions..."
+                  placeholder="Share your thoughts, ask questions, or suggest topics for future sessions..."
                   maxLength={1000}
                   onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
                   onBlur={(e) => e.target.style.borderColor = theme.colors.border}
@@ -756,12 +653,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                       setShowCommentForm(false);
                       setNewComment('');
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = theme.colors.surface;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
                   >
                     Cancel
                   </button>
@@ -773,16 +664,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                     }}
                     onClick={handleSubmitComment}
                     disabled={!newComment.trim() || newComment.length > 1000 || submitting}
-                    onMouseEnter={(e) => {
-                      if (!(!newComment.trim() || newComment.length > 1000 || submitting)) {
-                        e.currentTarget.style.backgroundColor = theme.colors.secondary;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!(!newComment.trim() || newComment.length > 1000 || submitting)) {
-                        e.currentTarget.style.backgroundColor = theme.colors.primary;
-                      }
-                    }}
                   >
                     {submitting ? '⏳ Posting...' : '💬 Post Comment'}
                   </button>
@@ -837,16 +718,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
               <button
                 style={secondaryButtonStyle}
                 onClick={() => setExpandedComments(prev => prev + maxComments)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.colors.primary;
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.borderColor = theme.colors.primary;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.colors.textSecondary;
-                  e.currentTarget.style.borderColor = theme.colors.border;
-                }}
               >
                 📄 Load More Comments ({comments.length - expandedComments} remaining)
               </button>
@@ -875,7 +746,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
             marginBottom: theme.spacing.lg,
             fontSize: theme.typography.sizes.base
           }}>
-            Be the first to share your thoughts about {showId ? 'this presentation' : 'today\'s presentation'} or ask questions for future sessions.
+            Be the first to share your thoughts!
           </p>
           {isAuthenticated && (
             <button

@@ -327,22 +327,19 @@ export const showsApi = {
   }),
 };
 
-// ==================== COMMENTS API UPDATE ====================
-// Add these methods to your existing commentsApi in apiService.ts
+// ==================== UPDATED COMMENTS API ====================
+// Simple comments API that matches the new backend structure
 
-// Enhanced Comments API functions
 export const commentsApi = {
   // Get all comments (general or filtered)
   getAll: (params?: {
     showId?: string;
-    status?: 'approved' | 'pending' | 'rejected';
-    page?: number;
+    postId?: string;
     limit?: number;
   }) => {
     const query = new URLSearchParams();
     if (params?.showId) query.set('showId', params.showId);
-    if (params?.status) query.set('status', params.status);
-    if (params?.page) query.set('page', params.page.toString());
+    if (params?.postId) query.set('postId', params.postId);
     if (params?.limit) query.set('limit', params.limit.toString());
     
     return apiRequest<any[]>(`/api/comments?${query.toString()}`);
@@ -356,22 +353,20 @@ export const commentsApi = {
   getByShow: (showId: string) => 
     apiRequest<any[]>(`/api/comments/show/${showId}`),
 
-  // Create new comment
+  // Create new comment (simplified - no author field needed)
   create: (commentData: {
     content: string;
-    showId?: string;
-    parentId?: string;
-    status?: 'approved' | 'pending';
+    showId?: number;    // Backend expects number
+    postId?: string;
   }) => 
     apiRequest<any>('/api/comments', {
       method: 'POST',
       body: JSON.stringify(commentData),
     }),
 
-  // Update comment
+  // Update comment (edit own comments)
   update: (id: string, commentData: {
-    content?: string;
-    status?: 'approved' | 'pending' | 'rejected';
+    content: string;
   }) => 
     apiRequest<any>(`/api/comments/${id}`, {
       method: 'PUT',
@@ -384,41 +379,9 @@ export const commentsApi = {
       method: 'DELETE',
     }),
 
-  // 🔥 NEW: Update comment reaction
-  updateReaction: (commentId: string, reaction: 'like' | 'dislike') =>
-    apiRequest<any>(`/api/comments/${commentId}/reaction`, {
-      method: 'PUT',
-      body: JSON.stringify({ reaction }),
-    }),
-
-  // 🔥 NEW: Remove reaction
-  removeReaction: (commentId: string) =>
-    apiRequest<any>(`/api/comments/${commentId}/reaction`, {
-      method: 'DELETE',
-    }),
-
-  // 🔥 NEW: Report comment
-  report: (commentId: string, reason?: string) =>
-    apiRequest<any>(`/api/comments/${commentId}/report`, {
-      method: 'POST',
-      body: JSON.stringify({ reason }),
-    }),
-
-  // 🔥 NEW: Get comment reactions
-  getReactions: (commentId: string) =>
-    apiRequest<{
-      likes: number;
-      dislikes: number;
-      userReaction?: 'like' | 'dislike' | null;
-    }>(`/api/comments/${commentId}/reactions`),
-};
-
-// Owner API functions
-export const ownerApi = {
-  getProfile: () => apiRequest<any>('/api/owner/profile'),
-  updateProfile: (profile: any) => apiRequest<any>('/api/owner/profile', {
-    method: 'PUT',
-    body: JSON.stringify(profile),
-  }),
-  getStats: () => apiRequest<any>('/api/owner/stats'),
+  // Remove these unsupported methods:
+  // updateReaction - not supported by backend yet
+  // removeReaction - not supported by backend yet  
+  // report - not supported by backend yet
+  // getReactions - not supported by backend yet
 };
