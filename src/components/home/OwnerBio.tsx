@@ -1,16 +1,8 @@
-// ==================== src/components/home/OwnerBio.tsx ====================
 /**
  * OWNER BIOGRAPHY COMPONENT
  * 
- * Displays Captain Ted's biography, photo, and achievements.
+ * Displays Ron's biography, photo, and achievements.
  * Features a two-column layout with professional styling.
- * 
- * BEGINNER MODIFICATIONS YOU CAN MAKE:
- * - Change the layout (stack vertically, swap photo position)
- * - Modify the achievements list styling
- * - Add more biographical information
- * - Change the photo placeholder or add a real image
- * - Add social links or contact information
  */
 
 import React from 'react';
@@ -34,7 +26,7 @@ export const OwnerBio: React.FC = () => {
     fontFamily: theme.typography.fontFamily
   };
 
-  // Captain's photo styling
+  // Executive Producer's photo styling
   const photoStyle: React.CSSProperties = {
     width: '200px',
     height: '200px',
@@ -42,13 +34,14 @@ export const OwnerBio: React.FC = () => {
     border: `4px solid ${theme.colors.primary}`,
     flexShrink: 0,
     backgroundColor: theme.colors.surface,
-    // Gradient background as placeholder
+    // Gradient background as fallback
     backgroundImage: 'linear-gradient(45deg, #87ceeb, #4682b4)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '4rem',
-    boxShadow: theme.shadows.md
+    boxShadow: theme.shadows.md,
+    overflow: 'hidden'
   };
 
   const textStyle: React.CSSProperties = {
@@ -81,15 +74,37 @@ export const OwnerBio: React.FC = () => {
 
   return (
     <section style={containerStyle}>
-      {/* Captain's photo */}
+      {/* Executive Producer's photo */}
       <div style={photoStyle}>
-        👨‍✈️
+        {owner.photoUrl ? (
+          <img 
+            src={owner.photoUrl} 
+            alt={owner.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              objectFit: 'cover' as const
+            }}
+            onError={(e) => {
+              // TypeScript-safe fallback to emoji if image fails to load
+              const target = e.currentTarget;
+              const parent = target.parentElement;
+              if (parent) {
+                target.style.display = 'none';
+                parent.innerHTML = '👨‍💼';
+              }
+            }}
+          />
+        ) : (
+          '👨‍💼'
+        )}
       </div>
 
       {/* Biography text and achievements */}
       <div style={textStyle}>
         <h2 style={nameStyle}>
-          ⚓ {owner.name}
+          👨‍💼 {owner.name}
         </h2>
         <p style={bioStyle}>{owner.bio}</p>
         
@@ -125,4 +140,3 @@ export const OwnerBio: React.FC = () => {
     </section>
   );
 };
-
