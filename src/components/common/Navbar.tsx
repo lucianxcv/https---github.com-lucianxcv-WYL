@@ -40,17 +40,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       // Set scrolled state
       setIsScrolled(currentScrollY > 20);
       
-      // Hide/show navbar based on scroll direction
-      if (currentScrollY < 50) {
-        // Always show at top of page
+      // Hide/show navbar - only show when at the very top
+      if (currentScrollY <= 10) {
+        // Only show when at top of page (within 10px)
         setIsVisible(true);
-      } else if (currentScrollY > prevScrollY) {
-        // Scrolling down - hide navbar
+      } else {
+        // Hide navbar when scrolled down
         setIsVisible(false);
         setIsMobileMenuOpen(false); // Close mobile menu when hiding
-      } else if (prevScrollY - currentScrollY > 5) {
-        // Scrolling up - show navbar (with small threshold to prevent jitter)
-        setIsVisible(true);
       }
       
       setPrevScrollY(currentScrollY);
