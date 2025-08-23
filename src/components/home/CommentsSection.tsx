@@ -548,156 +548,230 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
         </div>
       </div>
 
-      {/* Comment Form */}
-      {isAuthenticated ? (
-        <div style={commentFormStyle} ref={formRef}>
-          {!showCommentForm ? (
-            <button
-              style={{
-                width: '100%',
-                padding: theme.spacing.md,
-                backgroundColor: 'transparent',
-                border: `2px dashed ${theme.colors.border}`,
-                borderRadius: '12px',
-                color: theme.colors.textSecondary,
-                fontSize: theme.typography.sizes.base,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textAlign: 'left'
-              }}
-              onClick={() => {
-                setShowCommentForm(true);
-                setTimeout(() => commentInputRef.current?.focus(), 100);
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = theme.colors.primary;
-                e.currentTarget.style.backgroundColor = `${theme.colors.primary}05`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = theme.colors.border;
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              💭 Share your thoughts about {showId ? 'this presentation' : postId ? 'this article' : 'today\'s discussion'}...
-            </button>
-          ) : (
-            <>
-              <div style={{marginBottom: theme.spacing.md}}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: theme.spacing.sm,
-                  marginBottom: theme.spacing.sm
-                }}>
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt={user.name} style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }} />
-                  ) : (
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: theme.colors.primary,
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.9rem',
-                      fontWeight: theme.typography.weights.bold
-                    }}>
-                      {user?.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <span style={{
-                    fontSize: theme.typography.sizes.sm,
-                    fontWeight: theme.typography.weights.medium,
-                    color: theme.colors.text
-                  }}>
-                    Commenting as {user?.name}
-                  </span>
-                </div>
-                
-                <textarea
-                  ref={commentInputRef}
-                  style={textareaStyle}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Share your thoughts, ask questions, or suggest topics for future sessions..."
-                  maxLength={1000}
-                  onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
-                  onBlur={(e) => e.target.style.borderColor = theme.colors.border}
-                />
+// Enhanced Comment Form Section (for your CommentsSection.tsx)
+// This replaces your existing comment form
+
+{/* Enhanced Comment Form with Validation */}
+{isAuthenticated ? (
+  <div style={commentFormStyle} ref={formRef}>
+    {!showCommentForm ? (
+      <button
+        style={{
+          width: '100%',
+          padding: theme.spacing.md,
+          backgroundColor: 'transparent',
+          border: `2px dashed ${theme.colors.border}`,
+          borderRadius: '12px',
+          color: theme.colors.textSecondary,
+          fontSize: theme.typography.sizes.base,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          textAlign: 'left'
+        }}
+        onClick={() => {
+          setShowCommentForm(true);
+          setTimeout(() => commentInputRef.current?.focus(), 100);
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = theme.colors.primary;
+          e.currentTarget.style.backgroundColor = `${theme.colors.primary}05`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = theme.colors.border;
+          e.currentTarget.style.backgroundColor = 'transparent';
+        }}
+      >
+        💭 Share your thoughts about {showId ? 'this presentation' : postId ? 'this article' : 'today\'s discussion'}...
+      </button>
+    ) : (
+      <>
+        <div style={{marginBottom: theme.spacing.md}}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.sm
+          }}>
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }} />
+            ) : (
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: theme.colors.primary,
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: theme.typography.weights.bold
+              }}>
+                {user?.name?.charAt(0).toUpperCase() || '?'}
               </div>
-
-              <div style={formActionsStyle}>
-                <div style={{
-                  fontSize: theme.typography.sizes.xs,
-                  color: theme.colors.textSecondary,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: theme.spacing.sm
-                }}>
-                  <span>{newComment.length}/1000</span>
-                  <span>•</span>
-                  <span>💡 Be respectful and constructive</span>
-                </div>
-
-                <div style={{display: 'flex', gap: theme.spacing.sm}}>
-                  <button
-                    style={secondaryButtonStyle}
-                    onClick={() => {
-                      setShowCommentForm(false);
-                      setNewComment('');
-                    }}
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    style={{
-                      ...primaryButtonStyle,
-                      opacity: (!newComment.trim() || newComment.length > 1000 || submitting) ? 0.6 : 1
-                    }}
-                    onClick={handleSubmitComment}
-                    disabled={!newComment.trim() || newComment.length > 1000 || submitting}
-                  >
-                    {submitting ? '⏳ Posting...' : '💬 Post Comment'}
-                  </button>
-                </div>
-              </div>
-            </>
+            )}
+            <span style={{
+              fontSize: theme.typography.sizes.sm,
+              fontWeight: theme.typography.weights.medium,
+              color: theme.colors.text
+            }}>
+              Commenting as {user?.name}
+            </span>
+          </div>
+          
+          <textarea
+            ref={commentInputRef}
+            style={{
+              ...textareaStyle,
+              borderColor: newComment.length < 10 && newComment.length > 0 
+                ? '#ef4444' 
+                : newComment.length >= 10 
+                  ? '#10b981' 
+                  : theme.colors.border
+            }}
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Share your thoughts, ask questions, or suggest topics for future sessions..."
+            maxLength={1000}
+            onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
+            onBlur={(e) => e.target.style.borderColor = 
+              newComment.length < 10 && newComment.length > 0 
+                ? '#ef4444' 
+                : newComment.length >= 10 
+                  ? '#10b981' 
+                  : theme.colors.border
+            }
+          />
+          
+          {/* 🔧 NEW: Validation Message */}
+          {newComment.length > 0 && newComment.length < 10 && (
+            <div style={{
+              marginTop: theme.spacing.xs,
+              fontSize: theme.typography.sizes.xs,
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.xs
+            }}>
+              <span>⚠️</span>
+              <span>
+                Comment must be at least 10 characters long 
+                ({10 - newComment.length} more needed)
+              </span>
+            </div>
+          )}
+          
+          {/* 🔧 NEW: Success Message */}
+          {newComment.length >= 10 && (
+            <div style={{
+              marginTop: theme.spacing.xs,
+              fontSize: theme.typography.sizes.xs,
+              color: '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.xs
+            }}>
+              <span>✅</span>
+              <span>Ready to post!</span>
+            </div>
           )}
         </div>
-      ) : (
-        <div style={{
-          ...commentFormStyle,
-          textAlign: 'center',
-          backgroundColor: `${theme.colors.primary}10`
-        }}>
-          <p style={{
-            color: theme.colors.textSecondary,
-            marginBottom: theme.spacing.md,
-            fontSize: theme.typography.sizes.base
-          }}>
-            🔐 Please sign in to join the discussion
-          </p>
-          <a
-            href="#auth"
-            style={primaryButtonStyle}
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.hash = '#auth';
-            }}
-          >
-            🔑 Sign In to Comment
-          </a>
-        </div>
-      )}
 
+        <div style={formActionsStyle}>
+          <div style={{
+            fontSize: theme.typography.sizes.xs,
+            color: theme.colors.textSecondary,
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.sm
+          }}>
+            <span style={{ 
+              color: newComment.length > 900 
+                ? '#ef4444' 
+                : newComment.length > 800 
+                  ? '#f59e0b' 
+                  : theme.colors.textSecondary 
+            }}>
+              {newComment.length}/1000
+            </span>
+            <span>•</span>
+            <span>💡 Be respectful and constructive</span>
+            {newComment.length < 10 && (
+              <>
+                <span>•</span>
+                <span style={{ color: '#ef4444' }}>
+                  Min: 10 characters
+                </span>
+              </>
+            )}
+          </div>
+
+          <div style={{display: 'flex', gap: theme.spacing.sm}}>
+            <button
+              style={secondaryButtonStyle}
+              onClick={() => {
+                setShowCommentForm(false);
+                setNewComment('');
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              style={{
+                ...primaryButtonStyle,
+                opacity: (!newComment.trim() || newComment.length < 10 || newComment.length > 1000 || submitting) ? 0.6 : 1,
+                cursor: (!newComment.trim() || newComment.length < 10 || newComment.length > 1000 || submitting) ? 'not-allowed' : 'pointer'
+              }}
+              onClick={handleSubmitComment}
+              disabled={!newComment.trim() || newComment.length < 10 || newComment.length > 1000 || submitting}
+              title={
+                !newComment.trim() 
+                  ? 'Please enter a comment' 
+                  : newComment.length < 10 
+                    ? `Comment must be at least 10 characters (${10 - newComment.length} more needed)`
+                    : newComment.length > 1000 
+                      ? 'Comment is too long' 
+                      : 'Post your comment'
+              }
+            >
+              {submitting ? '⏳ Posting...' : '💬 Post Comment'}
+            </button>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+) : (
+  <div style={{
+    ...commentFormStyle,
+    textAlign: 'center',
+    backgroundColor: `${theme.colors.primary}10`
+  }}>
+    <p style={{
+      color: theme.colors.textSecondary,
+      marginBottom: theme.spacing.md,
+      fontSize: theme.typography.sizes.base
+    }}>
+      🔐 Please sign in to join the discussion
+    </p>
+    <a
+      href="#auth"
+      style={primaryButtonStyle}
+      onClick={(e) => {
+        e.preventDefault();
+        window.location.hash = '#auth';
+      }}
+    >
+      🔑 Sign In to Comment
+    </a>
+  </div>
+)}
       {/* Comments List */}
       {loading ? (
         <div style={{textAlign: 'center', padding: theme.spacing.xl}}>

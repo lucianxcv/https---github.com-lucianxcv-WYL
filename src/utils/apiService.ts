@@ -23,7 +23,7 @@ const API_BASE_URL = isDevelopment || isLocalhost
 console.log('🌍 API Base URL:', API_BASE_URL);
 console.log('🔍 Environment:', { isDevelopment, isLocalhost });
 
-// Generic API request function with auth support
+// Generic API request function with IMPROVED error handling
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -48,9 +48,48 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ API Error Response:', errorText);
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      
+      try {
+        // 🔧 IMPROVED: Try to extract the actual error message from JSON response
+        const errorData = await response.json();
+        console.log('❌ API Error Response:', errorData);
+        
+        // Use the specific error message from backend if available
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        
+        // Handle common HTTP status codes with better messages
+        if (response.status === 401) {
+          errorMessage = errorData.error || 'Authentication required. Please sign in.';
+        } else if (response.status === 403) {
+          errorMessage = errorData.error || 'Permission denied. You do not have access to this resource.';
+        } else if (response.status === 404) {
+          errorMessage = errorData.error || 'The requested resource was not found.';
+        } else if (response.status === 429) {
+          errorMessage = errorData.error || 'Too many requests. Please try again later.';
+        } else if (response.status >= 500) {
+          errorMessage = errorData.error || 'Server error. Please try again later.';
+        }
+        
+      } catch (parseError) {
+        // If we can't parse JSON, fall back to text or generic message
+        try {
+          const errorText = await response.text();
+          console.error('❌ API Error Response (text):', errorText);
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        } catch (textError) {
+          // Keep the original generic message
+          console.error('❌ Could not parse error response:', textError);
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -61,7 +100,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     throw error;
   }
 }
-
 // ==================== AUTHENTICATION API ====================
 export const authApi = {
   // Get current user profile
