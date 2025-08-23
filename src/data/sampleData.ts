@@ -54,16 +54,17 @@ export const sampleData = {
     }
   ] as PastShow[],
 
-  owner: {
-    name: "Captain Theodore 'Ted' Maritime",
-    title: "Founder & Host",
-    bio: "For over four decades, Captain Ted has been the heart and soul of the Wednesday Yachting Luncheon. What started as informal gatherings has grown into San Francisco's premier maritime dining experience.",
-    achievements: [
-      "Maritime Heritage Preservation Award (2020)",
-      "Regional Emmy Nomination for Educational Programming (2018)",
-      "Lifetime Achievement Award - Pacific Maritime Association (2015)",
-      "Ocean Conservancy Leadership Award (2012)"
-    ],
-    photoUrl: "https://via.placeholder.com/200/1e3a5f/ffffff?text=🧑‍✈️"
-  } as Owner
-};
+owner: {
+  name: "Ronald Young",
+  title: "Executive Producer & Chairman",
+  bio: "For over five decades, Ron has been the heart and soul of the Wednesday Yachting Luncheon. What started as informal gatherings has grown into San Francisco's premier maritime dining experience. As Executive Producer and Chairman, he continues to bring together sailing enthusiasts, maritime experts, and distinguished speakers for this beloved weekly tradition at the St. Francis Yacht Club.",
+  achievements: [
+    // Add Ron's actual achievements here, for example:
+    "Chairman of the Wednesday Yachting Luncheon lecture series",
+    "Sailed 3,000+ races and six America’s Cup campaigns",
+    "Founded the Golden Gate Challenge, raising $8.7 M",
+    "Led three tech startups with exits nearing $1 billion",
+    // Add any other real achievements Ron has
+  ],
+  photoUrl: "https://media.licdn.com/dms/image/v2/C5603AQHAN1pB7GDZFA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1583800290606?e=1758758400&v=beta&t=DDp6DFkmkauRARgfaOZmeKtwsTkrblu8swtykP2SmWM"
+}}
