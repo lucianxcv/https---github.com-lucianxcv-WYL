@@ -372,56 +372,40 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div style={actionButtonsStyle}>
-          <button
-            style={primaryButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.colors.secondary;
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = theme.colors.primary;
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            🎫 Reserve Seat
-          </button>
+{/* Action Buttons */}
+<div style={actionButtonsStyle}>
+  <button
+    style={primaryButtonStyle}
+    onClick={() => window.open('https://www.stfyc.com/wyl', '_blank')}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = theme.colors.secondary;
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = theme.colors.primary;
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+  >
+    🎫 Reserve Seat
+  </button>
 
-          <button
-            style={secondaryButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.colors.primary;
-              e.currentTarget.style.color = '#ffffff';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = theme.colors.primary;
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            📖 Learn More
-          </button>
-
-          <button
-            style={secondaryButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.colors.accent;
-              e.currentTarget.style.color = '#ffffff';
-              e.currentTarget.style.borderColor = theme.colors.accent;
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = theme.colors.primary;
-              e.currentTarget.style.borderColor = theme.colors.primary;
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            📤 Share
-          </button>
-        </div>
+  <button
+    style={secondaryButtonStyle}
+    onClick={() => window.open('https://www.stfyc.com/wyl', '_blank')}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = theme.colors.primary;
+      e.currentTarget.style.color = '#ffffff';
+      e.currentTarget.style.transform = 'translateY(-2px)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = 'transparent';
+      e.currentTarget.style.color = theme.colors.primary;
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+  >
+    📖 Learn More
+  </button>
+</div>
       </div>
     </div>
   );
