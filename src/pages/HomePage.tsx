@@ -538,94 +538,96 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Call to Action Section */}
-        <section style={sectionStyle}>
-          <div style={{
-            background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-            borderRadius: '20px',
-            padding: theme.spacing.xl,
-            textAlign: 'center',
-            color: '#ffffff'
-          }}>
-            <h3 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              fontWeight: theme.typography.weights.bold,
-              marginBottom: theme.spacing.md,
-              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-            }}>
-              ⛵ Join the WEDNESDAY YACHTING LUNCHEON Community
-            </h3>
-            
-            <p style={{
-              fontSize: theme.typography.sizes.lg,
-              marginBottom: theme.spacing.xl,
-              opacity: 0.95,
-              maxWidth: '600px',
-              margin: `0 auto ${theme.spacing.xl} auto`
-            }}>
-              Be part of San Francisco's premier maritime dining experience. 
-              Connect with fellow enthusiasts, learn from experts, and enjoy exceptional cuisine.
-            </p>
-            
-            <div style={{
-              display: 'flex',
-              gap: theme.spacing.md,
-              justifyContent: 'center',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: theme.colors.primary,
-                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                  border: 'none',
-                  borderRadius: '25px',
-                  fontSize: theme.typography.sizes.md,
-                  fontWeight: theme.typography.weights.semibold,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                }}
-              >
-                📧 Learn About Attending
-              </button>
-              
-              <button
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#ffffff',
-                  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                  border: '2px solid #ffffff',
-                  borderRadius: '25px',
-                  fontSize: theme.typography.sizes.md,
-                  fontWeight: theme.typography.weights.semibold,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.color = theme.colors.primary;
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                🎤 Become a Speaker
-              </button>
-            </div>
-          </div>
-        </section>
+{/* Call to Action Section */}
+<section style={sectionStyle}>
+  <div style={{
+    background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+    borderRadius: '20px',
+    padding: theme.spacing.xl,
+    textAlign: 'center',
+    color: '#ffffff'
+  }}>
+    <h3 style={{
+      fontSize: theme.typography.sizes['2xl'],
+      fontWeight: theme.typography.weights.bold,
+      marginBottom: theme.spacing.md,
+      textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+    }}>
+      ⛵ Join the WEDNESDAY YACHTING LUNCHEON Community
+    </h3>
+    
+    <p style={{
+      fontSize: theme.typography.sizes.lg,
+      marginBottom: theme.spacing.xl,
+      opacity: 0.95,
+      maxWidth: '600px',
+      margin: `0 auto ${theme.spacing.xl} auto`
+    }}>
+      A long-standing weekly tradition at the St. Francis Yacht Club, bringing together sailors, adventurers, and maritime experts. 
+      Connect with fellow enthusiasts, learn from experts, and enjoy exceptional cuisine.
+    </p>
+    
+    <div style={{
+      display: 'flex',
+      gap: theme.spacing.md,
+      justifyContent: 'center',
+      flexWrap: 'wrap'
+    }}>
+      <button
+        style={{
+          backgroundColor: '#ffffff',
+          color: theme.colors.primary,
+          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+          border: 'none',
+          borderRadius: '25px',
+          fontSize: theme.typography.sizes.md,
+          fontWeight: theme.typography.weights.semibold,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}
+        onClick={() => window.open('https://www.stfyc.com/wyl', '_blank')}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-3px)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+        }}
+      >
+        📧 Learn About Attending
+      </button>
+      
+      <button
+        style={{
+          backgroundColor: 'transparent',
+          color: '#ffffff',
+          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+          border: '2px solid #ffffff',
+          borderRadius: '25px',
+          fontSize: theme.typography.sizes.md,
+          fontWeight: theme.typography.weights.semibold,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
+        }}
+        onClick={() => window.open('mailto:Ron@ronaldyoung.com', '_blank')}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#ffffff';
+          e.currentTarget.style.color = theme.colors.primary;
+          e.currentTarget.style.transform = 'translateY(-3px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#ffffff';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}
+      >
+        🎤 Become a Speaker
+      </button>
+    </div>
+  </div>
+</section>
 
         {/* Quick Navigation Links */}
         <section style={sectionStyle}>
