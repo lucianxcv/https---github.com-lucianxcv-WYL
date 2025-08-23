@@ -53,11 +53,7 @@ export const UpcomingSpeakers: React.FC<UpcomingSpeakersProps> = ({
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.text,
     marginBottom: theme.spacing.xl,
-    textAlign: 'center',
-    background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+    textAlign: 'center'
   };
 
   const gridStyle: React.CSSProperties = {
