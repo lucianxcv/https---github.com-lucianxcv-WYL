@@ -66,5 +66,5 @@ owner: {
     "Led three tech startups with exits nearing $1 billion",
     // Add any other real achievements Ron has
   ],
-  photoUrl: "https://media.licdn.com/dms/image/v2/C5603AQHAN1pB7GDZFA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1583800290606?e=1758758400&v=beta&t=DDp6DFkmkauRARgfaOZmeKtwsTkrblu8swtykP2SmWM"
+  photoUrl: "https://pbs.twimg.com/profile_images/571814566464458752/Us-U49SX_400x400.png"
 }}
