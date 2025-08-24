@@ -238,8 +238,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Updated navigation items - Home changed to Journal
   const navItems = [
     { id: 'articles', label: 'Journal', href: '/articles' }, // Changed from Home to Journal
-    { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '🎤' },
-    { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '🎥' }
+    { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '' },
+    { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '' }
   ];
 
   // Handle navigation with smooth scrolling for same-page sections
