@@ -306,7 +306,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 transition: 'all 0.3s ease'
               }}
             />
-            <span></span>
+            <span>Wednesday Yachting Luncheon</span>
           </Link>
 
           {/* Desktop Navigation */}

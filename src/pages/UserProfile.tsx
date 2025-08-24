@@ -54,7 +54,7 @@ export const UserProfile: React.FC = () => {
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth');
+      navigate('/profile');
       return;
     }
   }, [isAuthenticated, navigate]);
