@@ -301,12 +301,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               src="https://fpuihryuqxaauymcgszd.supabase.co/storage/v1/object/public/logos/home.png"
               alt="Wednesday Yachting Luncheon"
               style={{
-                height: '40px',
+                height: '50px',
                 width: 'auto',
                 transition: 'all 0.3s ease'
               }}
             />
-            <span>WYL</span>
+            <span></span>
           </Link>
 
           {/* Desktop Navigation */}
