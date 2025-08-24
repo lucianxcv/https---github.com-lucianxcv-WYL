@@ -234,13 +234,42 @@ export const Navbar: React.FC<NavbarProps> = ({
     transition: 'all 0.3s ease',
     textDecoration: 'none'
   };
+  const navButtonStyle: React.CSSProperties = {
+  backgroundColor: 'transparent',
+  color: '#cbd5e1',
+  border: '2px solid rgba(203, 213, 225, 0.3)',
+  borderRadius: '8px',
+  padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+  fontSize: theme.typography.sizes.base,
+  fontWeight: 500,
+  cursor: 'pointer',
+  transition: 'all 0.4s ease',
+  textDecoration: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: '120px', // Ensures consistent button width
+  height: '44px', // Consistent height
+  backdropFilter: 'blur(8px)',
+  position: 'relative',
+  overflow: 'hidden'
+};
+
+const activeNavButtonStyle: React.CSSProperties = {
+  ...navButtonStyle,
+  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+  borderColor: '#3b82f6',
+  color: '#e2e8f0',
+  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
+  fontWeight: 600
+};
 
   // Updated navigation items - Home changed to Journal
   const navItems = [
-    { id: 'articles', label: 'Journal', href: '/articles' }, // Changed from Home to Journal
-    { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '' },
-    { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '' }
-  ];
+  { id: 'articles', label: 'Journal', href: '/articles' },
+  { id: 'speakers', label: 'Speakers', href: '/?section=upcoming' }, // Changed from "Upcoming Speakers"
+  { id: 'past-shows', label: 'Replays', href: '/past-shows' } // Changed from "Past Shows"
+];
 
   // Handle navigation with smooth scrolling for same-page sections
   const handleNavClick = (href: string, itemId: string) => {
@@ -309,61 +338,66 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Wednesday Yachting Luncheon</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <ul style={desktopMenuStyle} className="desktop-menu">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                {item.id === 'speakers' ? (
-                  // Special case: Upcoming speakers - handle as button for smooth scroll
-                  <button
-                    style={{
-                      ...navLinkStyle(activeSection === item.id),
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => handleNavClick(item.href, item.id)}
-                    onMouseEnter={(e) => {
-                      if (activeSection !== item.id) {
-                        e.currentTarget.style.color = '#f8fafc';
-                        e.currentTarget.style.backgroundColor = '#334155';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (activeSection !== item.id) {
-                        e.currentTarget.style.color = '#cbd5e1';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ) : (
-                  // Regular React Router Links
-                  <Link
-                    to={item.href}
-                    style={navLinkStyle(activeSection === item.id)}
-                    onMouseEnter={(e) => {
-                      if (activeSection !== item.id) {
-                        e.currentTarget.style.color = '#f8fafc';
-                        e.currentTarget.style.backgroundColor = '#334155';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (activeSection !== item.id) {
-                        e.currentTarget.style.color = '#cbd5e1';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Navigation - Classy Yacht Style */}
+<ul style={desktopMenuStyle} className="desktop-menu">
+  {navItems.map((item) => (
+    <li key={item.id}>
+      {item.id === 'speakers' ? (
+        // Special case: Speakers - handle as button for smooth scroll
+        <button
+          style={activeSection === item.id ? activeNavButtonStyle : navButtonStyle}
+          onClick={() => handleNavClick(item.href, item.id)}
+          onMouseEnter={(e) => {
+            if (activeSection !== item.id) {
+              e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.6)';
+              e.currentTarget.style.borderColor = '#94a3b8';
+              e.currentTarget.style.color = '#f8fafc';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeSection !== item.id) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.3)';
+              e.currentTarget.style.color = '#cbd5e1';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }
+          }}
+        >
+          {item.label}
+        </button>
+      ) : (
+        // Regular React Router Links
+        <Link
+          to={item.href}
+          style={activeSection === item.id ? activeNavButtonStyle : navButtonStyle}
+          onMouseEnter={(e) => {
+            if (activeSection !== item.id) {
+              e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.6)';
+              e.currentTarget.style.borderColor = '#94a3b8';
+              e.currentTarget.style.color = '#f8fafc';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeSection !== item.id) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.3)';
+              e.currentTarget.style.color = '#cbd5e1';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }
+          }}
+        >
+          {item.label}
+        </Link>
+      )}
+    </li>
+  ))}
+</ul>
 
           {/* User Menu & Actions */}
           <div style={userMenuStyle}>
@@ -433,27 +467,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </span>
                 </Link>
 
-                {/* Admin Link */}
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    style={{
-                      ...secondaryButtonStyle,
-                      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                      fontSize: theme.typography.sizes.xs
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#475569';
-                      e.currentTarget.style.borderColor = '#94a3b8';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.borderColor = '#64748b';
-                    }}
-                  >
-                    ⚙️Admin
-                  </Link>
-                )}
+                // Also update your Admin button to keep the icon (around line 370):
+{/* Admin Link - Keep the icon */}
+{isAdmin && (
+  <Link
+    to="/admin"
+    style={{
+      ...secondaryButtonStyle,
+      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+      fontSize: theme.typography.sizes.xs
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = '#475569';
+      e.currentTarget.style.borderColor = '#94a3b8';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = 'transparent';
+      e.currentTarget.style.borderColor = '#64748b';
+    }}
+  >
+    ⚙️Admin
+  </Link>
+)}
 
                 {/* Sign Out */}
                 <button
@@ -511,53 +546,62 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        <div style={mobileMenuStyle} className="mobile-menu">
-          <div style={mobileMenuContentStyle}>
-            {/* Mobile Navigation Items */}
-            {navItems.map((item) => (
-              <div key={item.id}>
-                {item.id === 'speakers' ? (
-                  <button
-                    style={{
-                      ...navLinkStyle(activeSection === item.id),
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: theme.spacing.md,
-                      border: '1px solid #334155',
-                      borderRadius: '6px',
-                      backgroundColor: activeSection === item.id 
-                        ? '#334155' 
-                        : 'transparent',
-                      justifyContent: 'flex-start'
-                    }}
-                    onClick={() => handleNavClick(item.href, item.id)}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ) : (
-                  <Link
-                    to={item.href}
-                    style={{
-                      ...navLinkStyle(activeSection === item.id),
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: theme.spacing.md,
-                      border: '1px solid #334155',
-                      borderRadius: '6px',
-                      backgroundColor: activeSection === item.id 
-                        ? '#334155' 
-                        : 'transparent'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                )}
-              </div>
-            ))}
+     {/* Mobile Navigation Items - Classy Style */}
+{navItems.map((item) => (
+  <div key={item.id}>
+    {item.id === 'speakers' ? (
+      <button
+        style={{
+          width: '100%',
+          padding: theme.spacing.lg,
+          border: activeSection === item.id 
+            ? '2px solid #3b82f6' 
+            : '2px solid rgba(203, 213, 225, 0.3)',
+          borderRadius: '8px',
+          backgroundColor: activeSection === item.id 
+            ? 'rgba(59, 130, 246, 0.15)' 
+            : 'rgba(51, 65, 85, 0.3)',
+          color: activeSection === item.id ? '#e2e8f0' : '#cbd5e1',
+          fontSize: theme.typography.sizes.base,
+          fontWeight: activeSection === item.id ? 600 : 500,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          backdropFilter: 'blur(8px)',
+          textAlign: 'center'
+        }}
+        onClick={() => handleNavClick(item.href, item.id)}
+      >
+        {item.label}
+      </button>
+    ) : (
+      <Link
+        to={item.href}
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: theme.spacing.lg,
+          border: activeSection === item.id 
+            ? '2px solid #3b82f6' 
+            : '2px solid rgba(203, 213, 225, 0.3)',
+          borderRadius: '8px',
+          backgroundColor: activeSection === item.id 
+            ? 'rgba(59, 130, 246, 0.15)' 
+            : 'rgba(51, 65, 85, 0.3)',
+          color: activeSection === item.id ? '#e2e8f0' : '#cbd5e1',
+          fontSize: theme.typography.sizes.base,
+          fontWeight: activeSection === item.id ? 600 : 500,
+          textDecoration: 'none',
+          transition: 'all 0.3s ease',
+          backdropFilter: 'blur(8px)',
+          textAlign: 'center'
+        }}
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        {item.label}
+      </Link>
+    )}
+  </div>
+))}
 
             {/* Mobile User Actions */}
             <div style={{
