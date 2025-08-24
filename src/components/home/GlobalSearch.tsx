@@ -157,9 +157,9 @@ const performSearch = async (searchQuery: string) => {
     
     // Navigate to the content
     if (result.type === 'show') {
-      window.location.hash = `#shows/${result.slug}`;
+      window.location.href = `/shows/${result.slug}`;
     } else if (result.type === 'article') {
-      window.location.hash = `#posts/${result.slug}`;
+      window.location.href = `/posts/${result.slug}`;
     }
     
     // Clear search

@@ -67,10 +67,10 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
     } else {
       // Default navigation behavior using slug or fallback to ID
       if (slug) {
-        window.location.hash = `#posts/${slug}`;
+        window.location.href = `/posts/${slug}`;
       } else {
         console.warn('⚠️ No slug available for post, using ID fallback:', id);
-        window.location.hash = `#blog-post-${id}`;
+        window.location.href = `/blog-post-${id}`;
       }
     }
   };
