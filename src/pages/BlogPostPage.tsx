@@ -1,16 +1,14 @@
 /**
- * INDIVIDUAL BLOG POST PAGE - REAL API INTEGRATION
+ * INDIVIDUAL BLOG POST PAGE - REACT ROUTER VERSION
  * 
- * Features:
- * - Fetches real posts from backend using slug or ID
- * - Full blog post display with rich content
- * - Author information and metadata
- * - Related articles from real data
- * - Social sharing and navigation
- * - SEO-friendly slug-based URLs
+ * Updated for React Router:
+ * - Uses useParams() instead of props
+ * - Uses navigate() instead of window.location.hash
+ * - Clean URL navigation throughout
  */
 
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
@@ -38,12 +36,9 @@ interface BlogPostData {
   views?: number;
 }
 
-interface BlogPostPageProps {
-  slug?: string;
-  postId?: string; // Legacy support
-}
-
-export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
+export const BlogPostPage: React.FC = () => {
+  const { slug, postId } = useParams(); // Get slug from URL params
+  const navigate = useNavigate();
   const theme = useTheme();
   const [post, setPost] = useState<BlogPostData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,7 +95,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
         // Redirect to slug-based URL for SEO
         if (postData.slug) {
           console.log('🔄 Redirecting to slug-based URL:', postData.slug);
-          window.location.hash = `#posts/${postData.slug}`;
+          navigate(`/posts/${postData.slug}`, { replace: true });
           return;
         }
         
@@ -165,8 +160,8 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
   };
 
   const handleRelatedPostClick = (relatedPost: BlogPostData) => {
-    // Navigate to related post using slug
-    window.location.hash = `#posts/${relatedPost.slug}`;
+    // Navigate to related post using React Router
+    navigate(`/posts/${relatedPost.slug}`);
   };
 
   const pageStyle: React.CSSProperties = {
@@ -270,7 +265,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
                 cursor: 'pointer',
                 marginRight: theme.spacing.sm
               }}
-              onClick={() => window.location.hash = '#articles'}
+              onClick={() => navigate('/articles')}
             >
               📚 Browse All Articles
             </button>
@@ -284,7 +279,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
                 fontSize: theme.typography.sizes.base,
                 cursor: 'pointer'
               }}
-              onClick={() => window.location.hash = '#home'}
+              onClick={() => navigate('/')}
             >
               🏠 Go Home
             </button>
@@ -307,27 +302,33 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
       <main style={containerStyle}>
         {/* Breadcrumb Navigation */}
         <nav style={breadcrumbStyle}>
-          <a 
-            href="#home" 
-            style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.hash = '#home';
+          <button 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: theme.colors.textSecondary, 
+              textDecoration: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
+            onClick={() => navigate('/')}
           >
             🏠 Home
-          </a>
+          </button>
           <span>→</span>
-          <a 
-            href="#articles" 
-            style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.hash = '#articles';
+          <button 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: theme.colors.textSecondary, 
+              textDecoration: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
+            onClick={() => navigate('/articles')}
           >
             📚 Articles
-          </a>
+          </button>
           <span>→</span>
           <span style={{ color: theme.colors.text }}>{post.title}</span>
         </nav>
@@ -632,7 +633,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, postId }) => {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            onClick={() => window.location.hash = '#articles'}
+            onClick={() => navigate('/articles')}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = theme.shadows.md;

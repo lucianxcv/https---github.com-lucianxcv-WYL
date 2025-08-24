@@ -1,15 +1,14 @@
 /**
- * INDIVIDUAL PAST SHOW PAGE - REAL API INTEGRATION
+ * INDIVIDUAL PAST SHOW PAGE - REACT ROUTER VERSION
  * 
- * Features:
- * - Full episode details with embedded video
- * - Speaker information and bio
- * - Related episodes
- * - Social sharing
- * - SEO-friendly slug-based URLs
+ * Updated for React Router:
+ * - Uses useParams() instead of props
+ * - Uses navigate() instead of window.location.hash
+ * - Clean URL navigation throughout
  */
 
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
 import { Navbar } from '../components/common/Navbar';
 import { Footer } from '../components/common/Footer';
@@ -37,12 +36,9 @@ interface PastShowData {
   updatedAt?: string;
 }
 
-interface PastShowPageProps {
-  slug?: string;
-  showId?: string; // Legacy support
-}
-
-export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
+export const PastShowPage: React.FC = () => {
+  const { slug, showId } = useParams(); // Get slug from URL params
+  const navigate = useNavigate();
   const theme = useTheme();
   const [show, setShow] = useState<PastShowData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,7 +140,7 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
         // Redirect to slug-based URL for SEO
         if (enhancedShow.slug) {
           console.log('🔄 Redirecting to slug-based URL:', enhancedShow.slug);
-          window.location.hash = `#shows/${enhancedShow.slug}`;
+          navigate(`/shows/${enhancedShow.slug}`, { replace: true });
           return;
         }
         
@@ -244,8 +240,8 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
   };
 
   const handleRelatedShowClick = (relatedShow: PastShowData) => {
-    // Navigate to related show using slug
-    window.location.hash = `#shows/${relatedShow.slug}`;
+    // Navigate to related show using React Router
+    navigate(`/shows/${relatedShow.slug}`);
   };
 
   const pageStyle: React.CSSProperties = {
@@ -348,7 +344,7 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
                 cursor: 'pointer',
                 marginRight: theme.spacing.sm
               }}
-              onClick={() => window.location.hash = '#past-shows'}
+              onClick={() => navigate('/past-shows')}
             >
               🎬 Browse All Episodes
             </button>
@@ -362,7 +358,7 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
                 fontSize: theme.typography.sizes.base,
                 cursor: 'pointer'
               }}
-              onClick={() => window.location.hash = '#home'}
+              onClick={() => navigate('/')}
             >
               🏠 Go Home
             </button>
@@ -379,27 +375,33 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
       <main style={containerStyle}>
         {/* Breadcrumb Navigation */}
         <nav style={breadcrumbStyle}>
-          <a 
-            href="#home" 
-            style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.hash = '#home';
+          <button 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: theme.colors.textSecondary, 
+              textDecoration: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
+            onClick={() => navigate('/')}
           >
             🏠 Home
-          </a>
+          </button>
           <span>→</span>
-          <a 
-            href="#past-shows" 
-            style={{ color: theme.colors.textSecondary, textDecoration: 'none' }}
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.hash = '#past-shows';
+          <button 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: theme.colors.textSecondary, 
+              textDecoration: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
+            onClick={() => navigate('/past-shows')}
           >
             🎬 Past Shows
-          </a>
+          </button>
           <span>→</span>
           <span style={{ color: theme.colors.text }}>{show.title}</span>
         </nav>
@@ -736,7 +738,7 @@ export const PastShowPage: React.FC<PastShowPageProps> = ({ slug, showId }) => {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            onClick={() => window.location.hash = '#past-shows'}
+            onClick={() => navigate('/past-shows')}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = theme.shadows.md;
