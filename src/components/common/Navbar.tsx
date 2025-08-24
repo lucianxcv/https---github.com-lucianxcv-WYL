@@ -220,35 +220,53 @@ export const Navbar: React.FC<NavbarProps> = ({
     textDecoration: 'none'
   };
 
-  // Classy yacht button styles
+  // Elegant yacht button styles - more sophisticated
   const navButtonStyle: React.CSSProperties = {
-    backgroundColor: 'transparent',
-    color: '#cbd5e1',
-    border: '2px solid rgba(203, 213, 225, 0.3)',
-    borderRadius: '8px',
-    padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+    backgroundColor: 'rgba(248, 250, 252, 0.05)', // Very subtle white tint
+    color: '#e2e8f0',
+    border: '1px solid rgba(203, 213, 225, 0.2)',
+    borderRadius: '12px', // More rounded for elegance
+    padding: `${theme.spacing.md} ${theme.spacing.xl}`, // More spacious
     fontSize: theme.typography.sizes.base,
     fontWeight: 500,
     cursor: 'pointer',
-    transition: 'all 0.4s ease',
+    transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', // Smooth luxury transition
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: '120px', // Ensures consistent button width
-    height: '44px', // Consistent height
-    backdropFilter: 'blur(8px)',
+    minWidth: '140px', // Slightly wider for elegance
+    height: '48px', // Slightly taller
+    backdropFilter: 'blur(12px) saturate(180%)', // Enhanced glass effect
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    letterSpacing: '0.5px', // Subtle letter spacing for sophistication
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)' // Subtle inner highlight
   };
 
   const activeNavButtonStyle: React.CSSProperties = {
     ...navButtonStyle,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: '#3b82f6',
-    color: '#e2e8f0',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
-    fontWeight: 600
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+    color: '#f1f5f9',
+    boxShadow: '0 4px 16px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    fontWeight: 600,
+    letterSpacing: '0.75px'
+  };
+
+  // Subtle user action buttons
+  const subtleButtonStyle: React.CSSProperties = {
+    backgroundColor: 'transparent',
+    color: '#94a3b8', // More subtle color
+    border: '1px solid rgba(148, 163, 184, 0.3)',
+    borderRadius: '6px',
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`, // Smaller padding
+    fontSize: theme.typography.sizes.xs, // Smaller font
+    fontWeight: 400, // Less bold
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textDecoration: 'none',
+    whiteSpace: 'nowrap' // Prevent text wrapping
   };
 
   // Updated navigation items - classy names
@@ -336,20 +354,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleNavClick(item.href, item.id)}
                     onMouseEnter={(e) => {
                       if (activeSection !== item.id) {
-                        e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.6)';
-                        e.currentTarget.style.borderColor = '#94a3b8';
+                        e.currentTarget.style.backgroundColor = 'rgba(248, 250, 252, 0.08)';
+                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.4)';
                         e.currentTarget.style.color = '#f8fafc';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+                        e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (activeSection !== item.id) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.3)';
-                        e.currentTarget.style.color = '#cbd5e1';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'rgba(248, 250, 252, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.2)';
+                        e.currentTarget.style.color = '#e2e8f0';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
                       }
                     }}
                   >
@@ -362,20 +380,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                     style={activeSection === item.id ? activeNavButtonStyle : navButtonStyle}
                     onMouseEnter={(e) => {
                       if (activeSection !== item.id) {
-                        e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.6)';
-                        e.currentTarget.style.borderColor = '#94a3b8';
+                        e.currentTarget.style.backgroundColor = 'rgba(248, 250, 252, 0.08)';
+                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.4)';
                         e.currentTarget.style.color = '#f8fafc';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+                        e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (activeSection !== item.id) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.3)';
-                        e.currentTarget.style.color = '#cbd5e1';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'rgba(248, 250, 252, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.2)';
+                        e.currentTarget.style.color = '#e2e8f0';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
                       }
                     }}
                   >
@@ -388,9 +406,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* User Menu & Actions */}
           <div style={userMenuStyle}>
-            {/* Theme Toggle */}
-            <ThemeToggle />
-
             {/* Authentication */}
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
@@ -454,48 +469,42 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </span>
                 </Link>
 
-                {/* Admin Link - Keep the icon */}
+                {/* Admin Link - Subtle */}
                 {isAdmin && (
                   <Link
                     to="/admin"
-                    style={{
-                      ...secondaryButtonStyle,
-                      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                      fontSize: theme.typography.sizes.xs
-                    }}
+                    style={subtleButtonStyle}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#475569';
+                      e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
                       e.currentTarget.style.borderColor = '#94a3b8';
+                      e.currentTarget.style.color = '#e2e8f0';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.borderColor = '#64748b';
+                      e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                      e.currentTarget.style.color = '#94a3b8';
                     }}
                   >
-                    ⚙️ Admin
+                    Admin
                   </Link>
                 )}
 
-                {/* Sign Out */}
+                {/* Sign Out - Subtle, no icon, fits on one line */}
                 <button
-                  style={{
-                    ...secondaryButtonStyle,
-                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                    fontSize: theme.typography.sizes.xs
-                  }}
+                  style={subtleButtonStyle}
                   onClick={handleSignOut}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#dc2626';
-                    e.currentTarget.style.borderColor = '#dc2626';
-                    e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    e.currentTarget.style.borderColor = '#ef4444';
+                    e.currentTarget.style.color = '#fca5a5';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = '#64748b';
-                    e.currentTarget.style.color = '#e2e8f0';
+                    e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                    e.currentTarget.style.color = '#94a3b8';
                   }}
                 >
-                  🚪 Sign Out
+                  Sign Out
                 </button>
               </div>
             ) : (
@@ -514,6 +523,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 🔐 Login
               </Link>
             )}
+
+            {/* Theme Toggle - Moved to end */}
+            <ThemeToggle />
 
             {/* Mobile Menu Button */}
             <button
