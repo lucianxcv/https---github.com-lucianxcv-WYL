@@ -291,7 +291,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             to="/" 
             style={logoStyle}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
@@ -301,7 +301,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               src="https://fpuihryuqxaauymcgszd.supabase.co/storage/v1/object/public/logos/home.png"
               alt="Wednesday Yachting Luncheon"
               style={{
-                height: '50px',
+                height: '70px',
                 width: 'auto',
                 transition: 'all 0.3s ease'
               }}
