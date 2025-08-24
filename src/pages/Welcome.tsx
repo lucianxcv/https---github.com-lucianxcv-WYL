@@ -67,12 +67,12 @@ export const Welcome: React.FC = () => {
 
   const handleContinue = () => {
     // Redirect to home page
-    window.location.hash = '#home';
+    window.location.href = '/';
   };
 
   const handleResendConfirmation = () => {
     // Redirect back to signup
-    window.location.hash = '#auth';
+    window.location.href = '/auth';
   };
 
   // Styles
@@ -204,7 +204,7 @@ export const Welcome: React.FC = () => {
                   e.currentTarget.style.backgroundColor = theme.colors.primary;
                 }}
               >
-                🚀 Continue to App
+                 Continue to WYL
               </button>
             )}
 
