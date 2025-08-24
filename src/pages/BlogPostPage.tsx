@@ -1,10 +1,15 @@
 /**
- * INDIVIDUAL BLOG POST PAGE - REACT ROUTER VERSION
+ * NEWSPAPER-THEMED BLOG POST PAGE 📰
  * 
- * Updated for React Router:
- * - Uses useParams() instead of props
- * - Uses navigate() instead of window.location.hash
- * - Clean URL navigation throughout
+ * Features:
+ * - Classic newspaper layout with modern touches
+ * - Serif typography for authentic journalism feel
+ * - Multi-column text layout like real newspapers
+ * - Drop caps and pull quotes
+ * - Print-style margins and spacing
+ * - Byline and dateline styling
+ * - Classic newspaper section headers
+ * - Modern responsive design
  */
 
 import React, { useState, useEffect } from 'react';
@@ -37,7 +42,7 @@ interface BlogPostData {
 }
 
 export const BlogPostPage: React.FC = () => {
-  const { slug, postId } = useParams(); // Get slug from URL params
+  const { slug, postId } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
   const [post, setPost] = useState<BlogPostData | null>(null);
@@ -60,20 +65,18 @@ export const BlogPostPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('📖 Loading blog post by slug:', postSlug);
+      console.log('📰 Loading newspaper article:', postSlug);
       
       const response = await postsApi.getBySlug(postSlug);
       
       if (response.success && response.data) {
         setPost(response.data);
-        
-        // Load related posts
         await loadRelatedPosts(response.data);
       } else {
         setError('Article not found');
       }
     } catch (error) {
-      console.error('❌ Failed to load blog post:', error);
+      console.error('❌ Failed to load article:', error);
       setError(`Failed to load article: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -84,7 +87,7 @@ export const BlogPostPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('📖 Loading blog post by ID:', id);
+      console.log('📰 Loading article by ID:', id);
       
       const response = await postsApi.getById(id);
       
@@ -92,20 +95,17 @@ export const BlogPostPage: React.FC = () => {
         const postData = response.data;
         setPost(postData);
         
-        // Redirect to slug-based URL for SEO
         if (postData.slug) {
-          console.log('🔄 Redirecting to slug-based URL:', postData.slug);
           navigate(`/posts/${postData.slug}`, { replace: true });
           return;
         }
         
-        // Load related posts
         await loadRelatedPosts(postData);
       } else {
         setError('Article not found');
       }
     } catch (error) {
-      console.error('❌ Failed to load blog post:', error);
+      console.error('❌ Failed to load article:', error);
       setError(`Failed to load article: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -114,14 +114,12 @@ export const BlogPostPage: React.FC = () => {
 
   const loadRelatedPosts = async (currentPost: BlogPostData) => {
     try {
-      // Get related posts (same category or recent posts)
       const response = await postsApi.getAll({
         limit: 4,
         published: true
       });
 
       if (response.success && response.data) {
-        // Filter out current post and get up to 3 related posts
         const related = response.data
           .filter(p => p.id !== currentPost.id)
           .slice(0, 3);
@@ -130,7 +128,6 @@ export const BlogPostPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to load related posts:', error);
-      // Don't show error for related posts failure
     }
   };
 
@@ -160,82 +157,341 @@ export const BlogPostPage: React.FC = () => {
   };
 
   const handleRelatedPostClick = (relatedPost: BlogPostData) => {
-    // Navigate to related post using React Router
     navigate(`/posts/${relatedPost.slug}`);
   };
 
-  const pageStyle: React.CSSProperties = {
-    fontFamily: theme.typography.fontFamily,
+  // 📰 NEWSPAPER STYLING
+  const newspaperPageStyle: React.CSSProperties = {
+    fontFamily: '"Crimson Text", "Times New Roman", Georgia, serif',
     minHeight: '100vh',
-    backgroundColor: theme.colors.surface,
-    color: theme.colors.text,
-    paddingTop: '80px'
+    backgroundColor: '#fefefe', // Slightly off-white like newsprint
+    background: `
+      radial-gradient(circle at 20% 50%, rgba(0,0,0,0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(0,0,0,0.02) 0%, transparent 50%),
+      linear-gradient(90deg, transparent 49%, rgba(0,0,0,0.03) 50%, transparent 51%)
+    `,
+    color: '#1a1a1a',
+    lineHeight: 1.7
   };
 
-  const containerStyle: React.CSSProperties = {
-    maxWidth: '800px',
+  const newspaperContainerStyle: React.CSSProperties = {
+    maxWidth: '900px',
     margin: '0 auto',
-    padding: theme.spacing.xl
+    padding: '120px 40px 60px 40px',
+    position: 'relative'
   };
 
-  const breadcrumbStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textSecondary
+  // Newspaper masthead style
+  const mastheadStyle: React.CSSProperties = {
+    borderTop: '4px solid #1a1a1a',
+    borderBottom: '1px solid #1a1a1a',
+    textAlign: 'center',
+    padding: '20px 0',
+    marginBottom: '40px',
+    position: 'relative'
   };
 
-  const headerStyle: React.CSSProperties = {
-    marginBottom: theme.spacing.xl,
-    textAlign: 'center'
+  const mastheadTitleStyle: React.CSSProperties = {
+    fontFamily: '"Playfair Display", "Times New Roman", serif',
+    fontSize: '2.8rem',
+    fontWeight: '900',
+    color: '#1a1a1a',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    margin: '0',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
   };
 
-  const titleStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes['4xl'],
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    lineHeight: 1.2
+  const mastheadSubtitleStyle: React.CSSProperties = {
+    fontSize: '0.9rem',
+    color: '#666',
+    letterSpacing: '1px',
+    marginTop: '8px',
+    fontWeight: '400',
+    textTransform: 'uppercase'
   };
 
-  const metaStyle: React.CSSProperties = {
+  const datelineStyle: React.CSSProperties = {
+    fontSize: '0.85rem',
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: '40px',
+    borderBottom: '1px solid #ddd',
+    paddingBottom: '15px',
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase'
+  };
+
+  // Article header styles
+  const headlineStyle: React.CSSProperties = {
+    fontFamily: '"Playfair Display", "Times New Roman", serif',
+    fontSize: 'clamp(2.2rem, 4.5vw, 3.8rem)',
+    fontWeight: '900',
+    color: '#1a1a1a',
+    lineHeight: 1.1,
+    marginBottom: '16px',
+    textAlign: 'center',
+    letterSpacing: '-0.5px'
+  };
+
+  const subheadlineStyle: React.CSSProperties = {
+    fontSize: '1.4rem',
+    color: '#444',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: '32px',
+    lineHeight: 1.3,
+    fontWeight: '400',
+    maxWidth: '700px',
+    margin: '0 auto 32px auto'
+  };
+
+  const bylineStyle: React.CSSProperties = {
+    borderTop: '1px solid #ddd',
+    borderBottom: '1px solid #ddd',
+    padding: '20px 0',
+    marginBottom: '32px',
+    textAlign: 'center',
+    fontSize: '0.9rem',
+    color: '#666',
+    backgroundColor: 'rgba(0,0,0,0.02)'
+  };
+
+  const authorInfoStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    flexWrap: 'wrap'
+    gap: '16px',
+    marginBottom: '12px'
   };
 
-  const authorSectionStyle: React.CSSProperties = {
+  const authorNameStyle: React.CSSProperties = {
+    fontWeight: '600',
+    color: '#1a1a1a',
+    fontSize: '1rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  };
+
+  const publishInfoStyle: React.CSSProperties = {
     display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
-    borderRadius: '12px',
-    border: `1px solid ${theme.colors.border}`
+    justifyContent: 'center',
+    gap: '24px',
+    fontSize: '0.85rem',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
   };
 
-  const contentStyle: React.CSSProperties = {
-    fontSize: theme.typography.sizes.lg,
+  // Article content styles with newspaper columns
+  const articleContentStyle: React.CSSProperties = {
+    fontSize: '1.1rem',
     lineHeight: 1.8,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xl
+    color: '#1a1a1a',
+    marginBottom: '48px',
+    textAlign: 'justify',
+    columnCount: 1, // Will change to 2 on larger screens
+    columnGap: '40px',
+    columnRule: '1px solid #ddd'
   };
+
+  // Featured image newspaper style
+  const featuredImageStyle: React.CSSProperties = {
+    width: '100%',
+    height: 'auto',
+    marginBottom: '16px',
+    border: '2px solid #1a1a1a',
+    borderRadius: '4px'
+  };
+
+  const imageCaptionStyle: React.CSSProperties = {
+    fontSize: '0.85rem',
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: '32px',
+    padding: '8px 16px',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    border: '1px solid #eee'
+  };
+
+  // Pull quote style
+  const pullQuoteStyle: React.CSSProperties = {
+    fontSize: '1.3rem',
+    fontStyle: 'italic',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    margin: '32px 0',
+    padding: '24px',
+    border: '2px solid #1a1a1a',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    position: 'relative',
+    breakInside: 'avoid'
+  };
+
+  // Tags newspaper style
+  const tagsStyle: React.CSSProperties = {
+    borderTop: '2px solid #1a1a1a',
+    borderBottom: '1px solid #ddd',
+    padding: '20px 0',
+    marginBottom: '32px'
+  };
+
+  const tagItemStyle: React.CSSProperties = {
+    display: 'inline-block',
+    backgroundColor: '#1a1a1a',
+    color: '#fff',
+    padding: '4px 12px',
+    margin: '4px 8px 4px 0',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  };
+
+  // Related articles (sidebar style)
+  const sidebarStyle: React.CSSProperties = {
+    borderTop: '3px solid #1a1a1a',
+    padding: '32px 0',
+    marginTop: '48px'
+  };
+
+  const sidebarTitleStyle: React.CSSProperties = {
+    fontFamily: '"Playfair Display", serif',
+    fontSize: '1.8rem',
+    fontWeight: '900',
+    color: '#1a1a1a',
+    marginBottom: '24px',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: '1px'
+  };
+
+  const relatedArticleStyle: React.CSSProperties = {
+    borderBottom: '1px solid #ddd',
+    padding: '20px 0',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease'
+  };
+
+  const relatedTitleStyle: React.CSSProperties = {
+    fontSize: '1.2rem',
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: '8px',
+    lineHeight: 1.3
+  };
+
+  const relatedMetaStyle: React.CSSProperties = {
+    fontSize: '0.8rem',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  };
+
+  // Share buttons newspaper style
+  const shareBoxStyle: React.CSSProperties = {
+    border: '2px solid #1a1a1a',
+    padding: '24px',
+    marginBottom: '40px',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    textAlign: 'center'
+  };
+
+  const shareButtonStyle: React.CSSProperties = {
+    backgroundColor: '#1a1a1a',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 16px',
+    margin: '4px',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease'
+  };
+
+  // CSS animations and responsive design
+  const animations = `
+    @media (min-width: 768px) {
+      .newspaper-content {
+        column-count: 2;
+      }
+      
+      .newspaper-container {
+        padding-left: 60px;
+        padding-right: 60px;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .masthead-title {
+        font-size: 2rem !important;
+      }
+      
+      .headline {
+        font-size: 2.2rem !important;
+      }
+      
+      .newspaper-container {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+    
+    .drop-cap::first-letter {
+      float: left;
+      font-family: "Playfair Display", serif;
+      font-size: 4.5rem;
+      line-height: 3.5rem;
+      padding-right: 8px;
+      padding-top: 4px;
+      font-weight: 900;
+      color: #1a1a1a;
+    }
+    
+    .related-article:hover {
+      background-color: rgba(0,0,0,0.02);
+      padding-left: 16px;
+    }
+    
+    .share-btn:hover {
+      background-color: #444;
+      transform: translateY(-1px);
+    }
+    
+    .pull-quote::before {
+      content: """;
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      font-size: 3rem;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+    
+    .pull-quote::after {
+      content: """;
+      position: absolute;
+      bottom: -20px;
+      right: 16px;
+      font-size: 3rem;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+  `;
 
   // Loading state
   if (loading) {
     return (
-      <div style={pageStyle}>
+      <div style={newspaperPageStyle}>
+        <style>{animations}</style>
         <Navbar />
-        <div style={containerStyle}>
-          <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
-            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>📖</div>
-            <p>Loading article...</p>
+        <div style={newspaperContainerStyle}>
+          <div style={{ textAlign: 'center', padding: '100px 0' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '24px' }}>📰</div>
+            <p style={{ fontSize: '1.2rem', color: '#666' }}>Loading article from the archives...</p>
           </div>
         </div>
       </div>
@@ -245,44 +501,59 @@ export const BlogPostPage: React.FC = () => {
   // Error state
   if (error || !post) {
     return (
-      <div style={pageStyle}>
+      <div style={newspaperPageStyle}>
+        <style>{animations}</style>
         <Navbar />
-        <div style={containerStyle}>
-          <div style={{ textAlign: 'center', padding: theme.spacing.xl }}>
-            <div style={{ fontSize: '3rem', marginBottom: theme.spacing.md }}>❌</div>
-            <h2>Article Not Found</h2>
-            <p style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
-              {error || 'The requested article could not be found.'}
+        <div style={newspaperContainerStyle}>
+          <div style={{ textAlign: 'center', padding: '100px 0' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '24px' }}>📰</div>
+            <h2 style={{ 
+              fontSize: '2.5rem', 
+              marginBottom: '20px',
+              fontFamily: '"Playfair Display", serif',
+              fontWeight: '900'
+            }}>Article Not Found</h2>
+            <p style={{ 
+              color: '#666', 
+              marginBottom: '40px', 
+              fontSize: '1.1rem'
+            }}>
+              {error || 'The requested article could not be found in our archives.'}
             </p>
-            <button
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: '#ffffff',
-                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: theme.typography.sizes.base,
-                cursor: 'pointer',
-                marginRight: theme.spacing.sm
-              }}
-              onClick={() => navigate('/articles')}
-            >
-              📚 Browse All Articles
-            </button>
-            <button
-              style={{
-                backgroundColor: theme.colors.secondary,
-                color: '#ffffff',
-                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: theme.typography.sizes.base,
-                cursor: 'pointer'
-              }}
-              onClick={() => navigate('/')}
-            >
-              🏠 Go Home
-            </button>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                style={{
+                  backgroundColor: '#1a1a1a',
+                  color: '#fff',
+                  padding: '16px 32px',
+                  border: 'none',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onClick={() => navigate('/articles')}
+              >
+                📚 Browse All Articles
+              </button>
+              <button
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#1a1a1a',
+                  padding: '16px 32px',
+                  border: '2px solid #1a1a1a',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onClick={() => navigate('/')}
+              >
+                🏠 Go Home
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -292,358 +563,263 @@ export const BlogPostPage: React.FC = () => {
   const readTime = post.readTime || calculateReadTime(post.content);
   const authorName = post.author?.name || post.author?.email || 'Maritime Editor';
   const publishDate = post.publishedAt || post.createdAt;
-  const categoryName = post.categories?.[0]?.category?.name || 'General';
+  const categoryName = post.categories?.[0]?.category?.name || 'Maritime Affairs';
   const tags = post.tags?.map(tag => tag.tag?.name || tag) || [];
 
+  // Create pull quote from content if available
+  const contentText = post.content.replace(/<[^>]*>/g, '');
+  const sentences = contentText.split(/[.!?]+/).filter(s => s.trim().length > 50);
+  const pullQuoteText = sentences.length > 2 ? sentences[1].trim() + '.' : '';
+
   return (
-    <div style={pageStyle}>
+    <div style={newspaperPageStyle}>
+      <style>{animations}</style>
+      
       <Navbar />
       
-      <main style={containerStyle}>
-        {/* Breadcrumb Navigation */}
-        <nav style={breadcrumbStyle}>
-          <button 
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: theme.colors.textSecondary, 
-              textDecoration: 'none',
-              cursor: 'pointer',
-              padding: 0
-            }}
-            onClick={() => navigate('/')}
-          >
-            🏠 Home
-          </button>
-          <span>→</span>
-          <button 
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: theme.colors.textSecondary, 
-              textDecoration: 'none',
-              cursor: 'pointer',
-              padding: 0
-            }}
-            onClick={() => navigate('/articles')}
-          >
-            📚 Articles
-          </button>
-          <span>→</span>
-          <span style={{ color: theme.colors.text }}>{post.title}</span>
-        </nav>
+      <main style={newspaperContainerStyle} className="newspaper-container">
+        {/* Newspaper Masthead */}
+        <header style={mastheadStyle}>
+          <h1 style={mastheadTitleStyle} className="masthead-title">
+            The Maritime Herald
+          </h1>
+          <p style={mastheadSubtitleStyle}>
+            Est. 1927 • Wednesday Yachting Luncheon • San Francisco Bay
+          </p>
+        </header>
+
+        {/* Dateline */}
+        <div style={datelineStyle}>
+          {new Date(publishDate).toLocaleDateString('en-US', { 
+            weekday: 'long',
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }).toUpperCase()} • LATEST EDITION
+        </div>
 
         {/* Article Header */}
-        <header style={headerStyle}>
+        <article>
           <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: theme.spacing.xs,
-            backgroundColor: theme.colors.primary,
-            color: '#ffffff',
-            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-            borderRadius: '20px',
-            fontSize: theme.typography.sizes.sm,
-            fontWeight: theme.typography.weights.semibold,
-            marginBottom: theme.spacing.md
+            backgroundColor: 'rgba(0,0,0,0.02)',
+            padding: '16px',
+            marginBottom: '24px',
+            border: '1px solid #ddd',
+            textAlign: 'center'
           }}>
-            📂 {categoryName}
+            <div style={{
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              color: '#1a1a1a',
+              textTransform: 'uppercase',
+              letterSpacing: '1px'
+            }}>
+              {categoryName}
+            </div>
           </div>
+
+          <h1 style={headlineStyle} className="headline">{post.title}</h1>
           
-          <h1 style={titleStyle}>{post.title}</h1>
-          
-          <div style={metaStyle}>
-            <span style={{ color: theme.colors.textSecondary }}>
-              📅 {new Date(publishDate).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </span>
-            <span style={{ color: theme.colors.textSecondary }}>
-              ⏱️ {readTime} min read
-            </span>
-            {post.views && (
-              <span style={{ color: theme.colors.textSecondary }}>
-                👁️ {post.views} views
-              </span>
-            )}
+          {post.excerpt && (
+            <div style={subheadlineStyle}>
+              {post.excerpt}
+            </div>
+          )}
+
+          {/* Byline */}
+          <div style={bylineStyle}>
+            <div style={authorInfoStyle}>
+              {post.author?.avatar && (
+                <img
+                  src={post.author.avatar}
+                  alt={authorName}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    border: '2px solid #1a1a1a'
+                  }}
+                />
+              )}
+              <div>
+                <div style={authorNameStyle}>By {authorName}</div>
+                <div style={{ fontSize: '0.8rem', color: '#666' }}>Maritime Correspondent</div>
+              </div>
+            </div>
+            <div style={publishInfoStyle}>
+              <span>Published: {new Date(publishDate).toLocaleDateString()}</span>
+              <span>•</span>
+              <span>{readTime} min read</span>
+              {post.views && (
+                <>
+                  <span>•</span>
+                  <span>{post.views} readers</span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Featured Image */}
           {post.coverImage && (
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              style={{
-                width: '100%',
-                height: '400px',
-                objectFit: 'cover',
-                borderRadius: '12px',
-                marginBottom: theme.spacing.lg
-              }}
-            />
-          )}
-        </header>
-
-        {/* Author Section */}
-        {post.author && (
-          <div style={authorSectionStyle}>
-            {post.author.avatar && (
+            <div style={{ marginBottom: '32px' }}>
               <img
-                src={post.author.avatar}
-                alt={authorName}
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
+                src={post.coverImage}
+                alt={post.title}
+                style={featuredImageStyle}
               />
-            )}
-            <div>
-              <h3 style={{
-                fontSize: theme.typography.sizes.lg,
-                fontWeight: theme.typography.weights.semibold,
-                color: theme.colors.text,
-                marginBottom: theme.spacing.xs
-              }}>
-                ✍️ {authorName}
-              </h3>
-              <p style={{
-                fontSize: theme.typography.sizes.sm,
-                color: theme.colors.textSecondary,
-                margin: 0
-              }}>
-                Maritime content contributor
-              </p>
+              <div style={imageCaptionStyle}>
+                Maritime scene related to: {post.title}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Article Content */}
-        <div 
-          style={contentStyle}
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+          {/* Article Content with Drop Cap */}
+          <div 
+            style={articleContentStyle}
+            className="newspaper-content drop-cap"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
-        {/* Tags */}
-        {tags.length > 0 && (
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: theme.spacing.sm,
-            marginBottom: theme.spacing.xl
-          }}>
-            <span style={{ 
-              fontSize: theme.typography.sizes.sm,
-              color: theme.colors.textSecondary,
-              marginRight: theme.spacing.sm
-            }}>
-              🏷️ Tags:
-            </span>
-            {tags.map((tag, index) => (
-              <span
-                key={index}
-                style={{
-                  backgroundColor: theme.colors.background,
-                  color: theme.colors.text,
-                  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                  borderRadius: '20px',
-                  fontSize: theme.typography.sizes.xs,
-                  border: `1px solid ${theme.colors.border}`
-                }}
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
+          {/* Pull Quote */}
+          {pullQuoteText && (
+            <div style={pullQuoteStyle} className="pull-quote">
+              {pullQuoteText}
+            </div>
+          )}
 
-        {/* Social Sharing */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: theme.spacing.md,
-          marginBottom: theme.spacing.xl,
-          padding: theme.spacing.lg,
-          backgroundColor: theme.colors.background,
-          borderRadius: '12px',
-          border: `1px solid ${theme.colors.border}`
-        }}>
-          <span style={{ fontWeight: theme.typography.weights.semibold }}>
-            📤 Share this article:
-          </span>
-          <button
-            style={{
-              backgroundColor: '#1DA1F2',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-              fontSize: theme.typography.sizes.sm,
-              cursor: 'pointer'
-            }}
-            onClick={() => handleShare('twitter')}
-          >
-            🐦 Twitter
-          </button>
-          <button
-            style={{
-              backgroundColor: '#4267B2',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-              fontSize: theme.typography.sizes.sm,
-              cursor: 'pointer'
-            }}
-            onClick={() => handleShare('facebook')}
-          >
-            📘 Facebook
-          </button>
-          <button
-            style={{
-              backgroundColor: '#0077B5',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-              fontSize: theme.typography.sizes.sm,
-              cursor: 'pointer'
-            }}
-            onClick={() => handleShare('linkedin')}
-          >
-            💼 LinkedIn
-          </button>
-          <button
-            style={{
-              backgroundColor: theme.colors.textSecondary,
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-              fontSize: theme.typography.sizes.sm,
-              cursor: 'pointer'
-            }}
-            onClick={() => handleShare('email')}
-          >
-            ✉️ Email
-          </button>
-        </div>
-
-        {/* Related Articles */}
-        {relatedPosts.length > 0 && (
-          <section style={{ marginBottom: theme.spacing.xl }}>
-            <h3 style={{
-              fontSize: theme.typography.sizes['2xl'],
-              fontWeight: theme.typography.weights.bold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.lg,
-              textAlign: 'center'
-            }}>
-              📖 Related Articles
-            </h3>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: theme.spacing.lg
-            }}>
-              {relatedPosts.map((relatedPost) => (
-                <div
-                  key={relatedPost.id}
-                  style={{
-                    backgroundColor: theme.colors.background,
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    border: `1px solid ${theme.colors.border}`,
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => handleRelatedPostClick(relatedPost)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = theme.shadows.md;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  {relatedPost.coverImage && (
-                    <img
-                      src={relatedPost.coverImage}
-                      alt={relatedPost.title}
-                      style={{
-                        width: '100%',
-                        height: '200px',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  )}
-                  <div style={{ padding: theme.spacing.md }}>
-                    <h4 style={{
-                      fontSize: theme.typography.sizes.lg,
-                      fontWeight: theme.typography.weights.semibold,
-                      color: theme.colors.text,
-                      marginBottom: theme.spacing.sm,
-                      lineHeight: 1.3
-                    }}>
-                      {relatedPost.title}
-                    </h4>
-                    <p style={{
-                      fontSize: theme.typography.sizes.sm,
-                      color: theme.colors.textSecondary,
-                      marginBottom: theme.spacing.sm,
-                      lineHeight: 1.5
-                    }}>
-                      {relatedPost.excerpt || relatedPost.content.substring(0, 100) + '...'}
-                    </p>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: theme.typography.sizes.xs,
-                      color: theme.colors.textSecondary
-                    }}>
-                      <span>👤 {relatedPost.author?.name || relatedPost.author?.email}</span>
-                      <span>⏱️ {calculateReadTime(relatedPost.content)} min</span>
-                    </div>
-                  </div>
-                </div>
+          {/* Tags */}
+          {tags.length > 0 && (
+            <div style={tagsStyle}>
+              <div style={{
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                marginBottom: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Related Topics:
+              </div>
+              {tags.map((tag, index) => (
+                <span key={index} style={tagItemStyle}>
+                  {tag}
+                </span>
               ))}
             </div>
-          </section>
+          )}
+
+          {/* Share Box */}
+          <div style={shareBoxStyle}>
+            <div style={{
+              fontSize: '1rem',
+              fontWeight: '600',
+              marginBottom: '16px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              Share This Article
+            </div>
+            <button
+              style={shareButtonStyle}
+              className="share-btn"
+              onClick={() => handleShare('twitter')}
+            >
+              Twitter
+            </button>
+            <button
+              style={shareButtonStyle}
+              className="share-btn"
+              onClick={() => handleShare('facebook')}
+            >
+              Facebook
+            </button>
+            <button
+              style={shareButtonStyle}
+              className="share-btn"
+              onClick={() => handleShare('linkedin')}
+            >
+              LinkedIn
+            </button>
+            <button
+              style={shareButtonStyle}
+              className="share-btn"
+              onClick={() => handleShare('email')}
+            >
+              Email
+            </button>
+          </div>
+        </article>
+
+        {/* Related Articles Sidebar */}
+        {relatedPosts.length > 0 && (
+          <aside style={sidebarStyle}>
+            <h2 style={sidebarTitleStyle}>More From Our Archives</h2>
+            {relatedPosts.map((relatedPost) => (
+              <div
+                key={relatedPost.id}
+                style={relatedArticleStyle}
+                className="related-article"
+                onClick={() => handleRelatedPostClick(relatedPost)}
+              >
+                <h3 style={relatedTitleStyle}>{relatedPost.title}</h3>
+                <div style={relatedMetaStyle}>
+                  By {relatedPost.author?.name || relatedPost.author?.email} • 
+                  {' '}{calculateReadTime(relatedPost.content)} min read
+                </div>
+              </div>
+            ))}
+          </aside>
         )}
 
         {/* Comments Section */}
-        <CommentsSection />
+        <section style={{
+          borderTop: '3px solid #1a1a1a',
+          paddingTop: '48px',
+          marginTop: '48px'
+        }}>
+          <h2 style={{
+            fontFamily: '"Playfair Display", serif',
+            fontSize: '1.8rem',
+            fontWeight: '900',
+            color: '#1a1a1a',
+            marginBottom: '32px',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
+          }}>
+            Letters to the Editor
+          </h2>
+          <CommentsSection />
+        </section>
 
-        {/* Navigation Back */}
-        <div style={{ textAlign: 'center', marginBottom: theme.spacing.xl }}>
+        {/* Navigation */}
+        <div style={{ 
+          textAlign: 'center', 
+          margin: '60px 0',
+          borderTop: '1px solid #ddd',
+          paddingTop: '40px'
+        }}>
           <button
             style={{
-              backgroundColor: theme.colors.secondary,
-              color: '#ffffff',
-              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+              backgroundColor: '#1a1a1a',
+              color: '#fff',
+              padding: '16px 32px',
               border: 'none',
-              borderRadius: '25px',
-              fontSize: theme.typography.sizes.base,
-              fontWeight: theme.typography.weights.semibold,
+              fontSize: '1rem',
+              fontWeight: '600',
               cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
               transition: 'all 0.3s ease'
             }}
             onClick={() => navigate('/articles')}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = theme.shadows.md;
+              e.currentTarget.style.backgroundColor = '#333';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = '#1a1a1a';
             }}
           >
-            📚 Back to All Articles
+            📰 Back to All Articles
           </button>
         </div>
       </main>
