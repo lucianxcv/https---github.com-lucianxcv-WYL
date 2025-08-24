@@ -80,11 +80,11 @@ export const PastShowsArchivePage: React.FC = () => {
   const handleShowClick = (show: any) => {
     // Navigate to individual episode page using slug
     if (show.slug) {
-      window.location.hash = `#shows/${show.slug}`;
+      window.location.href = `/shows/${show.slug}`;
     } else {
       // Fallback to ID if no slug available
       console.warn('⚠️ No slug available for show, using ID fallback:', show.id);
-      window.location.hash = `#past-show-${show.id}`;
+      window.location.href = `/past-show-${show.id}`;
     }
   };
 
@@ -696,7 +696,7 @@ export const PastShowsArchivePage: React.FC = () => {
                   cursor: 'pointer',
                   transition: 'all 0.3s ease'
                 }}
-                onClick={() => window.location.hash = '#articles'}
+                onClick={() => window.location.href = '/articles'}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = theme.colors.primary;
                   e.currentTarget.style.color = '#ffffff';
