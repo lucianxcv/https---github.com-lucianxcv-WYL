@@ -113,10 +113,10 @@ export const AllArticlesPage: React.FC = () => {
   const handleArticleClick = (article: BlogPost) => {
     // Navigate to individual blog post using slug
     if (article.slug) {
-      window.location.hash = `#posts/${article.slug}`;
+      window.location.href = `/posts/${article.slug}`;
     } else {
       console.warn('⚠️ No slug available for article, using ID fallback:', article.id);
-      window.location.hash = `#blog-post-${article.id}`;
+      window.location.href = `/blog-post-${article.id}`;
     }
   };
 
@@ -574,7 +574,7 @@ export const AllArticlesPage: React.FC = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
-            onClick={() => window.location.hash = '#home'}
+            onClick={() => window.location.href = '/home'}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = theme.shadows.md;
