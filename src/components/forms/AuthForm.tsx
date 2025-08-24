@@ -1,8 +1,11 @@
 // ==================== src/components/forms/AuthForm.tsx ====================
 /**
- * AUTHENTICATION FORM COMPONENT
+ * ENHANCED AUTHENTICATION FORM COMPONENT
  *
- * Now properly integrated with useAuth hook and removes manual redirects.
+ * Professional upgrades:
+ * - In-page success/error messages (no more alerts!)
+ * - Better loading states and visual feedback
+ * - Email verification messaging
  */
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -12,6 +15,11 @@ interface AuthFormProps {
   mode: 'login' | 'signup';
   onSuccess: () => void;
   onSwitchMode: () => void;
+}
+
+interface AuthMessage {
+  type: 'success' | 'error' | 'info';
+  text: string;
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMode }) => {
@@ -25,6 +33,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<AuthMessage | null>(null);
 
   // Call onSuccess when authentication succeeds
   useEffect(() => {
@@ -38,6 +47,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    // Clear message when user starts typing
+    if (message) {
+      setMessage(null);
     }
   };
 
@@ -80,13 +93,31 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
 
     setIsSubmitting(true);
     setErrors({});
+    setMessage(null);
 
     try {
       if (mode === 'signup') {
         await signUp(formData.email, formData.password, formData.name);
-        // Show success message and switch to login
-        alert('Account created successfully! Please check your email to verify your account.');
-        onSwitchMode();
+        
+        // Show professional success message
+        setMessage({
+          type: 'success',
+          text: '🎉 Account created successfully! Please check your email to verify your account before signing in.'
+        });
+
+        // Clear form
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          name: ''
+        });
+
+        // Auto-switch to login after 3 seconds
+        setTimeout(() => {
+          onSwitchMode();
+        }, 3000);
+
       } else {
         await signIn(formData.email, formData.password);
         // Success will be handled by useEffect when isAuthenticated changes
@@ -94,15 +125,30 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setErrors({
-        general: error.message || 'Authentication failed. Please try again.'
+      
+      // Show user-friendly error message
+      let errorMessage = 'Something went wrong. Please try again.';
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please verify your email address before signing in. Check your inbox for a confirmation link.';
+      } else if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Try logging in instead.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setMessage({
+        type: 'error',
+        text: errorMessage
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Styles (keeping existing styles)
+  // Styles (keeping your existing styles + new message styles)
   const formStyle: React.CSSProperties = {
     backgroundColor: theme.colors.background,
     padding: theme.spacing.xl,
@@ -144,6 +190,45 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
     border: '1px solid rgba(231, 76, 60, 0.3)'
   };
 
+  // NEW: Message styles for success/error/info
+  const getMessageStyle = (type: AuthMessage['type']): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      fontSize: theme.typography.sizes.sm,
+      marginBottom: theme.spacing.lg,
+      padding: theme.spacing.md,
+      borderRadius: '8px',
+      border: '1px solid',
+      lineHeight: 1.5,
+      textAlign: 'center'
+    };
+
+    switch (type) {
+      case 'success':
+        return {
+          ...baseStyle,
+          color: '#27ae60',
+          backgroundColor: 'rgba(39, 174, 96, 0.1)',
+          borderColor: 'rgba(39, 174, 96, 0.3)'
+        };
+      case 'error':
+        return {
+          ...baseStyle,
+          color: '#e74c3c',
+          backgroundColor: 'rgba(231, 76, 60, 0.1)',
+          borderColor: 'rgba(231, 76, 60, 0.3)'
+        };
+      case 'info':
+        return {
+          ...baseStyle,
+          color: theme.colors.primary,
+          backgroundColor: `${theme.colors.primary}15`,
+          borderColor: `${theme.colors.primary}30`
+        };
+      default:
+        return baseStyle;
+    }
+  };
+
   const buttonStyle: React.CSSProperties = {
     width: '100%',
     backgroundColor: theme.colors.primary,
@@ -181,6 +266,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         {mode === 'login' ? '🔐 Login' : '✍️ Sign Up'}
       </h2>
 
+      {/* NEW: Professional message display */}
+      {message && (
+        <div style={getMessageStyle(message.type)}>
+          {message.text}
+        </div>
+      )}
+
       {errors.general && (
         <div style={errorStyle}>{errors.general}</div>
       )}
@@ -196,6 +288,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
             onChange={(e) => handleInputChange('name', e.target.value)}
             onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
             onBlur={(e) => e.target.style.borderColor = theme.colors.border}
+            disabled={isSubmitting}
           />
           {errors.name && <div style={errorStyle}>{errors.name}</div>}
         </>
@@ -211,6 +304,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
         onBlur={(e) => e.target.style.borderColor = theme.colors.border}
         autoComplete="email"
+        disabled={isSubmitting}
       />
       {errors.email && <div style={errorStyle}>{errors.email}</div>}
 
@@ -224,6 +318,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
         onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
         onBlur={(e) => e.target.style.borderColor = theme.colors.border}
         autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+        disabled={isSubmitting}
       />
       {errors.password && <div style={errorStyle}>{errors.password}</div>}
 
@@ -239,6 +334,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
             onFocus={(e) => e.target.style.borderColor = theme.colors.primary}
             onBlur={(e) => e.target.style.borderColor = theme.colors.border}
             autoComplete="new-password"
+            disabled={isSubmitting}
           />
           {errors.confirmPassword && <div style={errorStyle}>{errors.confirmPassword}</div>}
         </>
@@ -273,6 +369,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess, onSwitchMod
           type="button"
           style={switchButtonStyle}
           onClick={onSwitchMode}
+          disabled={isSubmitting}
         >
           {mode === 'login' ? 'Sign up here' : 'Login here'}
         </button>

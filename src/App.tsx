@@ -19,6 +19,7 @@ import { BlogPostPage } from './pages/BlogPostPage';
 import { PastShowsArchivePage } from './pages/PastShowsArchivePage';
 import { PastShowPage } from './pages/PastShowPage';
 import { useAuth } from './utils/useAuth';
+import { Welcome } from './pages/Welcome';
 
 // Component to handle scroll to top on route changes
 const ScrollToTop: React.FC = () => {
@@ -156,6 +157,9 @@ const AppRouter: React.FC = () => {
           </AuthRoute>
         } 
       />
+      
+      {/* NEW: Welcome Page for Email Confirmation */}
+      <Route path="/welcome" element={<Welcome />} />
       
       {/* Protected Admin Route */}
       <Route 

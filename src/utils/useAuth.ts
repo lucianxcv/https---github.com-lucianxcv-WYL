@@ -1,4 +1,4 @@
-// ==================== src/utils/useAuth.ts - IMPROVED VERSION ====================
+// ==================== src/utils/useAuth.ts - UPDATED VERSION ====================
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { authApi } from './apiService';
@@ -19,6 +19,7 @@ interface AuthActions {
   signOut: () => Promise<void>;
   updateProfile: (profileData: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
+  resendConfirmation: (email: string) => Promise<{ data: any; error: null }>;
 }
 
 // Cache for user data to reduce API calls
@@ -300,8 +301,8 @@ export function useAuth(): AuthState & AuthActions {
           data: {
             name: name || email.split('@')[0],
           },
-          // Use your actual Vercel URL for email confirmations
-          emailRedirectTo: 'https://wyl-miron-lucians-projects.vercel.app/#home'
+          // UPDATED: Redirect to /welcome page for email confirmation
+          emailRedirectTo: `${window.location.origin}/welcome`
         }
       });
 
@@ -335,6 +336,13 @@ export function useAuth(): AuthState & AuthActions {
       });
 
       if (error) throw error;
+
+      // NEW: Check if email is verified - prevents unverified login
+      if (data.user && !data.user.email_confirmed_at) {
+        // Sign out the user if email is not verified
+        await supabase.auth.signOut();
+        throw new Error('Please verify your email address before signing in. Check your inbox for a confirmation link.');
+      }
 
       console.log('✅ Sign in successful:', data.user?.email);
       // User profile will be loaded by the auth state change listener
@@ -403,6 +411,25 @@ export function useAuth(): AuthState & AuthActions {
     }
   };
 
+  // NEW: Resend confirmation email function
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/welcome`
+        }
+      });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Resend confirmation error:', error);
+      throw error;
+    }
+  };
+
   return {
     ...authState,
     signIn,
@@ -410,5 +437,6 @@ export function useAuth(): AuthState & AuthActions {
     signOut,
     updateProfile,
     refreshUser,
+    resendConfirmation, // NEW: Added resend confirmation function
   };
 }

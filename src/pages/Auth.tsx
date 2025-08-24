@@ -21,7 +21,7 @@ export const Auth: React.FC = () => {
   // Redirect to home if user becomes authenticated
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      window.location.hash = '#home';
+      window.location.href = '/';
     }
   }, [isAuthenticated, isLoading]);
 
