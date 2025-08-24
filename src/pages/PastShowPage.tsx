@@ -632,7 +632,7 @@ export const PastShowPage: React.FC = () => {
         {/* About the Show Section */}
         <section style={infoSectionStyle} className="fade-in">
           <div style={speakerInfoStyle}>
-            <h2 style={sectionTitleStyle}>📋 About the Show</h2>
+            <h2 style={sectionTitleStyle}>📋 About the Episode</h2>
             <h3 style={speakerNameStyle}>{show.speakerName}</h3>
             {show.speakerCompany && (
               <p style={{
