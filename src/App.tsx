@@ -20,6 +20,7 @@ import { PastShowsArchivePage } from './pages/PastShowsArchivePage';
 import { PastShowPage } from './pages/PastShowPage';
 import { useAuth } from './utils/useAuth';
 import { Welcome } from './pages/Welcome';
+import { UserProfile } from './pages/UserProfile';
 
 // Component to handle scroll to top on route changes
 const ScrollToTop: React.FC = () => {
@@ -131,6 +132,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 // Main App Router Component
+// Main App Router Component
 const AppRouter: React.FC = () => {
   return (
     <Routes>
@@ -160,6 +162,16 @@ const AppRouter: React.FC = () => {
       
       {/* NEW: Welcome Page for Email Confirmation */}
       <Route path="/welcome" element={<Welcome />} />
+
+      {/* ✅ Protected User Profile Route */}
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        } 
+      />
       
       {/* Protected Admin Route */}
       <Route 
@@ -179,6 +191,7 @@ const AppRouter: React.FC = () => {
     </Routes>
   );
 };
+
 
 // Main App Component
 const App: React.FC = () => {

@@ -423,3 +423,38 @@ export const commentsApi = {
   // report - not supported by backend yet
   // getReactions - not supported by backend yet
 };
+// Add these to your existing src/utils/apiService.ts - SIMPLE VERSION
+
+// ==================== SIMPLE PROFILE API ====================
+export const profileApi = {
+  // Get user profile
+  getUserProfile: (userId: string) => 
+    apiRequest<any>(`/api/users/${userId}/profile`),
+
+  // Update user profile (just basic info)
+  updateUserProfile: (userId: string, profileData: {
+    name?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+  }) =>
+    apiRequest<any>(`/api/users/${userId}/profile`, {
+      method: 'PATCH',
+      body: JSON.stringify(profileData),
+    }),
+
+  // Update user preferences
+  updateUserPreferences: (userId: string, preferences: {
+    emailNotifications: boolean;
+    weeklyDigest: boolean;
+    commentReplies: boolean;
+  }) =>
+    apiRequest<any>(`/api/users/${userId}/preferences`, {
+      method: 'PATCH',
+      body: JSON.stringify(preferences),
+    }),
+
+  // Get basic user statistics
+  getUserStats: (userId: string) =>
+    apiRequest<any>(`/api/users/${userId}/stats`)
+};

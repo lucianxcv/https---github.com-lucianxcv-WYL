@@ -6,6 +6,9 @@
  * - useLocation for active state detection
  * - useNavigate for programmatic navigation
  * - Clean URL navigation
+ * - Logo as home button with image
+ * - Home changed to Journal (articles)
+ * - Direct profile link (no dropdown)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -39,8 +42,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (path === '/' || path === '/home') return 'home';
     if (path === '/upcoming') return 'speakers';
     if (path === '/past-shows') return 'past-shows';
-    if (path.startsWith('/posts/') || path === '/articles') return 'articles';
+    if (path.startsWith('/posts/') || path === '/articles') return 'articles'; // Updated for Journal
     if (path.startsWith('/shows/')) return 'past-shows';
+    if (path === '/profile') return 'profile'; // Add profile detection
     return 'home';
   };
 
@@ -231,9 +235,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     textDecoration: 'none'
   };
 
-  // Updated navigation items with React Router paths
+  // Updated navigation items - Home changed to Journal
   const navItems = [
-    { id: 'home', label: 'Home', href: '/', icon: '🏠' },
+    { id: 'articles', label: 'Journal', href: '/articles', icon: '📚' }, // Changed from Home to Journal
     { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '🎤' },
     { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '🎥' }
   ];
@@ -282,7 +286,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <style>{animations}</style>
       <nav style={navbarStyle}>
         <div style={containerStyle}>
-          {/* Logo */}
+          {/* Logo - Now clickable home button with image */}
           <Link 
             to="/" 
             style={logoStyle}
@@ -293,7 +297,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            <span style={{ fontSize: '1.5rem' }}>🛥️</span>
+            <img 
+              src="https://fpuihryuqxaauymcgszd.supabase.co/storage/v1/object/public/logos/home.png"
+              alt="Wednesday Yachting Luncheon"
+              style={{
+                height: '40px',
+                width: 'auto',
+                transition: 'all 0.3s ease'
+              }}
+            />
             <span>Wednesday Yachting Luncheon</span>
           </Link>
 
@@ -361,36 +373,65 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Authentication */}
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-                {/* User Avatar */}
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    style={userAvatarStyle}
-                    title={`${user.name || 'User'} (${user.role})`}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#64748b';
-                    }}
-                  />
-                ) : (
-                  <div 
-                    style={userPlaceholderStyle}
-                    title={`${user?.name || 'User'} (${user?.role})`}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                      e.currentTarget.style.backgroundColor = '#475569';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#64748b';
-                      e.currentTarget.style.backgroundColor = '#334155';
-                    }}
-                  >
-                    👤
-                  </div>
-                )}
+                {/* Direct Profile Link - No Dropdown */}
+                <Link
+                  to="/profile"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.xs,
+                    textDecoration: 'none',
+                    padding: theme.spacing.xs,
+                    borderRadius: '6px',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  title={`Go to Profile - ${user?.name || 'User'} (${user?.role})`}
+                >
+                  {/* User Avatar */}
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || 'User'}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #64748b'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: '#334155',
+                      border: '2px solid #64748b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.9rem',
+                      color: '#e2e8f0'
+                    }}>
+                      {user?.name?.charAt(0) || user?.email?.charAt(0) || '👤'}
+                    </div>
+                  )}
+                  
+                  {/* User Name */}
+                  <span style={{ 
+                    fontSize: theme.typography.sizes.sm, 
+                    color: '#e2e8f0',
+                    fontWeight: 500 
+                  }}>
+                    {user?.name || user?.email}
+                  </span>
+                </Link>
 
                 {/* Admin Link */}
                 {isAdmin && (
@@ -526,19 +567,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}>
               {isAuthenticated ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
-                  {/* User Info */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: theme.spacing.md,
-                    padding: theme.spacing.md,
-                    backgroundColor: '#334155',
-                    borderRadius: '6px'
-                  }}>
+                  {/* User Info - Now clickable to go to profile */}
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: theme.spacing.md,
+                      padding: theme.spacing.md,
+                      backgroundColor: '#334155',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      color: '#f8fafc'
+                    }}
+                  >
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name || 'User'} style={userAvatarStyle} />
                     ) : (
-                      <div style={userPlaceholderStyle}>👤</div>
+                      <div style={userPlaceholderStyle}>
+                        {user?.name?.charAt(0) || user?.email?.charAt(0) || '👤'}
+                      </div>
                     )}
                     <div>
                       <div style={{ 
@@ -551,10 +600,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         fontSize: theme.typography.sizes.sm, 
                         color: '#94a3b8'
                       }}>
-                        {user?.role}
+                        {user?.role} • Click for Profile
                       </div>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Admin Link (Mobile) */}
                   {isAdmin && (
