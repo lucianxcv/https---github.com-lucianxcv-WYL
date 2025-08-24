@@ -163,7 +163,7 @@ export const UserProfile: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    if (!confirm('Are you sure you want to sign out?')) return;
+    if (!window.confirm('Are you sure you want to sign out?')) return;
     
     try {
       await signOut();
