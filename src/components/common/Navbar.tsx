@@ -237,7 +237,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Updated navigation items - Home changed to Journal
   const navItems = [
-    { id: 'articles', label: 'Journal', href: '/articles', icon: '📚' }, // Changed from Home to Journal
+    { id: 'articles', label: 'Journal', href: '/articles' }, // Changed from Home to Journal
     { id: 'speakers', label: 'Upcoming Speakers', href: '/?section=upcoming', icon: '🎤' },
     { id: 'past-shows', label: 'Past Shows', href: '/past-shows', icon: '🎥' }
   ];
@@ -291,7 +291,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             to="/" 
             style={logoStyle}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.transform = 'scale(1.08)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
@@ -451,7 +451,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       e.currentTarget.style.borderColor = '#64748b';
                     }}
                   >
-                    ⚙️ Admin
+                    ⚙️Admin
                   </Link>
                 )}
 
@@ -474,7 +474,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     e.currentTarget.style.color = '#e2e8f0';
                   }}
                 >
-                  🚪 Sign Out
+                  🚪Sign Out
                 </button>
               </div>
             ) : (
@@ -490,7 +490,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                🔐 Login
+                🔐Login
               </Link>
             )}
 
@@ -625,7 +625,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                     onClick={handleSignOut}
                   >
-                    🚪 Sign Out
+                    🚪Sign Out
                   </button>
                 </div>
               ) : (
@@ -634,7 +634,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   style={{...actionButtonStyle, width: '100%', justifyContent: 'center'}}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  🔐 Login
+                  🔐Login
                 </Link>
               )}
             </div>
