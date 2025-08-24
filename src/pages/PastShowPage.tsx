@@ -47,7 +47,6 @@ export const PastShowPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [relatedShows, setRelatedShows] = useState<PastShowData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -264,13 +263,9 @@ export const PastShowPage: React.FC = () => {
   const modernTitleStyle: React.CSSProperties = {
     fontSize: 'clamp(2.5rem, 5vw, 4rem)',
     fontWeight: '800',
-    color: '#f0f6fc',
+    color: '#ffffff',
     marginBottom: '24px',
-    lineHeight: 1.1,
-    background: 'linear-gradient(135deg, #58a6ff 0%, #79c0ff 50%, #a5a5ff 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+    lineHeight: 1.1
   };
 
   const subtitleStyle: React.CSSProperties = {
@@ -292,11 +287,11 @@ export const PastShowPage: React.FC = () => {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'rgba(88, 166, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: '12px 20px',
     borderRadius: '12px',
-    border: '1px solid rgba(88, 166, 255, 0.2)',
-    color: '#79c0ff',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    color: '#ffffff',
     fontSize: '0.95rem',
     fontWeight: '500'
   };
@@ -317,40 +312,6 @@ export const PastShowPage: React.FC = () => {
     position: 'relative',
     paddingBottom: '56.25%', // 16:9
     height: 0
-  };
-
-  const videoOverlayStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: isVideoPlaying 
-      ? 'transparent' 
-      : 'linear-gradient(45deg, rgba(13, 17, 23, 0.4) 0%, rgba(88, 166, 255, 0.1) 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.4s ease',
-    cursor: isVideoPlaying ? 'default' : 'pointer'
-  };
-
-  const playButtonStyle: React.CSSProperties = {
-    width: '90px',
-    height: '90px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(88, 166, 255, 0.95)',
-    border: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '32px',
-    color: '#0d1117',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 8px 32px rgba(88, 166, 255, 0.3)',
-    opacity: isVideoPlaying ? 0 : 1,
-    transform: 'scale(1)'
   };
 
   // Modern Info Section
@@ -474,12 +435,6 @@ export const PastShowPage: React.FC = () => {
     }
     
     .fade-in { animation: fadeInUp 0.8s ease-out; }
-    
-    .play-button:hover {
-      transform: scale(1.1);
-      background-color: rgba(88, 166, 255, 1);
-      box-shadow: 0 12px 40px rgba(88, 166, 255, 0.4);
-    }
     
     .related-card:hover {
       transform: translateY(-8px);
@@ -639,26 +594,19 @@ export const PastShowPage: React.FC = () => {
         <div style={videoPlayerStyle} className="fade-in">
           <div style={videoContainerStyle}>
             {show.videoId ? (
-              <>
-                <iframe
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 'none'
-                  }}
-                  src={`https://www.youtube.com/embed/${show.videoId}?rel=0&modestbranding=1&autoplay=${isVideoPlaying ? 1 : 0}`}
-                  title={show.title}
-                  allowFullScreen
-                />
-                <div style={videoOverlayStyle} onClick={() => setIsVideoPlaying(true)}>
-                  <button style={playButtonStyle} className="play-button">
-                    ▶️
-                  </button>
-                </div>
-              </>
+              <iframe
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none'
+                }}
+                src={`https://www.youtube.com/embed/${show.videoId}?rel=0&modestbranding=1`}
+                title={show.title}
+                allowFullScreen
+              />
             ) : (
               <div style={{
                 position: 'absolute',
