@@ -32,7 +32,7 @@ export const Welcome: React.FC = () => {
       if (!token || type !== 'signup') {
         // No token means user navigated here directly
         setStatus('success');
-        setMessage('Welcome! Your account is ready to use.');
+        setMessage('Welcome! Your account is all set. Explore the Wednesday Yachting Luncheon community and join us as we celebrate sailing, yachting, and great company.');
         return;
       }
 
